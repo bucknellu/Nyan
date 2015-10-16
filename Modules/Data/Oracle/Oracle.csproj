@@ -44,7 +44,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AdapterPrimitive.cs" />
     <Compile Include="OracleAdapter.cs" />
     <Compile Include="OracleDynamicParameters.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
