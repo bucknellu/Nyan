@@ -1,0 +1,12 @@
+﻿<Packages>
+  <Package Id="Microsoft.AspNet.WebApi" Version="5.0.0" />
+  <Package Id="Microsoft.AspNet.Mvc" Version="5.0.0" />
+  <Package Id="Microsoft.AspNet.Web.Optimization" Version="1.1.1" />
+  <Package Id="jQuery" Version="1.10.2" />
+  <Package Id="bootstrap" Version="3.0.0" />
+  <Package Id="Modernizr" Version="2.6.2" />
+  <Package Id="WebGrease" Version="1.5.2" />
+  <Package Id="jQuery.Validation" Version="1.11.1" />
+  <Package Id="Microsoft.jQuery.Unobtrusive.Validation" Version="3.0.0" />
+  <Package Id="Microsoft.AspNet.WebApi.OData" Version="5.0.0" />
+</Packages>

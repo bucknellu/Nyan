@@ -1,0 +1,1 @@
+﻿<%@ Application Codebehind="Global.asax.cs" Inherits="Nyan.WebSample.MvcApplication" Language="C#" %>
