@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
 using System.Linq;
 using Dapper;
-using Newtonsoft.Json.Serialization;
 using Nyan.Core.Extensions;
 
 namespace Nyan.Core.Modules.Data.Adapter

@@ -10,6 +10,7 @@ using Dapper;
 using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Data.Adapter;
 using Nyan.Core.Modules.Data.Connection;
+using System.Collections.Concurrent;
 
 namespace Nyan.Core.Modules.Data
 {
@@ -22,7 +23,7 @@ namespace Nyan.Core.Modules.Data
     public class MicroEntity<T> where T : MicroEntity<T>
     {
         // ReSharper disable once StaticFieldInGenericType
-        private static readonly Dictionary<Type, MicroEntityCompiledStatements> ClassRegistration = new Dictionary<Type, MicroEntityCompiledStatements>();
+        private static readonly ConcurrentDictionary<Type, MicroEntityCompiledStatements> ClassRegistration = new ConcurrentDictionary<Type, MicroEntityCompiledStatements>();
 
         private static readonly object AccessLock = new object();
         private bool _isDeleted;
@@ -63,6 +64,11 @@ namespace Nyan.Core.Modules.Data
             return ret;
         }
 
+        /// <summary>
+        ///     Forces entity lookup in database, skipping cache. 
+        /// </summary>
+        /// <param name="identifier">The identifier.</param>
+        /// <returns>An object instance if the ID exists, or NULL otherwise.</returns>
         internal static T GetFromDatabase(string identifier)
         {
             var retCol = Query(Statements.SqlGetSingle, new { Id = identifier });
@@ -87,7 +93,7 @@ namespace Nyan.Core.Modules.Data
                 for (var index = 0; index < innerList.Count; index++)
                     innerList[index] = innerList[index].Replace("'", "''");
 
-                var qryparm = "'" + String.Join("','", innerList) + "'";
+                var qryparm = "'" + string.Join("','", innerList) + "'";
 
                 var q = string.Format(Statements.SqlAllFieldsQueryTemplate,
                     Statements.IdPropertyRaw + " IN (" + qryparm + ")");
@@ -132,7 +138,6 @@ namespace Nyan.Core.Modules.Data
             var ret = Query(Statements.SqlGetAll);
             if (!TableData.UseCaching) return ret;
 
-
             //...but it populates the cache with all the individual results, saving time for future FETCHes.
             foreach (var o in ret) Settings.Current.Cache[CacheKey(o.GetEntityIdentifier())] = o.ToJson();
 
@@ -154,7 +159,6 @@ namespace Nyan.Core.Modules.Data
             if (!TableData.UseCaching) return;
 
             Settings.Current.Cache.Remove(CacheKey(identifier));
-            //Settings.Current.Cache.Remove(CacheKey("A"));
         }
 
         public static void Insert(List<T> objs)
@@ -578,7 +582,7 @@ namespace Nyan.Core.Modules.Data
                 {
                     Settings.Current.Log.Add("{0} @ {1} - {2} : Initializing".format(typeof(T).FullName, System.Environment.MachineName, Settings.Current.Environment.Current));
 
-                    ClassRegistration.Add(typeof(T), new MicroEntityCompiledStatements());
+                    ClassRegistration.TryAdd(typeof(T), new MicroEntityCompiledStatements());
 
                     Statements.Status = MicroEntityCompiledStatements.EStatus.Initializing;
                     Statements.StatusStep = "Instantiating ColumnAttributeTypeMapper";
@@ -605,7 +609,6 @@ namespace Nyan.Core.Modules.Data
                         var refType = (BundlePrimitive)Activator.CreateInstance(refBundle);
 
                         Statements.Bundle = refType;
-
 
                         refType.ValidateDatabase();
 
@@ -635,8 +638,6 @@ namespace Nyan.Core.Modules.Data
                     Statements.IdProperty = Statements.Adapter.ParameterIdentifier + mapEntry.Key;
                     Statements.IdPropertyRaw = mapEntry.Key;
                     Statements.IdColumn = mapEntry.Value;
-
-
 
                     Statements.StatusStep = "Rendering Schema entity names";
                     Statements.Adapter.RenderSchemaEntityNames<T>();
