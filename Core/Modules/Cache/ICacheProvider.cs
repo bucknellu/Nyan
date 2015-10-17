@@ -27,6 +27,7 @@ namespace Nyan.Core.Modules.Cache
         IEnumerable<string> GetAll(string oNamespace);
         bool Contains(string key);
         void Remove(string key, string oSet = null);
+        void RemoveAll(string oSet = null);
         void SetSingleton(object value, string fullName = null);
         T GetSingleton<T>(string fullName = null);
     }

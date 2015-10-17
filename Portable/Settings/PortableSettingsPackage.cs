@@ -4,7 +4,6 @@ using Nyan.Core.Modules.Cache;
 using Nyan.Core.Modules.Encryption;
 using Nyan.Core.Modules.Environment;
 using Nyan.Core.Modules.Log;
-using Nyan.Portable.Modules.Cache;
 
 namespace Nyan.Portable.Settings
 {
@@ -14,7 +13,7 @@ namespace Nyan.Portable.Settings
         public PortableSettingsPackage()
         {
             Log = new NullLogProvider();
-            Cache = new MemoryCacheProvider();
+            Cache = new Nyan.Modules.Cache.Memory.MemoryCacheProvider();
             Encryption = new NullEncryptionProvider();
             Environment = new DefaultEnvironmentProvider();
             GlobalConnectionBundleType = typeof(Modules.Data.Connection.SQLiteBundle);

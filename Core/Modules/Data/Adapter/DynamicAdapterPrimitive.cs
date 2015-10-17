@@ -42,6 +42,7 @@ namespace Nyan.Core.Modules.Data.Adapter
             get { return _internalParameters.Select(p => p.Key); }
         }
 
+
         //Generic WHERE clause render.
         public virtual string SqlWhereClause
         {
@@ -80,15 +81,6 @@ namespace Nyan.Core.Modules.Data.Adapter
             }
         }
 
-        public virtual string ParameterTemplate
-        {
-            get
-            {
-                //Vanilla response. No transformation.
-                return "{0}";
-            }
-        }
-
         public Dictionary<string, ParameterInformation> Parameters
         {
             get { return _internalParameters; }
@@ -111,15 +103,14 @@ namespace Nyan.Core.Modules.Data.Adapter
             _sqlInClause = null;
         }
 
-        public virtual void Add(string name, object value = null, DbGenericType? dbType = DbGenericType.String,
-            ParameterDirection? direction = ParameterDirection.Input, int? size = null)
+        public virtual void Add(string name, object value = null, DbGenericType? dbType = DbGenericType.String, ParameterDirection? direction = ParameterDirection.Input, int? size = null)
         {
             _sqlWhereClause = null; // Always reset WHERE clause.
             _sqlInClause = null; // Always reset IN clause.
 
             var ret = CustomizeParameterInformation(new ParameterInformation
             {
-                Name = ParameterTemplate.format(name),
+                Name = name,
                 Value = value,
                 ParameterDirection = direction ?? ParameterDirection.Input, // No direction? Input then.
                 Type = dbType ?? DbGenericType.LargeObject,

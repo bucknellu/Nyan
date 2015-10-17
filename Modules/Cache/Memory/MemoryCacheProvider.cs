@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Cache;
+using System;
+using System.Collections.Generic;
 using System.Runtime.Caching;
-using Nyan.Core.Extensions;
 
-namespace Nyan.Portable.Modules.Cache
+namespace Nyan.Modules.Cache.Memory
 {
     public class MemoryCacheProvider : ICacheProvider
     {
@@ -66,6 +66,12 @@ namespace Nyan.Portable.Modules.Cache
         {
             var n = (fullName ?? value.GetType().FullName) + ":s";
             this[n] = value.ToJson();
+        }
+
+        public void RemoveAll(string oSet = null)
+        {
+            cache.Dispose();
+            cache = new MemoryCache("NyanCache");
         }
     }
 }

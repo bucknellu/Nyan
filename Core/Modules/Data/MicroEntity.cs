@@ -126,15 +126,7 @@ namespace Nyan.Core.Modules.Data
             if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
                 throw new InvalidDataException("Class is not operational: {0}, {1}".format(Statements.Status.ToString(), Statements.StatusDescription));
 
-            //GetAll NEVER uses Redis, always hitting the DB.
-
-            //if (TableData.UseRedis)
-            //{
-            //    IEnumerable<string> keys = Settings.Current.Cache.GetAll(CacheKey());
-            //    if (keys.Any())
-            //        return Settings.Current.Cache.GetAll(CacheKey()).Select(o => o.FromJson<T>());
-            //}
-
+            //GetAll should never use cache, always hitting the DB.
             var ret = Query(Statements.SqlGetAll);
             if (!TableData.UseCaching) return ret;
 
@@ -147,6 +139,17 @@ namespace Nyan.Core.Modules.Data
         public static void Remove(long identifier)
         {
             Remove(identifier.ToString(CultureInfo.InvariantCulture));
+        }
+        public static void RemoveAll()
+        {
+            if (TableData.IsReadOnly)
+                throw new ReadOnlyException("This entity is set as read-only.");
+
+            Execute(Statements.SqlTruncateTable);
+
+            if (!TableData.UseCaching) return;
+
+            Settings.Current.Cache.RemoveAll();
         }
 
         public static void Remove(string identifier)
@@ -255,7 +258,7 @@ namespace Nyan.Core.Modules.Data
             if (TableData.IsReadOnly)
                 throw new ReadOnlyException("This entity is set as read-only.");
 
-            Execute(Statements.SqlRemoveSingle, this);
+            Execute(Statements.SqlRemoveSingleParametrized, this);
 
             var cKey = typeof(T).FullName + ":" + GetEntityIdentifier();
             Settings.Current.Cache.Remove(cKey);

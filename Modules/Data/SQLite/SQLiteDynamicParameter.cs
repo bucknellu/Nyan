@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
 
-namespace Nyan.Portable.Modules.Data
+namespace Nyan.Modules.Data.SQLite
 {
     public class SQLiteDynamicParameters : DynamicParametersPrimitive, SqlMapper.IDynamicParameters
     {
@@ -18,18 +18,11 @@ namespace Nyan.Portable.Modules.Data
         {
             AddDynamicParams(template);
         }
-        public override string ParameterTemplate
-        {
-            get
-            {
-                //MySQL parameter format: [@parm]
-                return @"@{0}";
-            }
-        }
         void SqlMapper.IDynamicParameters.AddParameters(IDbCommand command, SqlMapper.Identity identity)
         {
             AddParameters(command, identity);
         }
+
         public void AddDynamicParams(object param)
         {
             var obj = param;

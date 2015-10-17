@@ -1,8 +1,6 @@
-﻿using Nyan.Core.Extensions;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace Nyan.Core.Assembly
 {
@@ -12,20 +10,11 @@ namespace Nyan.Core.Assembly
 
         static Management()
         {
-            LoadAssemblies();
-        }
-
-        private static void LoadAssemblies()
-        {
+            // This bootstrapper loads all assemblies placed in the same physical directory as the caller project,
+            // And keep a static reference to them.
 
             LoadLocalAssemblies();
-
-            var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
-
-            foreach (var loadedAssembly in loadedAssemblies)
-                LoadAssembly(loadedAssembly);
         }
-
         private static void LoadLocalAssemblies()
         {
             List<System.Reflection.Assembly> allAssemblies = new List<System.Reflection.Assembly>();
@@ -42,28 +31,8 @@ namespace Nyan.Core.Assembly
                     allAssemblies.Add(assy);
 
                 }
-                catch 
-                {
-                }
+                catch { }
 
-            }
-        }
-
-        private static void LoadAssembly(System.Reflection.Assembly assembly)
-        {
-            foreach (
-                var name in
-                    assembly.GetReferencedAssemblies()
-                        .Where(name => AppDomain.CurrentDomain.GetAssemblies().All(a => a.FullName != name.FullName)))
-                LoadAssembly(System.Reflection.Assembly.Load(name));
-
-            try
-            {
-                System.Reflection.Assembly.Load(assembly.FullName);
-            }
-            catch (Exception)
-            {
-                Settings.Current.Log.Add("Assembly {0} failed to load.".format(assembly.FullName), Modules.Log.Message.EContentType.Warning);
             }
         }
 
@@ -81,10 +50,8 @@ namespace Nyan.Core.Assembly
                 {
                     if (!item3.IsInterface)
 
-                    if (type.IsAssignableFrom(item3))
-                    {
-                        ret.Add(item3);
-                    }
+                        if (type.IsAssignableFrom(item3))
+                            ret.Add(item3);
 
                 }
             }

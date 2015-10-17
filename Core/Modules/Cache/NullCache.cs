@@ -51,5 +51,10 @@ namespace Nyan.Core.Modules.Cache
         {
             throw new System.NotImplementedException();
         }
+
+        public void RemoveAll(string oSet = null)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -47,6 +47,11 @@ namespace Nyan.Modules.Cache.Redis
             throw new NotImplementedException();
         }
 
+        public void RemoveAll(string oSet = null)
+        {
+            throw new NotImplementedException();
+        }
+
         public void SetSingleton(object value, string fullName = null)
         {
             throw new NotImplementedException();

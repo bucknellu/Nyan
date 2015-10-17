@@ -24,7 +24,7 @@ namespace Nyan.Core.Modules.Cache
 
             var ret = method(key);
 
-            Settings.Current.Log.Add("CACHE STO " + cacheid);
+            //Settings.Current.Log.Add("CACHE STO " + cacheid);
             Settings.Current.Cache[cacheid] = ret.ToJson();
 
             return ret;
@@ -42,7 +42,7 @@ namespace Nyan.Core.Modules.Cache
 
             var ret = method(key);
 
-            Settings.Current.Log.Add("CACHE STO " + cacheid);
+            //Settings.Current.Log.Add("CACHE STO " + cacheid);
             Settings.Current.Cache[cacheid] = ret.ToJson();
 
             return ret;
@@ -76,24 +76,24 @@ namespace Nyan.Core.Modules.Cache
             var cache = Settings.Current.Cache[cacheid].FromJson<T>();
             if (cache != null)
             {
-                Settings.Current.Log.Add("CACHE HIT " + cacheid);
+                //Settings.Current.Log.Add("CACHE HIT " + cacheid);
                 return cache;
             }
 
-            Settings.Current.Log.Add("CACHE NIL " + cacheid);
+            //Settings.Current.Log.Add("CACHE NIL " + cacheid);
 
             lock (singletonLock)
             {
                 cache = Settings.Current.Cache[cacheid].FromJson<T>();
                 if (cache != null)
                 {
-                    Settings.Current.Log.Add("CACHE LAG " + cacheid);
+                    //Settings.Current.Log.Add("CACHE LAG " + cacheid);
                     return cache;
                 }
 
                 var ret = method();
 
-                Settings.Current.Log.Add("CACHE STO " + cacheid);
+                //Settings.Current.Log.Add("CACHE STO " + cacheid);
                 Settings.Current.Cache[cacheid, null, timeOutSeconds] = ret.ToJson();
                 cache = ret;
             }

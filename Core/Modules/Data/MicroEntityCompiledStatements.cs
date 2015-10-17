@@ -47,9 +47,10 @@ namespace Nyan.Core.Modules.Data
 
         public string SqlInsertSingle;
         public string SqlInsertSingleWithReturn;
-        public string SqlRemoveSingle;
         public string SqlRemoveSingleParametrized;
         public string SqlUpdateSingle;
+        public string SqlTruncateTable;
+
         protected internal EStatus Status { get; internal set; }
         protected internal string StatusDescription { get; internal set; }
         protected internal string StatusStep { get; internal set; }
