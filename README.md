@@ -52,7 +52,7 @@ Oh, REST! Right. So, once you decide you want to expose your ORM class data thro
 <img src='http://i.imgur.com/R1mpJn9.png' /></br>
 - ...that's it.
 
-Now run your project, and reach the endpoint you specified. If you're running the sample provided (`Nyan.Samples.REST`). You can try the following URLs:
+Now run your project, and reach the endpoint you specified. If you're running the sample provided (`Nyan.Samples.REST`), you can try the following URLs:
 
  - `http://localhost/Nyan.Samples.REST/users`
  <img src='http://i.imgur.com/jLYcOxD.png' /></br>
