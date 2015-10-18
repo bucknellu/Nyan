@@ -1,6 +1,6 @@
 <p align="center">
 <img src='http://i.imgur.com/3lxWGRq.png' /></br>
-A lightweight .NET stack
+A lightweight .NET data service stack
 </p>
 
 
