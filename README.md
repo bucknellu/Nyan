@@ -38,7 +38,7 @@ C# example:
 
 ## W-wait, what have I just done?
 
-Congratulations! You've just created a SQLite- and MemoryCache- backed ORM class. A SQLite database was created, together with a table to support your class.
+Congratulations! You created a SQLite- and MemoryCache- backed ORM class. A SQLite database was created, together with a table to store entries.
 
 ## Methods
 
