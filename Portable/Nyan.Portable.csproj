@@ -77,13 +77,13 @@
       <Project>{5f53ab9e-fdda-4a45-b0be-d1fce1916fde}</Project>
       <Name>Nyan.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Modules\Cache\Memory\Memory.csproj">
+    <ProjectReference Include="..\Modules\Cache\Memory\Nyan.Modules.Cache.Memory.csproj">
       <Project>{ce77d796-c158-48ff-b141-54489564a7e1}</Project>
-      <Name>Memory</Name>
+      <Name>Nyan.Modules.Cache.Memory</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Modules\Data\SQLite\SQLite.csproj">
+    <ProjectReference Include="..\Modules\Data\SQLite\Nyan.Modules.Data.SQLite.csproj">
       <Project>{44c04cf5-d6cf-443e-950d-a5b214b3c0bc}</Project>
-      <Name>SQLite</Name>
+      <Name>Nyan.Modules.Data.SQLite</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

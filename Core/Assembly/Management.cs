@@ -18,8 +18,10 @@ namespace Nyan.Core.Assembly
         private static void LoadLocalAssemblies()
         {
             List<System.Reflection.Assembly> allAssemblies = new List<System.Reflection.Assembly>();
-            string path = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-            foreach (string dll in Directory.GetFiles(path, "*.dll"))
+
+            var assylist = Directory.GetFiles(Settings.Current.BaseDirectory, "*.dll");
+
+            foreach (string dll in assylist)
             {
                 try
                 {

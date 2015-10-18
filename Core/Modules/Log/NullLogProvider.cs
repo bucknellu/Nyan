@@ -8,7 +8,8 @@ namespace Nyan.Core.Modules.Log
     {
         public new void Add(string content, Message.EContentType type = null)
         {
-            Console.WriteLine(content);
+            Debug.Write("[{0}] {1}".format(type.Code, content));
+            Console.WriteLine("[{0}] {1}".format(type.Code, content));
         }
     }
 }

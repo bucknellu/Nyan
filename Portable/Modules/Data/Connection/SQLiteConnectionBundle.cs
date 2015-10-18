@@ -7,17 +7,32 @@ namespace Nyan.Portable.Modules.Data.Connection
 {
     public class SQLiteBundle : BundlePrimitive
     {
+        private string _dbName = null;
+
+
         public SQLiteBundle()
         {
+            Initialize();
+        }
+
+        public SQLiteBundle(string dbName)
+        {
+            Initialize(dbName);
+        }
+
+        private void Initialize(string dbName = "Nyan.sqlite.db")
+        {
+            _dbName = dbName;
+
             AdapterType = typeof(Nyan.Modules.Data.SQLite.SQLiteDataAdapter);
-            EnvironmentCypherKeys = new Dictionary<string, string> { { "STD", "Data Source=Nyan.sqlite.db;Version=3;" } };
+            EnvironmentCypherKeys = new Dictionary<string, string> { { "STD", "Data Source=" + Nyan.Core.Settings.Current.BaseDirectory + "/" + _dbName + ";Version=3;" } };
         }
 
         public override void ValidateDatabase()
         {
-            if (!File.Exists("Nyan.sqlite.db"))
+            if (!File.Exists(Nyan.Core.Settings.Current.BaseDirectory + "/" + _dbName))
             {
-                SQLiteConnection.CreateFile("Nyan.sqlite.db");
+                SQLiteConnection.CreateFile(Nyan.Core.Settings.Current.BaseDirectory + "/" + _dbName);
             }
         }
     }

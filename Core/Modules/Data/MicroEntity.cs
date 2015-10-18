@@ -642,12 +642,12 @@ namespace Nyan.Core.Modules.Data
                     Statements.IdPropertyRaw = mapEntry.Key;
                     Statements.IdColumn = mapEntry.Value;
 
-                    Statements.StatusStep = "Rendering Schema entity names";
+                    Statements.StatusStep = "Preparing Schema entities";
                     Statements.Adapter.RenderSchemaEntityNames<T>();
 
                     if (TableData.TableName != null)
                     {
-                        Statements.StatusStep = "Rendering SQL statements";
+                        Statements.StatusStep = "Setting SQL statements";
                         Statements.Adapter.SetSqlStatements<T>();
                     }
 
@@ -656,7 +656,7 @@ namespace Nyan.Core.Modules.Data
 
                     using (var conn = Statements.Adapter.Connection(Statements.ConnectionString))
                     {
-                        var prb = "[Non-disclosed]";
+                        var prb = conn.GetType().Name + ": [" + conn.Database + "]";
                         try
                         {
                             var prePrb = Statements.ConnectionString.ToUpper();

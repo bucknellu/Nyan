@@ -16,8 +16,6 @@ namespace Nyan.Modules.Data.SQLite
         public override void CheckDatabaseEntities<T1>()
         {
 
-            Core.Settings.Current.Log.Add("SQLiteAdapter: Checking database entities");
-
             if (MicroEntity<T1>.TableData.IsReadOnly) return;
 
             //First step - check if the table is there.
@@ -30,8 +28,7 @@ namespace Nyan.Modules.Data.SQLite
 
                 if (tableCount != 0) return;
 
-                Core.Settings.Current.Log.Add(typeof(T1).FullName + ": Initializing schema");
-
+                Core.Settings.Current.Log.Add(typeof(T1).FullName + ": Table [" + tn + "] not found.");
 
                 var tableRender = new StringBuilder();
 
@@ -131,8 +128,8 @@ namespace Nyan.Modules.Data.SQLite
 
                 try
                 {
-                    Core.Settings.Current.Log.Add(typeof(T1).FullName + ": Applying schema");
                     MicroEntity<T1>.Execute(tableRender.ToString());
+                    Core.Settings.Current.Log.Add(typeof(T1).FullName + ": Table [" + tn + "] created.");
                 }
                 catch (Exception e)
                 {
@@ -158,25 +155,20 @@ namespace Nyan.Modules.Data.SQLite
 
         public SQLiteDataAdapter()
         {
+            //SQLite implements regular ANSI SQL, so we don't to customize the base templates.
+
             parameterIdentifier = "@";
-            useOutputParameterForInsertedKeyExtraction = false;
-            sqlTemplateInsertSingleWithReturn =
-                "INSERT INTO {0} ({1}) VALUES ({2}); select last_insert_rowid() as newid";
-            sqlTemplateTableTruncate =
-                "DELETE FROM {0}";
+            useOutputParameterForInsertedKeyExtraction = false; //Some DBs may require an OUT parameter to extract the new ID. Not the case here.
+            sqlTemplateInsertSingleWithReturn = "INSERT INTO {0} ({1}) VALUES ({2}); select last_insert_rowid() as newid";
+            sqlTemplateTableTruncate = "DELETE FROM {0}"; //No such thing as TRUNCATE on SQLite, but open DELETE works the same way.
 
             dynamicParameterType = typeof(SQLiteDynamicParameters);
         }
 
         public override void RenderSchemaEntityNames<T>()
         {
-
-            Core.Settings.Current.Log.Add(GetType().FullName + ": Rendering schema element names");
-
             var tn = MicroEntity<T>.TableData.TableName;
-
             if (tn == null) return;
-
 
             var res = new Dictionary<string, KeyValuePair<string, string>>
             {

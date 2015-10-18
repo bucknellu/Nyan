@@ -2,14 +2,16 @@
 using Nyan.Core.Modules.Cache;
 using Nyan.Core.Modules.Environment;
 using Nyan.Core.Modules.Encryption;
-using Nyan.Core.Modules.Data.Connection;
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Nyan.Core.Settings
 {
     public static class Current
     {
+        private static string _BaseDirectory = null;
+
         static Current()
         {
             var refObj = ResolveSettingsPackage();
@@ -56,6 +58,25 @@ namespace Nyan.Core.Settings
 
         public static Type GlobalConnectionBundleType { get; set; }
 
+        public static string BaseDirectory
+        {
+            get
+            {
+                if (_BaseDirectory != null) return _BaseDirectory;
+
+                string path = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                string webPath = System.Web.Hosting.HostingEnvironment.MapPath("~/bin");
+
+                _BaseDirectory = webPath != null ? webPath : path;
+
+                return _BaseDirectory;
+            }
+
+            internal set
+            {
+                _BaseDirectory = value;
+            }
+        }
     }
 
 }

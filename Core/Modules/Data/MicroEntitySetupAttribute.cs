@@ -13,12 +13,12 @@ namespace Nyan.Core.Modules.Data
             AuditAccess = false;
             IsReadOnly = false;
             TablePrefix = "";
-            UseCaching = false;
+            UseCaching = true;
             IsInsertableIdentifier = false;
             IgnoreDataOnMaintenance = false;
             ForceMapUse = false;
             ConnectionBundleType = null;
-            AutoGenerateMissingSchema = false;
+            AutoGenerateMissingSchema = true;
         }
 
         /// <summary>
