@@ -90,7 +90,7 @@ REST endpoints are provided via [Microsoft WebApi 2](http://www.asp.net/web-api/
 
 ## Nyan Development Team
 
-Current collaborators
+Collaborators
 - Leonel Sanches (http://pt.stackoverflow.com/users/2999/cigano-morrison-mendez)
 - Leo Botinelly (http://pt.stackoverflow.com/users/1897/onosendai)
 
@@ -102,4 +102,4 @@ GPL V3 - a copyleft license that requires anyone who distributes
 this code or a derivative work to make the source available under the same 
 terms. It also restricts use in hardware that forbids software alterations.
 
-Check the LICENSE file for more details.
+Check the [LICENSE file](https://github.com/lbotinelly/Nyan/blob/master/LICENSE) for more details.
