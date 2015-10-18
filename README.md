@@ -62,7 +62,7 @@ Congratulations! You've just created a SQLite- and MemoryCache- backed ORM class
 Nyan Development Team
 - Leonel Sanches (http://pt.stackoverflow.com/users/2999/cigano-morrison-mendez)
 - Leo Botinelly (http://pt.stackoverflow.com/users/1897/onosendai)
-- 
+
 Original code
 - Leo Botinelly (http://pt.stackoverflow.com/users/1897/onosendai)
 
