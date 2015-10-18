@@ -14,31 +14,31 @@ using System.Web.Http;
 namespace Nyan.Modules.Web.REST
 {
     [RoutePrefix("api2/entity")]
-    public class EntityWebApiController<T> : ApiController where T : MicroEntity<T>
+    public class MicroEntityWebApiController<T> : ApiController where T : MicroEntity<T>
     {
         // ReSharper disable once InconsistentNaming
         public Type RESTHeaderClassType = null;
         public string RESTHeaderQuery = null;
 
         //Reference resolution cache
-        private Dictionary<string, WebApiEntityReferenceAttribute> _entityReferenceAttribute;
+        private Dictionary<string, WebApiMicroEntityReferenceAttribute> _entityReferenceAttribute;
 
-        private Dictionary<string, WebApiEntityReferenceAttribute> EntityReferenceAttribute
+        private Dictionary<string, WebApiMicroEntityReferenceAttribute> EntityReferenceAttribute
         {
             get
             {
                 if (_entityReferenceAttribute != null)
                     return _entityReferenceAttribute;
 
-                _entityReferenceAttribute = new Dictionary<string, WebApiEntityReferenceAttribute>();
+                _entityReferenceAttribute = new Dictionary<string, WebApiMicroEntityReferenceAttribute>();
 
                 //var probe = GetType().GetMethods();
 
-                var probe = Attribute.GetCustomAttributes(GetType(), typeof(WebApiEntityReferenceAttribute)).ToList();
+                var probe = Attribute.GetCustomAttributes(GetType(), typeof(WebApiMicroEntityReferenceAttribute)).ToList();
 
                 foreach (var att in probe)
                 {
-                    var attProbe = (WebApiEntityReferenceAttribute)att;
+                    var attProbe = (WebApiMicroEntityReferenceAttribute)att;
                     _entityReferenceAttribute.Add(attProbe.MetaName, attProbe);
                 }
 

@@ -11,14 +11,14 @@ namespace Nyan.Modules.Web.REST
     }
 
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-    public class WebApiEntityReferenceAttribute : Attribute
+    public class WebApiMicroEntityReferenceAttribute : Attribute
     {
         public string MetaName { get; set; }
         public string ForeignProperty { get; set; }
         public Type ForeignType { get; set; }
         public string LocalProperty { get; set; }
 
-        public WebApiEntityReferenceAttribute(string metaName, string foreignProperty, Type foreignType, string localProperty = null)
+        public WebApiMicroEntityReferenceAttribute(string metaName, string foreignProperty, Type foreignType, string localProperty = null)
         {
             MetaName = metaName;
             ForeignProperty = foreignProperty;

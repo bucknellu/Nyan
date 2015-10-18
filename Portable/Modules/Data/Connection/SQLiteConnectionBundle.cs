@@ -25,14 +25,14 @@ namespace Nyan.Portable.Modules.Data.Connection
             _dbName = dbName;
 
             AdapterType = typeof(Nyan.Modules.Data.SQLite.SQLiteDataAdapter);
-            EnvironmentCypherKeys = new Dictionary<string, string> { { "STD", "Data Source=" + Nyan.Core.Settings.Current.BaseDirectory + "/" + _dbName + ";Version=3;" } };
+            EnvironmentCypherKeys = new Dictionary<string, string> { { "STD", "Data Source=" + Core.Settings.Current.BaseDirectory + "/" + _dbName + ";Version=3;" } };
         }
 
         public override void ValidateDatabase()
         {
-            if (!File.Exists(Nyan.Core.Settings.Current.BaseDirectory + "/" + _dbName))
+            if (!File.Exists(Core.Settings.Current.BaseDirectory + "/" + _dbName))
             {
-                SQLiteConnection.CreateFile(Nyan.Core.Settings.Current.BaseDirectory + "/" + _dbName);
+                SQLiteConnection.CreateFile(Core.Settings.Current.BaseDirectory + "/" + _dbName);
             }
         }
     }
