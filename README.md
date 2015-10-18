@@ -38,18 +38,7 @@ C# example:
 
 ## W-wait, what have I just done?
 
-Congratulations! You've just created a SQLite- and MemoryCache- backed ORM class. A SQLite database was created, together with a table to support your class. This is what the emmited DDL looks like:
-
-  CREATE TABLE Users (
-      id        INTEGER  NOT NULL
-                         PRIMARY KEY AUTOINCREMENT,
-      Name      VARCHAR,
-      Surname   VARCHAR,
-      isAdmin   BOOLEAN  NOT NULL,
-      BirthDate DATETIME,
-      RCTS      DATETIME DEFAULT CURRENT_TIMESTAMP,
-      RUTS      DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
+Congratulations! You've just created a SQLite- and MemoryCache- backed ORM class. A SQLite database was created, together with a table to support your class.
 
 ## Methods
 
