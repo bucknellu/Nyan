@@ -1,10 +1,13 @@
-![Nyan](http://i.imgur.com/3lxWGRq.png)
-
+<p align="center">
+<img src='http://i.imgur.com/3lxWGRq.png' /></br>
 A lightweight .NET stack
+</p>
+
+
 
 ## Yet another ORM framework? Really?
 
-Yep, but not quite. It provides not only ORM but also caching, encryption and RESTful endpoints out of the box with zero setup in some cases. Think of it like a drop-in assembly set that'll get your data flowing from persistent storage to REST endpoints in no time and with minimal effort.
+Not quite. It provides not only ORM but also caching, encryption and RESTful endpoints out of the box with zero setup in some cases. Think of it like a drop-in assembly set that'll get your data flowing from persistent storage to REST endpoints in no time and with minimal effort.
 
 ## Installation
 
