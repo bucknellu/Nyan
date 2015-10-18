@@ -47,6 +47,14 @@ Congratulations! You created a SQLite- and MemoryCache- backed ORM class. A SQLi
 - *`Class.Save()`*: Creates (if new) or updates the database entry associated with the class instance
 - *`Class.SaveAndGetId()`*: Same as above, but also returns the ID. Useful when creating a new record.
 - *`Class.Remove()`*: Deletes the database entry.
+ 
+## Core dependencies
+
+The MicroEntity module wraps around [Stack Exchange Dapper](https://github.com/StackExchange/dapper-dot-net), an abusively fast IDbConnection interface extender.
+
+REST endpoints are provided via [Microsoft WebApi 2](http://www.asp.net/web-api/overview/releases/whats-new-in-aspnet-web-api-22).
+
+
 
 ## Contributing
 
