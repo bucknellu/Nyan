@@ -59,12 +59,14 @@ Congratulations! You've just created a SQLite- and MemoryCache- backed ORM class
 
 ## Credits
 
-Original code
-- Leo Botinelly (http://pt.stackoverflow.com/users/1897/onosendai)
-
 Nyan Development Team
 - Leonel Sanches (http://pt.stackoverflow.com/users/2999/cigano-morrison-mendez)
 - Leo Botinelly (http://pt.stackoverflow.com/users/1897/onosendai)
+- 
+Original code
+- Leo Botinelly (http://pt.stackoverflow.com/users/1897/onosendai)
 
 ## License
-
+GPL V3 - a copyleft license that requires anyone who distributes 
+this code or a derivative work to make the source available under the same 
+terms. It also restricts use in hardware that forbids software alterations.
