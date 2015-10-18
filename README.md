@@ -43,6 +43,26 @@ C# example:
 
 Congratulations! You created a SQLite- and MemoryCache- backed ORM class. A SQLite database was created, together with a table to store entries.
 
+## You mentioned something about REST.
+
+Oh, REST! Right. So, once you decide you want to expose your ORM class data through a REST endpoint, do this:
+
+- Implement a class deriving from `MicroEntityWebApiController<>`, and assign a route prefix to it:
+<img src='http://i.imgur.com/R1mpJn9.png' /></br>
+- ...that's it.
+
+Now run your project, and reach the endpoint you specified. If you're running the sample provided (`Nyan.Samples.REST`). You can try the following URLs:
+
+ - `http://localhost/Nyan.Samples.REST/users`
+ <img src='http://i.imgur.com/jLYcOxD.png' /></br>
+ - `http://localhost/Nyan.Samples.REST/users/10`
+ <img src='http://i.imgur.com/TVhCcCG.png' /></br>
+ - `http://localhost/Nyan.Samples.REST/users/new`
+ <img src='http://i.imgur.com/2EprMgn.png' /></br>
+
+
+
+
 ## Methods
 
 - *`Class.GetAll()`*: Returns all stored entries
