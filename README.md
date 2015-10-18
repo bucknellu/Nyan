@@ -4,7 +4,7 @@ A lightweight, no frills .NET service stack
 
 ## Yet another ORM framework? Really?
 
-Yep, but not quite. It provices not only ORM but also caching, encryption and RESTful endpoints out of the box with minimal to no setup. Think of it like a drop-in database-to-endpoint pileline that'll get your data running in no time at all.
+Yep, but not quite. It provides not only ORM but also caching, encryption and RESTful endpoints out of the box with minimal to no setup. Think of it like a drop-in database-to-endpoint pileline that'll get your data running in no time at all.
 
 ## Installation
 
