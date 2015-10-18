@@ -47,7 +47,7 @@ Congratulations! You created a SQLite- and MemoryCache- backed ORM class. A SQLi
 
 Oh, REST! Right. So, once you decide you want to expose your ORM class data through a REST endpoint, do this:
 
-- Reference `Nyan.Core.Modules.Data`;
+- Reference `Nyan.Modules.Web.REST`;
 - Implement a class deriving from `MicroEntityWebApiController<>`, and assign a route prefix to it:
 <img src='http://i.imgur.com/R1mpJn9.png' /></br>
 - ...that's it.
