@@ -88,9 +88,9 @@ REST endpoints are provided via [Microsoft WebApi 2](http://www.asp.net/web-api/
 4. Push to the branch: `git push origin my-new-feature`
 5. Submit a pull request :D
 
-## Credits
+## Nyan Development Team
 
-Nyan Development Team
+Current collaborators
 - Leonel Sanches (http://pt.stackoverflow.com/users/2999/cigano-morrison-mendez)
 - Leo Botinelly (http://pt.stackoverflow.com/users/1897/onosendai)
 
