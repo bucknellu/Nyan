@@ -70,3 +70,5 @@ Original code
 GPL V3 - a copyleft license that requires anyone who distributes 
 this code or a derivative work to make the source available under the same 
 terms. It also restricts use in hardware that forbids software alterations.
+
+Check the LICENSE file for more details.
