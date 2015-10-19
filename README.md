@@ -61,24 +61,11 @@ Now run your project, and reach the endpoint you specified. If you're running th
  - `http://localhost/Nyan.Samples.REST/users/new`
  <img src='http://i.imgur.com/2EprMgn.png' /></br>
 
-
-
-
-## Methods
-
-- *`Class.GetAll()`*: Returns all stored entries
-- *`Class.Get(id)`*: Returns the entry associated with `id`, or null if it doesn't exist.
-- *`Class.Save()`*: Creates (if new) or updates the database entry associated with the class instance
-- *`Class.SaveAndGetId()`*: Same as above, but also returns the ID. Useful when creating a new record.
-- *`Class.Remove()`*: Deletes the database entry.
- 
 ## Core dependencies
 
 The MicroEntity module wraps around [Stack Exchange Dapper](https://github.com/StackExchange/dapper-dot-net), an abusively fast IDbConnection interface extender.
 
 REST endpoints are provided via [Microsoft WebApi 2](http://www.asp.net/web-api/overview/releases/whats-new-in-aspnet-web-api-22).
-
-
 
 ## Contributing
 
@@ -94,8 +81,7 @@ Collaborators
 - [Cigano Morrison Mendez](https://github.com/cigano) (http://pt.stackoverflow.com/users/2999/cigano-morrison-mendez)
 - [Leo Botinelly](https://github.com/lbotinelly) (http://pt.stackoverflow.com/users/1897/onosendai)
 
-Original code
-- [Leo Botinelly](https://github.com/lbotinelly) (http://pt.stackoverflow.com/users/1897/onosendai)
+Based on original code built by [Leo Botinelly](leo.botinelly@bucknell.edu) at [Bucknell University](https://www.bucknell.edu). 
 
 ## License
 GPL V3 - a copyleft license that requires anyone who distributes 
