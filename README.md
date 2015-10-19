@@ -91,8 +91,8 @@ REST endpoints are provided via [Microsoft WebApi 2](http://www.asp.net/web-api/
 ## Nyan Development Team
 
 Collaborators
-- Leonel Sanches (http://pt.stackoverflow.com/users/2999/cigano-morrison-mendez)
-- Leo Botinelly (http://pt.stackoverflow.com/users/1897/onosendai)
+- [Cigano Morrison Mendez](https://github.com/cigano) (http://pt.stackoverflow.com/users/2999/cigano-morrison-mendez)
+- [Leo Botinelly](https://github.com/leobotinelly) (http://pt.stackoverflow.com/users/1897/onosendai)
 
 Original code
 - Leo Botinelly (http://pt.stackoverflow.com/users/1897/onosendai)
