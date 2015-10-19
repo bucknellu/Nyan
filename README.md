@@ -92,10 +92,10 @@ REST endpoints are provided via [Microsoft WebApi 2](http://www.asp.net/web-api/
 
 Collaborators
 - [Cigano Morrison Mendez](https://github.com/cigano) (http://pt.stackoverflow.com/users/2999/cigano-morrison-mendez)
-- [Leo Botinelly](https://github.com/leobotinelly) (http://pt.stackoverflow.com/users/1897/onosendai)
+- [Leo Botinelly](https://github.com/lbotinelly) (http://pt.stackoverflow.com/users/1897/onosendai)
 
 Original code
-- Leo Botinelly (http://pt.stackoverflow.com/users/1897/onosendai)
+- [Leo Botinelly](https://github.com/lbotinelly) (http://pt.stackoverflow.com/users/1897/onosendai)
 
 ## License
 GPL V3 - a copyleft license that requires anyone who distributes 
