@@ -82,9 +82,9 @@ REST endpoints are provided via [Microsoft WebApi 2](http://www.asp.net/web-api/
 - [Leo Botinelly](https://github.com/lbotinelly) (http://pt.stackoverflow.com/users/1897/onosendai)
 
 ####Original contributors from Enterprise Systems at [Bucknell University](https://www.bucknell.edu) 
-- [Dan Mancusi](dmancusi@bucknell.edu)  
+- [Dan Mancusi](mailto:dmancusi@bucknell.edu)  
 - Mark Minisce  
-- [Leo Botinelly](leo.botinelly@bucknell.edu)  
+- [Leo Botinelly](mailto:leo.botinelly@bucknell.edu)  
 
 ## License
 GPL V3 - a copyleft license that requires anyone who distributes 
