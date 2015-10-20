@@ -38,23 +38,40 @@ namespace Nyan.Core.Assembly
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         public static List<Type> GetClassesByInterface<T>()
         {
             var type = typeof(T);
-
             List<Type> ret = new List<Type>();
 
             foreach (var item in _assys.Values)
             {
-                var preTypes = item.GetTypes();
+                Type[] preTypes;
+
+                try
+                {
+                    preTypes = item.GetTypes();
+                }
+                catch
+                {
+                    // Well, this loading can fail by a (long) variety of reasons. 
+                    // It's not a real problem not to catch exceptions here. 
+                    continue;
+                }
 
                 foreach (var item3 in preTypes)
                 {
                     if (!item3.IsInterface)
-
+                    {
                         if (type.IsAssignableFrom(item3))
+                        {
                             ret.Add(item3);
-
+                        }
+                    }
                 }
             }
 

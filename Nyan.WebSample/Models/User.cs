@@ -3,11 +3,7 @@ using System;
 
 namespace Nyan.WebSample.Models
 {
-    [MicroEntitySetup(
-        AutoGenerateMissingSchema = true,
-        TableName = "Users",
-        UseCaching = true,
-        IsInsertableIdentifier = false)]
+    [MicroEntitySetup(TableName = "Users")]
     public class User : MicroEntity<User>
     {
         [Key]

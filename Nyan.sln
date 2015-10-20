@@ -41,6 +41,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nyan.Modules.Web.REST", "Mo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nyan.Samples.REST", "samples\REST\Nyan.Samples.REST.csproj", "{EF7B9192-B800-4FF0-9EA8-D0A5744CDBF1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nyan.Modules.Data.SqlServer", "Nyan.Modules.Data.SqlServer\Nyan.Modules.Data.SqlServer.csproj", "{2599BC6B-1CCE-4EBC-848E-2021AFFDDE20}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -91,6 +93,10 @@ Global
 		{EF7B9192-B800-4FF0-9EA8-D0A5744CDBF1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EF7B9192-B800-4FF0-9EA8-D0A5744CDBF1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EF7B9192-B800-4FF0-9EA8-D0A5744CDBF1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2599BC6B-1CCE-4EBC-848E-2021AFFDDE20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2599BC6B-1CCE-4EBC-848E-2021AFFDDE20}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2599BC6B-1CCE-4EBC-848E-2021AFFDDE20}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2599BC6B-1CCE-4EBC-848E-2021AFFDDE20}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -111,5 +117,6 @@ Global
 		{0EAA61A0-FDE9-40CC-B2B0-0A8641573DD3} = {690BA7EB-47A5-4F40-8109-3A39F8F34457}
 		{4B7081C2-21FC-4934-80AE-E4F91EA5E193} = {0EAA61A0-FDE9-40CC-B2B0-0A8641573DD3}
 		{EF7B9192-B800-4FF0-9EA8-D0A5744CDBF1} = {0CA1E54C-62A0-44E4-88BE-89519A580F3A}
+		{2599BC6B-1CCE-4EBC-848E-2021AFFDDE20} = {DB0EFF75-9EB0-49FB-B069-462C3F90DD98}
 	EndGlobalSection
 EndGlobal

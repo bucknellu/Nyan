@@ -1,5 +1,4 @@
 ﻿using Nyan.Core.Modules.Cache;
-using Nyan.Core.Modules.Data.Connection;
 using Nyan.Core.Modules.Encryption;
 using Nyan.Core.Modules.Environment;
 using Nyan.Core.Modules.Log;
