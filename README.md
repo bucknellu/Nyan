@@ -77,11 +77,14 @@ REST endpoints are provided via [Microsoft WebApi 2](http://www.asp.net/web-api/
 
 ## Nyan Development Team
 
-Collaborators
+####Current collaborators
 - [Cigano Morrison Mendez](https://github.com/cigano) (http://pt.stackoverflow.com/users/2999/cigano-morrison-mendez)
 - [Leo Botinelly](https://github.com/lbotinelly) (http://pt.stackoverflow.com/users/1897/onosendai)
 
-Based on original code built by [Leo Botinelly](leo.botinelly@bucknell.edu) at [Bucknell University](https://www.bucknell.edu). 
+####Original contributors from Enterprise Systems at [Bucknell University](https://www.bucknell.edu) 
+[Dan Mancusi](dmancusi@bucknell.edu)  
+Mark Minisce  
+[Leo Botinelly](leo.botinelly@bucknell.edu)  
 
 ## License
 GPL V3 - a copyleft license that requires anyone who distributes 
