@@ -13,10 +13,10 @@ namespace Nyan.Portable.Settings
         public PortableSettingsPackage()
         {
             Log = new NullLogProvider();
-            Cache = new Nyan.Modules.Cache.Memory.MemoryCacheProvider();
+            Cache = new Modules.Cache.Memory.MemoryCacheProvider();
             Encryption = new NullEncryptionProvider();
             Environment = new DefaultEnvironmentProvider();
-            GlobalConnectionBundleType = typeof(Modules.Data.Connection.SQLiteBundle);
+            GlobalConnectionBundleType = typeof(Modules.Data.SQLite.SQLiteBundle);
         }
         public ICacheProvider Cache { get; set; }
         public IEncryptionProvider Encryption { get; set; }
