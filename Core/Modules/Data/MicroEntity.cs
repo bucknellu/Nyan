@@ -76,6 +76,11 @@ namespace Nyan.Core.Modules.Data
             return ret;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="identifiers"></param>
+        /// <returns></returns>
         public static IEnumerable<T> Get(List<string> identifiers)
         {
             IEnumerable<T> ret = new List<T>();
@@ -122,7 +127,6 @@ namespace Nyan.Core.Modules.Data
 
         public static IEnumerable<T> GetAll()
         {
-
             if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
                 throw new InvalidDataException("Class is not operational: {0}, {1}".format(Statements.Status.ToString(), Statements.StatusDescription));
 

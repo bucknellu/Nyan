@@ -69,7 +69,13 @@ namespace Nyan.Modules.Data.SQLite
 
             base.Add(name, value, dbType, direction, size);
         }
-        private static System.Data.DbType ConvertGenericTypeToCustomType(DbGenericType type)
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        private static DbType ConvertGenericTypeToCustomType(DbGenericType type)
         {
             switch (type)
             {

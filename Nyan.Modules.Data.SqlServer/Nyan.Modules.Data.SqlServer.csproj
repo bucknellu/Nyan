@@ -44,14 +44,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SqlServerBundle.cs" />
     <Compile Include="SqlServerDataAdapter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SqlServerDynamicParameters.cs" />
+    <Compile Include="SqlServerSettingsPackage.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Nyan.Core.csproj">
       <Project>{5f53ab9e-fdda-4a45-b0be-d1fce1916fde}</Project>
       <Name>Nyan.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Modules\Cache\Memory\Nyan.Modules.Cache.Memory.csproj">
+      <Project>{ce77d796-c158-48ff-b141-54489564a7e1}</Project>
+      <Name>Nyan.Modules.Cache.Memory</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

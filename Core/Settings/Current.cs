@@ -5,6 +5,7 @@ using Nyan.Core.Modules.Encryption;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Nyan.Core.Settings
 {
@@ -44,6 +45,11 @@ namespace Nyan.Core.Settings
             }
 
             priorityList.Sort((firstPair, nextPair) => { return (nextPair.Key - firstPair.Key); });
+
+            if (!priorityList.Any())
+            {
+                throw new Exception("There are no Nyan Packages included in the project. ");
+            }
 
             return (IPackage)Activator.CreateInstance(priorityList[0].Value);
 

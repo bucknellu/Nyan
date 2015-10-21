@@ -1,0 +1,27 @@
+﻿@model IEnumerable<Nyan.WebSample.Models.User>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Identifier</th>
+            <th>Name</th>
+            <th>Date of Birth</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>@user.id</td>
+                <td>@user.Name</td>
+                <td>@user.BirthDate</td>
+            </tr>
+        }
+    </tbody>
+</table>
