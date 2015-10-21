@@ -1,12 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Data;
+using Dapper;
+using Nyan.Core.Modules.Data.Adapter;
 
 namespace Nyan.Modules.Data.SqlServer
 {
-    class SqlServerDynamicParameters
+    public class SqlServerDynamicParameters : DynamicParametersPrimitive, SqlMapper.IDynamicParameters
     {
+        public override void AddParameters(IDbCommand command, SqlMapper.Identity identity)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
