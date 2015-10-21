@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
 
-namespace Nyan.Portable.Modules.Data.Connection
+namespace Nyan.Modules.Data.SQLite
 {
     public class SQLiteBundle : BundlePrimitive
     {
@@ -24,7 +24,7 @@ namespace Nyan.Portable.Modules.Data.Connection
         {
             _dbName = dbName;
 
-            AdapterType = typeof(Nyan.Modules.Data.SQLite.SQLiteDataAdapter);
+            AdapterType = typeof(SQLiteDataAdapter);
             EnvironmentCypherKeys = new Dictionary<string, string> { { "STD", "Data Source=" + Core.Settings.Current.BaseDirectory + "/" + _dbName + ";Version=3;" } };
         }
 

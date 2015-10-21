@@ -47,19 +47,30 @@ Congratulations! You created a SQLite- and MemoryCache- backed ORM class. A SQLi
 
 Oh, REST! Right. So, once you decide you want to expose your ORM class data through a REST endpoint, do this:
 
-- Reference `Nyan.Modules.Web.REST`;
+- Reference `Nyan.Modules.Web.REST`;  
 - Implement a class deriving from `MicroEntityWebApiController<>`, and assign a route prefix to it:
-<img src='http://i.imgur.com/R1mpJn9.png' /></br>
-- ...that's it.
+```
+   [RoutePrefix("users")]  
+   public class UserController : MicroEntityWebApiController<User>  
+   {
+       public UserController() { }  
+   }
+```
+- ...and that's it.
 
 Now run your project, and reach the endpoint you specified. If you're running the sample provided (`Nyan.Samples.REST`), you can try the following URLs:
 
- - `http://localhost/Nyan.Samples.REST/users`
- <img src='http://i.imgur.com/jLYcOxD.png' /></br>
- - `http://localhost/Nyan.Samples.REST/users/10`
- <img src='http://i.imgur.com/TVhCcCG.png' /></br>
- - `http://localhost/Nyan.Samples.REST/users/new`
- <img src='http://i.imgur.com/2EprMgn.png' /></br>
+- **`http://localhost/Nyan.Samples.REST/users`**  
+ ```
+[{"id":1,"Name":"Maximus Howell III","Surname":null,"isAdmin":false,"BirthDate":"2002-05-13T00:00:00"},{"id":2,"Name":"Odie Yost","Surname":null,"isAdmin":false,"BirthDate":"1989-04-21T00:00:00"},{"id":3,"Name":"Vincent Pouros","Surname":null,"isAdmin":true,"BirthDate":"2002-02-23T00:00:00"},{"id":4,"Name":"Russel Fadel","Surname":null,(...)
+```
+- **`http://localhost/Nyan.Samples.REST/users/1`**  
+ ```
+{"id":1,"Name":"Maximus Howell III","Surname":null,"isAdmin":false,"BirthDate":"2002-05-13T00:00:00"}
+```
+
+- **`http://localhost/Nyan.Samples.REST/users/new`**  
+ `{"id":0,"Name":null,"Surname":null,"isAdmin":false,"BirthDate":null}`  
 
 ## Core dependencies
 
