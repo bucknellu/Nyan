@@ -1,7 +1,7 @@
-﻿using Nyan.Core.Modules.Data.Adapter;
-using Nyan.Core.Modules.Data.Connection;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Nyan.Core.Modules.Data.Adapter;
+using Nyan.Core.Modules.Data.Connection;
 
 namespace Nyan.Core.Modules.Data
 {
@@ -18,6 +18,7 @@ namespace Nyan.Core.Modules.Data
 
         protected internal AdapterPrimitive Adapter;
         protected internal BundlePrimitive Bundle;
+        public Dictionary<string, string> ConnectionCypherKeys = new Dictionary<string, string>();
 
         public string ConnectionString;
         public string IdColumn;
@@ -26,7 +27,6 @@ namespace Nyan.Core.Modules.Data
         public DateTime PrdConfigLastChange;
         public Dictionary<string, string> PropertyFieldMap;
         public Dictionary<string, KeyValuePair<string, string>> SchemaElements;
-        public Dictionary<string, string> ConnectionCypherKeys = new Dictionary<string, string>();
 
         /// <summary>
         ///     The SQL query template for queries returning all fields. 
@@ -48,8 +48,8 @@ namespace Nyan.Core.Modules.Data
         public string SqlInsertSingle;
         public string SqlInsertSingleWithReturn;
         public string SqlRemoveSingleParametrized;
-        public string SqlUpdateSingle;
         public string SqlTruncateTable;
+        public string SqlUpdateSingle;
 
         protected internal EStatus Status { get; internal set; }
         protected internal string StatusDescription { get; internal set; }

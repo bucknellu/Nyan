@@ -1,17 +1,19 @@
-﻿using Nyan.Core.Modules.Cache;
+﻿using System;
+using Nyan.Core.Modules.Authorization;
+using Nyan.Core.Modules.Cache;
 using Nyan.Core.Modules.Encryption;
 using Nyan.Core.Modules.Environment;
 using Nyan.Core.Modules.Log;
-using System;
 
 namespace Nyan.Core.Settings
 {
     public interface IPackage
     {
-        ILogProvider Log { get; }
+        LogProvider Log { get; }
         ICacheProvider Cache { get; }
         IEnvironmentProvider Environment { get; }
         IEncryptionProvider Encryption { get; }
+        IAuthorizationProvider Authorization { get; }
         Type GlobalConnectionBundleType { get; }
     }
 }

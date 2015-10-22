@@ -1,9 +1,7 @@
-﻿using Nyan.Core.Extensions;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Nyan.Core.Extensions;
+using Nyan.Core.Settings;
 
 namespace Nyan.Core.Modules.Cache
 {
@@ -13,9 +11,9 @@ namespace Nyan.Core.Modules.Cache
 
         public static List<T> FetchCacheableListResultByKey<T>(Func<string, List<T>> method, string key)
         {
-            var cacheid = typeof(T).CacheKey(key);
+            var cacheid = typeof (T).CacheKey(key);
 
-            var cache = Settings.Current.Cache[cacheid].FromJson<List<T>>();
+            var cache = Current.Cache[cacheid].FromJson<List<T>>();
 
             if (cache != null)
             {
@@ -25,15 +23,16 @@ namespace Nyan.Core.Modules.Cache
             var ret = method(key);
 
             //Settings.Current.Log.Add("CACHE STO " + cacheid);
-            Settings.Current.Cache[cacheid] = ret.ToJson();
+            Current.Cache[cacheid] = ret.ToJson();
 
             return ret;
         }
+
         public static T FetchCacheableSingleResultByKey<T>(Func<string, T> method, string key, string baseType = null)
         {
-            var cacheid = typeof(T).CacheKey(key, baseType);
+            var cacheid = typeof (T).CacheKey(key, baseType);
 
-            var cache = Settings.Current.Cache[cacheid].FromJson<T>();
+            var cache = Current.Cache[cacheid].FromJson<T>();
 
             if (cache != null)
             {
@@ -43,26 +42,28 @@ namespace Nyan.Core.Modules.Cache
             var ret = method(key);
 
             //Settings.Current.Log.Add("CACHE STO " + cacheid);
-            Settings.Current.Cache[cacheid] = ret.ToJson();
+            Current.Cache[cacheid] = ret.ToJson();
 
             return ret;
         }
-        public static T FetchCacheableResultSingleton<T>(Func<T> method, object singletonLock, string namespaceSpec = null, int timeOutSeconds = 600)
+
+        public static T FetchCacheableResultSingleton<T>(Func<T> method, object singletonLock,
+            string namespaceSpec = null, int timeOutSeconds = 600)
         {
             string cacheid;
 
             if (namespaceSpec == null)
             {
-                cacheid = typeof(T).CacheKey("s");
+                cacheid = typeof (T).CacheKey("s");
 
                 try
                 {
-                    if (typeof(T).GetGenericTypeDefinition() == typeof(List<>))
-                        if (typeof(T).GetGenericArguments()[0].IsPrimitiveType())
+                    if (typeof (T).GetGenericTypeDefinition() == typeof (List<>))
+                        if (typeof (T).GetGenericArguments()[0].IsPrimitiveType())
                             throw new ArgumentOutOfRangeException(
                                 "Invalid cache source - list contains primitive type. Specify namespaceSpec.");
                         else
-                            cacheid = typeof(T).GetGenericArguments()[0].CacheKey("s");
+                            cacheid = typeof (T).GetGenericArguments()[0].CacheKey("s");
                 }
                 catch
                 {
@@ -73,7 +74,7 @@ namespace Nyan.Core.Modules.Cache
                 cacheid = namespaceSpec + ":s";
             }
 
-            var cache = Settings.Current.Cache[cacheid].FromJson<T>();
+            var cache = Current.Cache[cacheid].FromJson<T>();
             if (cache != null)
             {
                 //Settings.Current.Log.Add("CACHE HIT " + cacheid);
@@ -84,7 +85,7 @@ namespace Nyan.Core.Modules.Cache
 
             lock (singletonLock)
             {
-                cache = Settings.Current.Cache[cacheid].FromJson<T>();
+                cache = Current.Cache[cacheid].FromJson<T>();
                 if (cache != null)
                 {
                     //Settings.Current.Log.Add("CACHE LAG " + cacheid);
@@ -94,7 +95,7 @@ namespace Nyan.Core.Modules.Cache
                 var ret = method();
 
                 //Settings.Current.Log.Add("CACHE STO " + cacheid);
-                Settings.Current.Cache[cacheid, null, timeOutSeconds] = ret.ToJson();
+                Current.Cache[cacheid, null, timeOutSeconds] = ret.ToJson();
                 cache = ret;
             }
 

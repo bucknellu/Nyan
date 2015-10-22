@@ -1,9 +1,9 @@
-﻿using Nyan.Core.Modules.Log;
+﻿using System;
+using Nyan.Core.Modules.Authorization;
 using Nyan.Core.Modules.Cache;
-using Nyan.Core.Modules.Environment;
 using Nyan.Core.Modules.Encryption;
-using System;
-using Nyan.Core.Modules.Data.Connection;
+using Nyan.Core.Modules.Environment;
+using Nyan.Core.Modules.Log;
 
 namespace Nyan.Core.Settings
 {
@@ -16,12 +16,15 @@ namespace Nyan.Core.Settings
             Cache = new NullCache();
             Encryption = new NullEncryptionProvider();
             Environment = new DefaultEnvironmentProvider();
+            Authorization = new NullAuthorizationProvider();
             GlobalConnectionBundleType = null;
         }
-        public ILogProvider Log { get; private set; }
+
+        public LogProvider Log { get; private set; }
         public ICacheProvider Cache { get; private set; }
         public IEnvironmentProvider Environment { get; private set; }
         public IEncryptionProvider Encryption { get; private set; }
+        public IAuthorizationProvider Authorization { get; private set; }
         public Type GlobalConnectionBundleType { get; set; }
     }
 }
