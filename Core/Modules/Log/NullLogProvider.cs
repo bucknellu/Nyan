@@ -1,10 +1,10 @@
-﻿using Nyan.Core.Extensions;
-using System;
+﻿using System;
 using System.Diagnostics;
+using Nyan.Core.Extensions;
 
 namespace Nyan.Core.Modules.Log
 {
-    public class NullLogProvider : ILogProvider
+    public class NullLogProvider : LogProvider
     {
         public new void Add(string content, Message.EContentType type = null)
         {

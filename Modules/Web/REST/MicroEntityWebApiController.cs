@@ -1,7 +1,4 @@
-﻿using Nyan.Core.Extensions;
-using Nyan.Core.Modules.Data;
-using Nyan.Core.Modules.Data.Adapter;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -10,6 +7,10 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Web.Http;
+using Nyan.Core.Extensions;
+using Nyan.Core.Modules.Data;
+using Nyan.Core.Modules.Data.Adapter;
+using Nyan.Core.Settings;
 
 namespace Nyan.Modules.Web.REST
 {
@@ -18,6 +19,7 @@ namespace Nyan.Modules.Web.REST
     {
         // ReSharper disable once InconsistentNaming
         public Type RESTHeaderClassType = null;
+        // ReSharper disable once InconsistentNaming
         public string RESTHeaderQuery = null;
 
         //Reference resolution cache
@@ -34,7 +36,8 @@ namespace Nyan.Modules.Web.REST
 
                 //var probe = GetType().GetMethods();
 
-                var probe = Attribute.GetCustomAttributes(GetType(), typeof(WebApiMicroEntityReferenceAttribute)).ToList();
+                var probe =
+                    Attribute.GetCustomAttributes(GetType(), typeof(WebApiMicroEntityReferenceAttribute)).ToList();
 
                 foreach (var att in probe)
                 {
@@ -62,12 +65,11 @@ namespace Nyan.Modules.Web.REST
         {
             if (ClassSecurity != null &&
                 ClassSecurity.ReadPermission != null &&
-                !true)//TODO: This is the entry point for Authorization engines.
+                !Current.Authorization.CheckPermission(ClassSecurity.ReadPermission))
             {
-
-
-                Nyan.Core.Settings.Current.Log.Add("ClassSecurity.ReadPermission: " + ClassSecurity.ReadPermission + ". Environment.Current: " +
-                        Nyan.Core.Settings.Current.Environment.CurrentCode);
+                Current.Log.Add("ClassSecurity.ReadPermission: " + ClassSecurity.ReadPermission +
+                                ". Environment.Current: " +
+                                Current.Environment.CurrentCode);
                 throw new UnauthorizedAccessException("Insufficient permissions.");
             }
 
@@ -100,14 +102,15 @@ namespace Nyan.Modules.Web.REST
                 if (MicroEntity<T>.TableData.AuditAccess)
                     AuditRequest("ACCESS", typeof(T).FullName + ":ALL");
 
-                Nyan.Core.Settings.Current.Log.Add("  GET " + typeof(T).FullName + " OK (" + sw.ElapsedMilliseconds + " ms)");
+                Current.Log.Add("  GET " + typeof(T).FullName + " OK (" + sw.ElapsedMilliseconds + " ms)");
 
                 return RenderJsonResult(preRet);
             }
             catch (Exception e)
             {
                 sw.Stop();
-                Nyan.Core.Settings.Current.Log.Add("  GET " + typeof(T).FullName + " ERR (" + sw.ElapsedMilliseconds + " ms): " + e.Message, e);
+                Current.Log.Add(
+                    "  GET " + typeof(T).FullName + " ERR (" + sw.ElapsedMilliseconds + " ms): " + e.Message, e);
                 throw;
             }
         }
@@ -123,14 +126,15 @@ namespace Nyan.Modules.Web.REST
             {
                 var preRet = (T)Activator.CreateInstance(typeof(T), new object[] { });
                 sw.Stop();
-                Nyan.Core.Settings.Current.Log.Add("  NEW " + typeof(T).FullName + " OK (" + sw.ElapsedMilliseconds + " ms)");
+                Current.Log.Add("  NEW " + typeof(T).FullName + " OK (" + sw.ElapsedMilliseconds + " ms)");
 
                 return RenderJsonResult(preRet);
             }
             catch (Exception e)
             {
                 sw.Stop();
-                Nyan.Core.Settings.Current.Log.Add("  NEW " + typeof(T).FullName + " ERR (" + sw.ElapsedMilliseconds + " ms): " + e.Message,
+                Current.Log.Add(
+                    "  NEW " + typeof(T).FullName + " ERR (" + sw.ElapsedMilliseconds + " ms): " + e.Message,
                     e);
                 throw;
             }
@@ -142,7 +146,7 @@ namespace Nyan.Modules.Web.REST
         {
             if (ClassSecurity != null &&
                 ClassSecurity.ReadPermission != null &&
-                !true)//TODO: This is the entry point for Authorization engines.
+                !Current.Authorization.CheckPermission(ClassSecurity.ReadPermission))
                 throw new UnauthorizedAccessException("Insufficient permissions.");
 
             var sw = new Stopwatch();
@@ -156,14 +160,14 @@ namespace Nyan.Modules.Web.REST
                 if (MicroEntity<T>.TableData.AuditAccess)
                     AuditRequest("ACCESS", typeof(T).FullName + ":" + id);
 
-                Nyan.Core.Settings.Current.Log.Add("  GET " + typeof(T).FullName + ":" + id + " OK (" + sw.ElapsedMilliseconds + " ms)");
+                Current.Log.Add("  GET " + typeof(T).FullName + ":" + id + " OK (" + sw.ElapsedMilliseconds + " ms)");
 
                 return RenderJsonResult(preRet);
             }
             catch (Exception e)
             {
                 sw.Stop();
-                Nyan.Core.Settings.Current.Log.Add(
+                Current.Log.Add(
                     "  GET " + id + " " + typeof(T).FullName + ":" + id + " ERR (" + sw.ElapsedMilliseconds + " ms): " +
                     e.Message, e);
                 throw;
@@ -176,7 +180,7 @@ namespace Nyan.Modules.Web.REST
         {
             if (ClassSecurity != null &&
                 ClassSecurity.WritePermission != null &&
-                !true) //TODO: This is the entry point for Authorization engines.
+                !Current.Authorization.CheckPermission(ClassSecurity.WritePermission))
                 throw new UnauthorizedAccessException("Insufficient permissions.");
 
             var sw = new Stopwatch();
@@ -195,21 +199,22 @@ namespace Nyan.Modules.Web.REST
                     AuditRequest("CHANGE", typeof(T).FullName + ":" + item.GetEntityIdentifier(), item.ToJson());
 
 
-                Nyan.Core.Settings.Current.Log.Add("  POST " + typeof(T).FullName + " OK (" + sw.ElapsedMilliseconds + " ms)");
+                Current.Log.Add("  POST " + typeof(T).FullName + " OK (" + sw.ElapsedMilliseconds + " ms)");
 
                 return RenderJsonResult(preRet);
             }
             catch (Exception e)
             {
                 sw.Stop();
-                Nyan.Core.Settings.Current.Log.Add("  POST " + typeof(T).FullName + " ERR (" + sw.ElapsedMilliseconds + " ms): " + e.Message, e);
+                Current.Log.Add(
+                    "  POST " + typeof(T).FullName + " ERR (" + sw.ElapsedMilliseconds + " ms): " + e.Message, e);
                 throw;
             }
         }
 
         private static void TryAgentImprinting(ref T item)
         {
-            //TODO: Capture current user iodentifier and write to storage.
+            //TODO: Capture current user identifier and write to storage.
 
             //var curPId = Environment.Current.PersonId;
 
@@ -244,7 +249,7 @@ namespace Nyan.Modules.Web.REST
 
             if (ClassSecurity != null &&
                 ClassSecurity.WritePermission != null &&
-                !true)//TODO: This is the entry point for Authorization engines.
+                !Current.Authorization.CheckPermission(ClassSecurity.WritePermission))
                 throw new UnauthorizedAccessException("Insufficient permissions.");
 
 
@@ -278,7 +283,7 @@ namespace Nyan.Modules.Web.REST
 
             if (ClassSecurity != null &&
                 ClassSecurity.RemovePermission != null &&
-                !true) //TODO: This is the entry point for Authorization engines.
+                !Current.Authorization.CheckPermission(ClassSecurity.RemovePermission)) 
                 throw new UnauthorizedAccessException("Insufficient permissions.");
 
             HttpResponseMessage ret;
@@ -306,7 +311,7 @@ namespace Nyan.Modules.Web.REST
         {
             HttpResponseMessage ret;
 
-            Nyan.Core.Settings.Current.Log.Add("Reference request: {0} for {1}".format(entityReference, id));
+            Current.Log.Add("Reference request: {0} for {1}".format(entityReference, id));
 
             if (!EntityReferenceAttribute.ContainsKey(entityReference))
                 ret = Request.CreateErrorResponse(HttpStatusCode.NotFound,
@@ -326,17 +331,17 @@ namespace Nyan.Modules.Web.REST
 
                         var staMode = targetType.GetMethod("ReferenceQueryByField") == null;
 
-                        Nyan.Core.Settings.Current.Log.Add("RefType: " + targetType);
+                        Current.Log.Add("RefType: " + targetType);
 
                         if (staMode) //If the method is Static... (e.g. an Entity)
                         {
-                            Nyan.Core.Settings.Current.Log.Add("STATIC " + targetType);
+                            Current.Log.Add("STATIC " + targetType);
                             dynamic refType = new StaticMembersDynamicWrapper(targetType);
                             referenceCollection = refType.ReferenceQueryByField(probe.ForeignProperty, id);
                         }
                         else // we can just instantiate.
                         {
-                            Nyan.Core.Settings.Current.Log.Add("DYNAMIC " + targetType);
+                            Current.Log.Add("DYNAMIC " + targetType);
                             dynamic refType = Activator.CreateInstance(targetType);
                             referenceCollection = refType.ReferenceQueryByField(probe.ForeignProperty, id);
                         }

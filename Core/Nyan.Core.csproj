@@ -52,6 +52,8 @@
     <Compile Include="Assembly\Management.cs" />
     <Compile Include="Diagnostics\TraceInfoContainer.cs" />
     <Compile Include="Extensions\Serialization.cs" />
+    <Compile Include="Modules\Authorization\IAuthorizationProvider.cs" />
+    <Compile Include="Modules\Authorization\NullAuthorizationProvider.cs" />
     <Compile Include="Modules\Cache\Helper.cs" />
     <Compile Include="Modules\Cache\ICacheProvider.cs" />
     <Compile Include="Modules\Cache\NullCache.cs" />
@@ -74,7 +76,7 @@
     <Compile Include="Modules\Environment\IEnvironmentDescriptor.cs" />
     <Compile Include="Modules\Environment\IEnvironmentProvider.cs" />
     <Compile Include="Modules\Environment\DefaultEnvironmentDescriptor.cs" />
-    <Compile Include="Modules\Log\ILogProvider.cs" />
+    <Compile Include="Modules\Log\LogProvider.cs" />
     <Compile Include="Modules\Log\Message.cs" />
     <Compile Include="Modules\Log\NullLogProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

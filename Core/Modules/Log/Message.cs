@@ -1,4 +1,5 @@
 ﻿using System;
+using Nyan.Core.Diagnostics;
 
 namespace Nyan.Core.Modules.Log
 {
@@ -9,13 +10,6 @@ namespace Nyan.Core.Modules.Log
         #region Enumerators
 
         //Type-safe-enum pattern standard interface
-        public interface IEContentType
-        {
-            string Name { get; }
-            string Code { get; }
-            int Value { get; }
-            string ToString();
-        }
 
         [Serializable]
         public sealed class EContentType : IEContentType
@@ -28,10 +22,6 @@ namespace Nyan.Core.Modules.Log
             public static readonly EContentType Maintenance = new EContentType(5, "MTN", "Maintenance");
             public static readonly EContentType StartupSequence = new EContentType(6, "STA", "Start-up Sequence");
 
-            public string Name { get; private set; }
-            public string Code { get; private set; }
-            public int Value { get; private set; }
-
             private EContentType(int value, string code, string name)
             {
                 Value = value;
@@ -39,10 +29,22 @@ namespace Nyan.Core.Modules.Log
                 Code = code;
             }
 
+            public string Name { get; private set; }
+            public string Code { get; private set; }
+            public int Value { get; private set; }
+
             public override string ToString()
             {
                 return Name;
             }
+        }
+
+        public interface IEContentType
+        {
+            string Name { get; }
+            string Code { get; }
+            int Value { get; }
+            string ToString();
         }
 
         #endregion
@@ -55,7 +57,7 @@ namespace Nyan.Core.Modules.Log
 
         public string Content { get; set; }
         public Guid? ReplyToId { get; set; }
-        public Diagnostics.TraceInfoContainer TraceInfo { get; set; }
+        public TraceInfoContainer TraceInfo { get; set; }
         public string Topic { get; set; }
         public string Subject { get; set; }
 
@@ -77,7 +79,7 @@ namespace Nyan.Core.Modules.Log
         private void Initialize()
         {
             Id = Guid.NewGuid();
-            TraceInfo = new Diagnostics.TraceInfoContainer();
+            TraceInfo = new TraceInfoContainer();
             CreationTime = DateTime.Now;
             TraceInfo.Gather();
         }

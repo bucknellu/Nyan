@@ -11,13 +11,14 @@ namespace Nyan.Samples.REST
         {
             var a = Model.User.GetAll().ToList();
 
-            if (a.Count < 100)
+            if (a.Count < 5)
             {
-                for (int i = 0; i < 128; i++)
+                for (int i = 0; i < 16; i++)
                 {
                     new Model.User
                     {
-                        Name = Faker.Name.FullName(),
+                        Name = Faker.Name.First(),
+                        Surname = Faker.Name.Last(),
                         isAdmin = (Faker.RandomNumber.Next(0, 2) == 0),
                         BirthDate = RandomDay()
                     }.Save();

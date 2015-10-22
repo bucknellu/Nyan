@@ -1,20 +1,22 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Data;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection;
-using Dapper;
+using System.Threading.Tasks;
 using Nyan.Core.Extensions;
+using Nyan.Core.Modules.Cache;
 using Nyan.Core.Modules.Data.Adapter;
 using Nyan.Core.Modules.Data.Connection;
-using System.Collections.Concurrent;
+using Nyan.Core.Modules.Log;
+using Nyan.Core.Settings;
+using Dapper;
 
 namespace Nyan.Core.Modules.Data
 {
-
     /// <summary>
     ///     Lightweight, tight-coupled (1x1) Basic ORM Dapper wrapper. Provides static and instanced methods to load, update, save and delete records from the database.
     /// </summary>
@@ -23,9 +25,12 @@ namespace Nyan.Core.Modules.Data
     public class MicroEntity<T> where T : MicroEntity<T>
     {
         // ReSharper disable once StaticFieldInGenericType
-        private static readonly ConcurrentDictionary<Type, MicroEntityCompiledStatements> ClassRegistration = new ConcurrentDictionary<Type, MicroEntityCompiledStatements>();
+        private static readonly ConcurrentDictionary<Type, MicroEntityCompiledStatements> ClassRegistration =
+            new ConcurrentDictionary<Type, MicroEntityCompiledStatements>();
 
+        // ReSharper disable once StaticFieldInGenericType
         private static readonly object AccessLock = new object();
+
         private bool _isDeleted;
 
         #region Generic methods
@@ -58,7 +63,7 @@ namespace Nyan.Core.Modules.Data
                 throw new MissingPrimaryKeyException("Identifier not set for " + typeof(T).FullName);
 
             var ret = TableData.UseCaching
-                ? Cache.Helper.FetchCacheableSingleResultByKey(GetFromDatabase, identifier)
+                ? Helper.FetchCacheableSingleResultByKey(GetFromDatabase, identifier)
                 : GetFromDatabase(identifier);
 
             return ret;
@@ -119,7 +124,7 @@ namespace Nyan.Core.Modules.Data
             {
                 var id = item.GetEntityIdentifier();
 
-                if (!IsCached(id)) Core.Settings.Current.Cache[CacheKey(id)] = item.ToJson();
+                if (!IsCached(id)) Current.Cache[CacheKey(id)] = item.ToJson();
             }
 
             return ret;
@@ -128,14 +133,15 @@ namespace Nyan.Core.Modules.Data
         public static IEnumerable<T> GetAll()
         {
             if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
-                throw new InvalidDataException("Class is not operational: {0}, {1}".format(Statements.Status.ToString(), Statements.StatusDescription));
+                throw new InvalidDataException("Class is not operational: {0}, {1}".format(
+                    Statements.Status.ToString(), Statements.StatusDescription));
 
             //GetAll should never use cache, always hitting the DB.
             var ret = Query(Statements.SqlGetAll);
             if (!TableData.UseCaching) return ret;
 
             //...but it populates the cache with all the individual results, saving time for future FETCHes.
-            foreach (var o in ret) Settings.Current.Cache[CacheKey(o.GetEntityIdentifier())] = o.ToJson();
+            foreach (var o in ret) Current.Cache[CacheKey(o.GetEntityIdentifier())] = o.ToJson();
 
             return ret;
         }
@@ -144,6 +150,7 @@ namespace Nyan.Core.Modules.Data
         {
             Remove(identifier.ToString(CultureInfo.InvariantCulture));
         }
+
         public static void RemoveAll()
         {
             if (TableData.IsReadOnly)
@@ -153,7 +160,7 @@ namespace Nyan.Core.Modules.Data
 
             if (!TableData.UseCaching) return;
 
-            Settings.Current.Cache.RemoveAll();
+            Current.Cache.RemoveAll();
         }
 
         public static void Remove(string identifier)
@@ -165,7 +172,7 @@ namespace Nyan.Core.Modules.Data
 
             if (!TableData.UseCaching) return;
 
-            Settings.Current.Cache.Remove(CacheKey(identifier));
+            Current.Cache.Remove(CacheKey(identifier));
         }
 
         public static void Insert(List<T> objs)
@@ -234,7 +241,7 @@ namespace Nyan.Core.Modules.Data
 
         public static bool IsCached(string identifier)
         {
-            return TableData.UseCaching && Settings.Current.Cache.Contains(CacheKey(identifier));
+            return TableData.UseCaching && Current.Cache.Contains(CacheKey(identifier));
         }
 
         #endregion
@@ -265,7 +272,7 @@ namespace Nyan.Core.Modules.Data
             Execute(Statements.SqlRemoveSingleParametrized, this);
 
             var cKey = typeof(T).FullName + ":" + GetEntityIdentifier();
-            Settings.Current.Cache.Remove(cKey);
+            Current.Cache.Remove(cKey);
 
             //if (Cache.Contains(cKey))
             //    Cache.Remove(cKey);
@@ -299,7 +306,7 @@ namespace Nyan.Core.Modules.Data
 
             //Log.Add(GetType().FullName + ": SAVE " + ret);
 
-            Settings.Current.Cache.Remove(CacheKey(ret));
+            Current.Cache.Remove(CacheKey(ret));
 
 
             //Settings.Current.Cache.Remove(CacheKey("A"));
@@ -323,7 +330,7 @@ namespace Nyan.Core.Modules.Data
 
             var ret = ExecuteAndReturnIdentifier(Statements.SqlInsertSingleWithReturn, obj);
 
-            Settings.Current.Cache.Remove(CacheKey(ret));
+            Current.Cache.Remove(CacheKey(ret));
             Get(ret);
 
             //Settings.Current.Cache.Remove(CacheKey("A"));
@@ -403,7 +410,7 @@ namespace Nyan.Core.Modules.Data
             }
             catch (Exception e)
             {
-                Settings.Current.Log.Add(e,
+                Current.Log.Add(e,
                     GetTypeName() +
                     ": Entity/Dapper Query: Error while issuing statements to the database. Statement: [" + sqlStatement +
                     "]. Database: " + cDebug);
@@ -448,7 +455,7 @@ namespace Nyan.Core.Modules.Data
                 }
                 catch (Exception e)
                 {
-                    Settings.Current.Log.Add(e);
+                    Current.Log.Add(e);
                     throw (e);
                 }
             }
@@ -511,7 +518,7 @@ namespace Nyan.Core.Modules.Data
                     conn.Close();
                     conn.Dispose();
 
-                    Settings.Current.Log.Add(p.ParameterNames == null);
+                    Current.Log.Add(p.ParameterNames == null);
 
                     var a = p.ParameterNames.ToList();
 
@@ -560,12 +567,9 @@ namespace Nyan.Core.Modules.Data
                         return ret;
                     }
                 }
-                else
+                using (var conn = Statements.Adapter.Connection(Statements.ConnectionString))
                 {
-                    using (var conn = Statements.Adapter.Connection(Statements.ConnectionString))
-                    {
-                        return conn.Query<string>(sqlStatement, p).First();
-                    }
+                    return conn.Query<string>(sqlStatement, p).First();
                 }
             }
             catch (Exception e)
@@ -587,7 +591,8 @@ namespace Nyan.Core.Modules.Data
             {
                 try
                 {
-                    Settings.Current.Log.Add("{0} @ {1} - {2} : Initializing".format(typeof(T).FullName, System.Environment.MachineName, Settings.Current.Environment.Current));
+                    Current.Log.Add("{0} @ {1} - {2} : Initializing".format(typeof(T).FullName,
+                        System.Environment.MachineName, Current.Environment.Current));
 
                     ClassRegistration.TryAdd(typeof(T), new MicroEntityCompiledStatements());
 
@@ -597,13 +602,13 @@ namespace Nyan.Core.Modules.Data
                     var cat = new ColumnAttributeTypeMapper<T>();
                     SqlMapper.SetTypeMap(typeof(T), cat);
 
-                    var refBundle = TableData.ConnectionBundleType != null ? TableData.ConnectionBundleType : Settings.Current.GlobalConnectionBundleType;
+                    var refBundle = TableData.ConnectionBundleType ?? Current.GlobalConnectionBundleType;
 
                     var probeType = typeof(T);
 
                     Statements.PropertyFieldMap =
                         (from pInfo in
-                            probeType.GetProperties()
+                             probeType.GetProperties()
                          let p1 = pInfo.GetCustomAttributes(false).OfType<ColumnAttribute>().ToList()
                          let fieldName = (p1.Count != 0 ? p1[0].Name : pInfo.Name)
                          select new KeyValuePair<string, string>(pInfo.Name, fieldName))
@@ -619,7 +624,9 @@ namespace Nyan.Core.Modules.Data
 
                         refType.ValidateDatabase();
 
-                        Settings.Current.Log.Add(typeof(T).FullName + " : Reading Connection bundle [" + refType.GetType().Name + "]", Log.Message.EContentType.StartupSequence);
+                        Current.Log.Add(
+                            typeof(T).FullName + " : Reading Connection bundle [" + refType.GetType().Name + "]",
+                            Message.EContentType.StartupSequence);
 
                         Statements.StatusStep = "Transferring configuration settings from Bundle to Entity Statements";
 
@@ -631,16 +638,20 @@ namespace Nyan.Core.Modules.Data
                         throw new ArgumentOutOfRangeException("No connection bundle specified.");
                     }
 
-                    var _IdentifierColumnName = TableData.IdentifierColumnName;
+                    var identifierColumnName = TableData.IdentifierColumnName;
 
-                    if (_IdentifierColumnName == null)
+                    if (identifierColumnName == null)
                     {
-                        var props = probeType.GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(KeyAttribute))).ToList();
+                        var props =
+                            probeType.GetProperties()
+                                .Where(prop => Attribute.IsDefined(prop, typeof(KeyAttribute)))
+                                .ToList();
                         if (props.Count > 0)
-                            _IdentifierColumnName = props[0].Name;
+
+                            identifierColumnName = props[0].Name;
                     }
 
-                    var mapEntry = Statements.PropertyFieldMap.First(p => p.Value.ToLower().Equals(_IdentifierColumnName.ToLower()));
+                    var mapEntry = Statements.PropertyFieldMap.First(p => p.Value.ToLower().Equals(identifierColumnName.ToLower()));
 
                     Statements.IdProperty = Statements.Adapter.ParameterIdentifier + mapEntry.Key;
                     Statements.IdPropertyRaw = mapEntry.Key;
@@ -682,9 +693,7 @@ namespace Nyan.Core.Modules.Data
 
                             Statements.StatusStep = "Connecting to " + prb;
                         }
-                        catch
-                        {
-                        }
+                        catch { }
 
 
                         //Test Connectivity
@@ -693,7 +702,7 @@ namespace Nyan.Core.Modules.Data
                         conn.Close();
                         conn.Dispose();
 
-                        Settings.Current.Log.Add(typeof(T).FullName + " : " + prb, Log.Message.EContentType.StartupSequence);
+                        Current.Log.Add(typeof(T).FullName + " : " + prb, Message.EContentType.StartupSequence);
                     }
 
                     if (TableData.AutoGenerateMissingSchema)
@@ -705,9 +714,9 @@ namespace Nyan.Core.Modules.Data
                     Statements.StatusStep = "Calling initialization hooks";
                     OnEntityInitializationHook();
 
-                    Settings.Current.Environment.EnvironmentChanged += Scope_EnvironmentChanged;
+                    Current.Environment.EnvironmentChanged += Scope_EnvironmentChanged;
 
-                    Settings.Current.Log.Add(typeof(T).FullName + ": Initialized");
+                    Current.Log.Add(typeof(T).FullName + ": Initialized");
 
                     Statements.Status = MicroEntityCompiledStatements.EStatus.Operational;
                 }
@@ -723,7 +732,7 @@ namespace Nyan.Core.Modules.Data
                         Statements.StatusDescription += " / " + refEx.Message;
                     }
 
-                    Settings.Current.Log.Add(Statements.StatusDescription, Log.Message.EContentType.Warning);
+                    Current.Log.Add(Statements.StatusDescription, Message.EContentType.Warning);
                     //throw;
                 }
             }
@@ -738,7 +747,9 @@ namespace Nyan.Core.Modules.Data
         {
             get
             {
-                return (MicroEntitySetupAttribute)Attribute.GetCustomAttribute(typeof(T), typeof(MicroEntitySetupAttribute));
+                return
+                    (MicroEntitySetupAttribute)
+                        Attribute.GetCustomAttribute(typeof(T), typeof(MicroEntitySetupAttribute));
             }
         }
 
@@ -766,18 +777,19 @@ namespace Nyan.Core.Modules.Data
 
         #region Configuration Helpers
 
+        // ReSharper disable once StaticFieldInGenericType
         private static string _cacheKeyBase;
 
         private static void HandleConfigurationChange()
         {
             try
             {
-                Settings.Current.Log.Add(DateTime.Now + ": " + typeof(T).FullName + " config changed.", Log.Message.EContentType.Maintenance);
+                Current.Log.Add(DateTime.Now + ": " + typeof(T).FullName + " config changed.",Message.EContentType.Maintenance);
                 Statements.Adapter.SetConnectionString<T>();
             }
             catch (Exception e)
             {
-                Settings.Current.Log.Add(e);
+                Current.Log.Add(e);
             }
         }
 
@@ -797,11 +809,26 @@ namespace Nyan.Core.Modules.Data
 
         #region Events
 
-        public virtual void OnSave(string newIdentifier) { }
-        public virtual void OnRemove() { }
-        public virtual void OnInsert() { }
-        public static void OnSchemaInitialization() { }
-        public static void OnEntityInitialization() { }
+        public virtual void OnSave(string newIdentifier)
+        {
+        }
+
+        public virtual void OnRemove()
+        {
+        }
+
+        public virtual void OnInsert()
+        {
+        }
+
+        public static void OnSchemaInitialization()
+        {
+        }
+
+        public static void OnEntityInitialization()
+        {
+        }
+
         #endregion
 
         public bool IsReadOnly()

@@ -10,6 +10,10 @@ namespace Nyan.Core.Modules.Data
     ///   return null; // Warning: Possible 'null' assignment
     /// }
     /// </code></example>
-    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.Delegate | AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
-    public sealed class NotNullAttribute : Attribute { }
+    [AttributeUsage(
+        AttributeTargets.Method | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.Delegate |
+        AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
+    public sealed class NotNullAttribute : Attribute
+    {
+    }
 }

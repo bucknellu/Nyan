@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Nyan.Core.Modules.Data
 {
@@ -21,5 +17,7 @@ namespace Nyan.Core.Modules.Data
         AttributeTargets.Method | AttributeTargets.Parameter |
         AttributeTargets.Property | AttributeTargets.Delegate |
         AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
-    public sealed class CanBeNullAttribute : Attribute { }
+    public sealed class CanBeNullAttribute : Attribute
+    {
+    }
 }

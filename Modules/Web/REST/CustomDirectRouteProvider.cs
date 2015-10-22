@@ -6,9 +6,10 @@ namespace Nyan.Modules.Web.REST
 {
     public class CustomDirectRouteProvider : DefaultDirectRouteProvider
     {
-        protected override IReadOnlyList<IDirectRouteFactory> GetActionRouteFactories(HttpActionDescriptor actionDescriptor)
+        protected override IReadOnlyList<IDirectRouteFactory> GetActionRouteFactories(
+            HttpActionDescriptor actionDescriptor)
         {
-            return actionDescriptor.GetCustomAttributes<IDirectRouteFactory>(inherit: true);
+            return actionDescriptor.GetCustomAttributes<IDirectRouteFactory>(true);
         }
     }
 }

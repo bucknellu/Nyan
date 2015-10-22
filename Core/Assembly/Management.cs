@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Nyan.Core.Settings;
 
 namespace Nyan.Core.Assembly
 {
     public static class Management
     {
-        static Dictionary<string, System.Reflection.Assembly> _assys = new Dictionary<string, System.Reflection.Assembly>();
+        private static readonly Dictionary<string, System.Reflection.Assembly> _assys =
+            new Dictionary<string, System.Reflection.Assembly>();
 
         static Management()
         {
@@ -15,13 +17,14 @@ namespace Nyan.Core.Assembly
 
             LoadLocalAssemblies();
         }
+
         private static void LoadLocalAssemblies()
         {
-            List<System.Reflection.Assembly> allAssemblies = new List<System.Reflection.Assembly>();
+            var allAssemblies = new List<System.Reflection.Assembly>();
 
-            var assylist = Directory.GetFiles(Settings.Current.BaseDirectory, "*.dll");
+            var assylist = Directory.GetFiles(Current.BaseDirectory, "*.dll");
 
-            foreach (string dll in assylist)
+            foreach (var dll in assylist)
             {
                 try
                 {
@@ -31,10 +34,10 @@ namespace Nyan.Core.Assembly
                         _assys.Add(assy.ToString(), assy);
 
                     allAssemblies.Add(assy);
-
                 }
-                catch { }
-
+                catch
+                {
+                }
             }
         }
 
@@ -45,8 +48,8 @@ namespace Nyan.Core.Assembly
         /// <returns></returns>
         public static List<Type> GetClassesByInterface<T>()
         {
-            var type = typeof(T);
-            List<Type> ret = new List<Type>();
+            var type = typeof (T);
+            var ret = new List<Type>();
 
             foreach (var item in _assys.Values)
             {

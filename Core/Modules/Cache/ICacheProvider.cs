@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace Nyan.Core.Modules.Cache
 {
@@ -19,10 +15,10 @@ namespace Nyan.Core.Modules.Cache
     public interface ICacheProvider
     {
         string this[string key, string oSet = null, int cacheTimeOutSeconds = 600]
-        // Standard cache timeout: 10m (600 secs)
+            // Standard cache timeout: 10m (600 secs)
         { get; set; }
 
-        EOperationalStatus OperationalStatus { get;}
+        EOperationalStatus OperationalStatus { get; }
 
         IEnumerable<string> GetAll(string oNamespace);
         bool Contains(string key);
