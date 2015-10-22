@@ -1,26 +1,26 @@
-﻿using Nyan.Core.Extensions;
+﻿using MySql.Data.MySqlClient;
+using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Data;
 using Nyan.Core.Modules.Data.Adapter;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
-using System.Data.SqlClient;
 using System.Reflection;
 using System.Text;
 
-namespace Nyan.Modules.Data.SqlServer
+namespace Nyan.Modules.Data.MySql
 {
-    public class SqlServerDataAdapter : AdapterPrimitive
+    public class MySqlDataAdapter : AdapterPrimitive
     {
-        public SqlServerDataAdapter()
+        public MySqlDataAdapter()
         {
             parameterIdentifier = "@";
             useOutputParameterForInsertedKeyExtraction = false; //Some DBs may require an OUT parameter to extract the new ID. Not the case here.
-            sqlTemplateInsertSingleWithReturn = "INSERT INTO {0} ({1}) VALUES ({2}); SELECT IDENT_CURRENT ('{0}') AS as newid";
+            sqlTemplateInsertSingleWithReturn = "INSERT INTO {0} ({1}) VALUES ({2}); select LAST_INSERT_ID() as newid";
             sqlTemplateTableTruncate = "DELETE FROM {0}"; //No such thing as TRUNCATE on SQLite, but open DELETE works the same way.
 
-            dynamicParameterType = typeof(SqlServerDynamicParameters);
+            dynamicParameterType = typeof(MySqlDynamicParameters);
         }
 
         public override void CheckDatabaseEntities<T>()
@@ -31,9 +31,14 @@ namespace Nyan.Modules.Data.SqlServer
             try
             {
                 var tn = MicroEntity<T>.Statements.SchemaElements["Table"].Value;
+                var sn = "nyan";
+                if (MicroEntity<T>.Statements.SchemaElements.ContainsKey("Schema"))
+                {
+                    sn = MicroEntity<T>.Statements.SchemaElements["Schema"].Value;
+                }
 
                 var tableCount =
-                    MicroEntity<T>.QuerySingleValue<int>("SELECT count(*) FROM information_schema.tables where TABLE_TYPE = 'BASE TABLE' and TABLE_NAME = '" + tn + "'; ");
+                    MicroEntity<T>.QuerySingleValue<int>("SELECT COUNT(*) FROM information_schema.tables WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA='" + sn + "' AND TABLE_NAME='" + tn + "';");
 
                 if (tableCount != 0) return;
 
@@ -41,7 +46,7 @@ namespace Nyan.Modules.Data.SqlServer
 
                 var tableRender = new StringBuilder();
 
-                tableRender.Append("CREATE TABLE " + tn + "(");
+                tableRender.Append("CREATE TABLE " + sn + "." + tn + "(");
 
                 var isFirst = true;
 
@@ -98,7 +103,7 @@ namespace Nyan.Modules.Data.SqlServer
                         if (string.Equals(pSourceName, MicroEntity<T>.Statements.IdColumn,
                             StringComparison.CurrentCultureIgnoreCase))
                         {
-                            pAutoKeySpec = " PRIMARY KEY IDENTITY";
+                            pAutoKeySpec = " PRIMARY KEY AUTO_INCREMENT";
                             isNullable = false;
                         }
 
@@ -124,8 +129,8 @@ namespace Nyan.Modules.Data.SqlServer
                     tableRender.Append(pSourceName + " " + pDestinyType + pNullableSpec + pAutoKeySpec);
                 }
 
-                tableRender.Append(", RCTS DATETIME DEFAULT GETDATE()");
-                tableRender.Append(", RUTS DATETIME DEFAULT GETDATE()");
+                tableRender.Append(", RCTS DATETIME DEFAULT CURRENT_TIMESTAMP");
+                tableRender.Append(", RUTS DATETIME DEFAULT CURRENT_TIMESTAMP");
 
                 tableRender.Append(")");
 
@@ -145,8 +150,9 @@ namespace Nyan.Modules.Data.SqlServer
                     typeof(T).GetMethod("OnSchemaInitialization", BindingFlags.Public | BindingFlags.Static)
                         .Invoke(null, null);
                 }
-                catch
+                catch (Exception e)
                 {
+                    throw e;
                 }
             }
             catch (Exception e)
@@ -156,11 +162,20 @@ namespace Nyan.Modules.Data.SqlServer
             }
         }
 
+        /// <summary>
+        ///     Returns a MySQL Connection.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <returns></returns>
         public override DbConnection Connection(string connectionString)
         {
-            return new SqlConnection(connectionString);
+            return new MySqlConnection(connectionString);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
         public override void RenderSchemaEntityNames<T>()
         {
             var tn = MicroEntity<T>.TableData.TableName;

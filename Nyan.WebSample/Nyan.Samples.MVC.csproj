@@ -230,9 +230,9 @@
       <Project>{5f53ab9e-fdda-4a45-b0be-d1fce1916fde}</Project>
       <Name>Nyan.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Nyan.Modules.Data.SqlServer\Nyan.Modules.Data.SqlServer.csproj">
-      <Project>{2599bc6b-1cce-4ebc-848e-2021affdde20}</Project>
-      <Name>Nyan.Modules.Data.SqlServer</Name>
+    <ProjectReference Include="..\Modules\Data\MySQL\Nyan.Modules.Data.MySql.csproj">
+      <Project>{f51739fe-c8a8-4328-b265-1d975d6950fe}</Project>
+      <Name>Nyan.Modules.Data.MySql</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />
