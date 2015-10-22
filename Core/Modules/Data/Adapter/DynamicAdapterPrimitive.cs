@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using Dapper;
-using Nyan.Core.Extensions;
 
 namespace Nyan.Core.Modules.Data.Adapter
 {
@@ -103,7 +102,8 @@ namespace Nyan.Core.Modules.Data.Adapter
             _sqlInClause = null;
         }
 
-        public virtual void Add(string name, object value = null, DbGenericType? dbType = DbGenericType.String, ParameterDirection? direction = ParameterDirection.Input, int? size = null)
+        public virtual void Add(string name, object value = null, DbGenericType? dbType = DbGenericType.String,
+            ParameterDirection? direction = ParameterDirection.Input, int? size = null)
         {
             _sqlWhereClause = null; // Always reset WHERE clause.
             _sqlInClause = null; // Always reset IN clause.
@@ -130,7 +130,7 @@ namespace Nyan.Core.Modules.Data.Adapter
         public virtual T Get<T>(string name)
         {
             var val = Parameters[name].AttachedParameter.Value;
-            if (val != DBNull.Value) return (T)val;
+            if (val != DBNull.Value) return (T) val;
             if (default(T) == null) return default(T);
 
             throw new ApplicationException("Attempting to cast a DBNull to a non nullable type!");

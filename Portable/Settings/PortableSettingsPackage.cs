@@ -1,4 +1,5 @@
-﻿using Nyan.Core.Settings;
+﻿using Nyan.Core.Modules.Authorization;
+using Nyan.Core.Settings;
 using System;
 using Nyan.Core.Modules.Cache;
 using Nyan.Core.Modules.Encryption;
@@ -17,11 +18,13 @@ namespace Nyan.Portable.Settings
             Encryption = new NullEncryptionProvider();
             Environment = new DefaultEnvironmentProvider();
             GlobalConnectionBundleType = typeof(Modules.Data.SQLite.SQLiteBundle);
+            Authorization = new NullAuthorizationProvider();
         }
         public ICacheProvider Cache { get; set; }
         public IEncryptionProvider Encryption { get; set; }
+        public IAuthorizationProvider Authorization { get; private set; }
         public IEnvironmentProvider Environment { get; set; }
         public Type GlobalConnectionBundleType { get; set; }
-        public ILogProvider Log { get; set; }
+        public LogProvider Log { get; set; }
     }
 }

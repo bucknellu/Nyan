@@ -41,8 +41,8 @@ namespace Nyan.Core.Modules.Data
         public ConstructorInfo FindExplicitConstructor()
         {
             return _mappers
-                        .Select(mapper => mapper.FindExplicitConstructor())
-                        .FirstOrDefault(result => result != null);
+                .Select(mapper => mapper.FindExplicitConstructor())
+                .FirstOrDefault(result => result != null);
         }
 
         public SqlMapper.IMemberMap GetConstructorParameter(ConstructorInfo constructor, string columnName)
@@ -91,5 +91,4 @@ namespace Nyan.Core.Modules.Data
             return null;
         }
     }
-
 }
