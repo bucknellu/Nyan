@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nyan.Samples.Console", "Sam
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{0CA1E54C-62A0-44E4-88BE-89519A580F3A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nyan.Samples.MVC", "Nyan.WebSample\Nyan.Samples.MVC.csproj", "{3F7B2BA2-3711-4990-9F28-4F7627919E27}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nyan.Samples.MVC", "Samples\Web.MVC\Nyan.Samples.MVC.csproj", "{3F7B2BA2-3711-4990-9F28-4F7627919E27}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modules", "Modules", "{690BA7EB-47A5-4F40-8109-3A39F8F34457}"
 EndProject

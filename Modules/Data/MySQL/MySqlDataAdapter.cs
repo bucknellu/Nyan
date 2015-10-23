@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Reflection;
 using System.Text;
+using System.ComponentModel.DataAnnotations;
 
 namespace Nyan.Modules.Data.MySql
 {
@@ -54,6 +55,7 @@ namespace Nyan.Modules.Data.MySql
                 {
                     var pType = prop.PropertyType;
                     var pDestinyType = "VARCHAR";
+                    var pLength = "";
                     var pNullableSpec = "";
                     var pAutoKeySpec = "";
                     var pSourceName = prop.Name;
@@ -126,7 +128,18 @@ namespace Nyan.Modules.Data.MySql
                     else
                         isFirst = false;
 
-                    tableRender.Append(pSourceName + " " + pDestinyType + pNullableSpec + pAutoKeySpec);
+                    var lengthAttribute = prop.GetCustomAttribute<StringLengthAttribute>();
+                    if (lengthAttribute != null)
+                    {
+                        pLength = "(" + lengthAttribute.MaximumLength + ")";
+                    }
+                    else if (pDestinyType == "VARCHAR")
+                    {
+                        // Default should be 255 on MySQL
+                        pLength = "(255)";
+                    }
+
+                    tableRender.Append(pSourceName + " " + pDestinyType + pLength + pNullableSpec + pAutoKeySpec);
                 }
 
                 tableRender.Append(", RCTS DATETIME DEFAULT CURRENT_TIMESTAMP");
@@ -150,9 +163,10 @@ namespace Nyan.Modules.Data.MySql
                     typeof(T).GetMethod("OnSchemaInitialization", BindingFlags.Public | BindingFlags.Static)
                         .Invoke(null, null);
                 }
-                catch (Exception e)
+                catch
                 {
-                    throw e;
+                    // Method is simply not defined. Info by log here. 
+                    Core.Settings.Current.Log.Add(typeof(T).FullName + ": There's no specific OnSchemaInitialization defined. Continuing...");
                 }
             }
             catch (Exception e)
