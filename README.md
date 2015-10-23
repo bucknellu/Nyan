@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/bucknellu/Nyan.png?label=ready&title=Ready)](https://waffle.io/bucknellu/Nyan)
 <p align="center">
 <img src='http://i.imgur.com/3lxWGRq.png' /></br>
 A lightweight .NET data service stack
