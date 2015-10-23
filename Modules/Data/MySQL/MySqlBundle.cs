@@ -25,10 +25,5 @@ namespace Nyan.Modules.Data.MySQL
             AdapterType = typeof(MySqlDataAdapter);
             EnvironmentCypherKeys = new Dictionary<string, string> { { "STD", "server=localhost;user id=root;persistsecurityinfo=True;database=nyan;password=123" } };
         }
-
-        public override void ValidateDatabase()
-        {
-            // throw new NotImplementedException();
-        }
     }
 }

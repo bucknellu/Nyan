@@ -7,7 +7,6 @@ namespace Nyan.Core.Modules.Data.Connection
     {
         public Dictionary<string, string> EnvironmentCypherKeys { get; set; }
         public Type AdapterType { get; set; }
-
-        public abstract void ValidateDatabase();
+        public virtual void ValidateDatabase() { }
     }
 }
