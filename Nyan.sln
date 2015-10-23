@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+# Visual Studio 2013
+VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nyan.Core", "Core\Nyan.Core.csproj", "{5F53AB9E-FDDA-4A45-B0BE-D1FCE1916FDE}"
 EndProject
@@ -42,6 +42,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nyan.Samples.REST", "samples\REST\Nyan.Samples.REST.csproj", "{EF7B9192-B800-4FF0-9EA8-D0A5744CDBF1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nyan.Modules.Data.SqlServer", "Nyan.Modules.Data.SqlServer\Nyan.Modules.Data.SqlServer.csproj", "{2599BC6B-1CCE-4EBC-848E-2021AFFDDE20}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nyan.Modules.Encryption.AES", "Modules\Encryption\AES\Nyan.Modules.Encryption.AES.csproj", "{006F0226-BF59-4621-B06A-0D5D6CE537D2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "External", "External", "{22F26AFA-2649-4692-BE1D-64695F042AA8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Banner", "..\..\githubExt\Banner\Banner.csproj", "{BB45FE10-D43F-45C0-B032-92007875E4A8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -97,6 +103,14 @@ Global
 		{2599BC6B-1CCE-4EBC-848E-2021AFFDDE20}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2599BC6B-1CCE-4EBC-848E-2021AFFDDE20}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2599BC6B-1CCE-4EBC-848E-2021AFFDDE20}.Release|Any CPU.Build.0 = Release|Any CPU
+		{006F0226-BF59-4621-B06A-0D5D6CE537D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{006F0226-BF59-4621-B06A-0D5D6CE537D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{006F0226-BF59-4621-B06A-0D5D6CE537D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{006F0226-BF59-4621-B06A-0D5D6CE537D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB45FE10-D43F-45C0-B032-92007875E4A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB45FE10-D43F-45C0-B032-92007875E4A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB45FE10-D43F-45C0-B032-92007875E4A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB45FE10-D43F-45C0-B032-92007875E4A8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -118,5 +132,8 @@ Global
 		{4B7081C2-21FC-4934-80AE-E4F91EA5E193} = {0EAA61A0-FDE9-40CC-B2B0-0A8641573DD3}
 		{EF7B9192-B800-4FF0-9EA8-D0A5744CDBF1} = {0CA1E54C-62A0-44E4-88BE-89519A580F3A}
 		{2599BC6B-1CCE-4EBC-848E-2021AFFDDE20} = {DB0EFF75-9EB0-49FB-B069-462C3F90DD98}
+		{006F0226-BF59-4621-B06A-0D5D6CE537D2} = {A4C34393-05E7-40BF-9ABA-CD945DD55B98}
+		{22F26AFA-2649-4692-BE1D-64695F042AA8} = {0CA1E54C-62A0-44E4-88BE-89519A580F3A}
+		{BB45FE10-D43F-45C0-B032-92007875E4A8} = {22F26AFA-2649-4692-BE1D-64695F042AA8}
 	EndGlobalSection
 EndGlobal
