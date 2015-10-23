@@ -14,6 +14,9 @@ using Nyan.Core.Modules.Data.Connection;
 using Nyan.Core.Modules.Log;
 using Nyan.Core.Settings;
 using Dapper;
+using System.Linq.Expressions;
+using Nyan.Core.Modules.Data.Operators;
+using Nyan.Core.Modules.Data.Operators.AnsiSql;
 
 namespace Nyan.Core.Modules.Data
 {
@@ -22,7 +25,7 @@ namespace Nyan.Core.Modules.Data
     /// </summary>
     /// <typeparam name="T">The data class that inherits from Entity.</typeparam>
     /// <example>Class DataLayer: Entity/<DataLayer /></example>
-    public class MicroEntity<T> where T : MicroEntity<T>
+    public abstract class MicroEntity<T> where T : MicroEntity<T>
     {
         // ReSharper disable once StaticFieldInGenericType
         private static readonly ConcurrentDictionary<Type, MicroEntityCompiledStatements> ClassRegistration =
@@ -130,6 +133,141 @@ namespace Nyan.Core.Modules.Data
             return ret;
         }
 
+        /// <summary>
+        ///     Search for a condition in database.
+        /// </summary>
+        /// <param name="predicate">A lambda expression.</param>
+        public static IEnumerable<T> Where(Expression<Func<T, bool>> predicate)
+        {
+            if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
+                throw new InvalidDataException("Class is not operational: {0}, {1}".format(
+                    Statements.Status.ToString(), Statements.StatusDescription));
+
+            var body = predicate.Body as BinaryExpression;
+            object leftSideValue = null;
+            object rightSideValue = null;
+
+            if (body != null)
+            {
+                leftSideValue = ResolveExpression(body.Left);
+                rightSideValue = ResolveExpression(body.Right);
+            }
+
+            var test = ResolveNodeType(body.NodeType, leftSideValue, rightSideValue);
+
+            var q = string.Format(Statements.SqlAllFieldsQueryTemplate,
+                    test.First());
+
+            var ret = Query(q);
+            if (!TableData.UseCaching) return ret;
+
+            //...but it populates the cache with all the individual results, saving time for future FETCHes.
+            foreach (var o in ret) Current.Cache[CacheKey(o.GetEntityIdentifier())] = o.ToJson();
+
+            return ret;
+        }
+
+        /// <summary>
+            /// Tries to resolve an expression.
+        /// </summary>
+        /// <param name="expression">An expression.</param>
+        /// <returns>A value used to compose a search query.</returns>
+        private static object ResolveExpression(Expression expression)
+        {
+            switch (expression.GetType().ToString())
+            {
+                case "System.Linq.Expressions.LogicalBinaryExpression":
+                case "System.Linq.Expressions.MethodBinaryExpression":
+                    // TODO: Finish
+                case "System.Linq.Expressions.PropertyExpression":
+                    // return ResolveMemberExpression(expression as MemberExpression);
+                    return (expression as MemberExpression).Member.Name;
+                case "System.Linq.Expressions.ConstantExpression":
+                    return (expression as ConstantExpression).Value;
+                default:
+                    // This will resolve NewExpression and MethodCallExpression.
+                    return Expression.Lambda(expression).Compile().DynamicInvoke();
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="member"></param>
+        /// <returns></returns>
+        private static object ResolveMemberExpression(MemberExpression member)
+        {
+            var objectMember = Expression.Convert(member, typeof(object));
+            var getterLambda = Expression.Lambda<Func<object>>(objectMember);
+            var getter = getterLambda.Compile();
+
+            return getter();
+        }
+
+        /// <summary>
+        ///     Resolves an expression based on expression type, left and right values.
+        /// </summary>
+        /// <param name="nodeType">The ExpressionType of the node.</param>
+        /// <param name="leftValue">The left value. Can be a value or enumeration.</param>
+        /// <param name="rightValue">The right value. Can be a value or enumeration.</param>
+        /// <returns></returns>
+        private static IEnumerable<IOperator> ResolveNodeType(ExpressionType nodeType, object leftValue, object rightValue)
+        {
+            switch (nodeType)
+            {
+                case ExpressionType.AndAlso:
+                    foreach (var leftSide in (IEnumerable<IOperator>)leftValue)
+                    {
+                        yield return leftSide;
+                    }
+                    foreach (var rightSide in (IEnumerable<IOperator>)rightValue)
+                    {
+                        yield return rightSide;
+                    }
+                    break;
+                case ExpressionType.GreaterThan:
+                    yield return new SqlGreaterThan { FieldName = leftValue.ToString(), FieldValue = rightValue };
+                    break;
+                case ExpressionType.GreaterThanOrEqual:
+                    yield return new SqlGreaterOrEqualThan { FieldName = leftValue.ToString(), FieldValue = rightValue };
+                    break;
+                case ExpressionType.LessThan:
+                    yield return new SqlLessThan { FieldName = leftValue.ToString(), FieldValue = rightValue };
+                    break;
+                case ExpressionType.LessThanOrEqual:
+                    yield return new SqlLessOrEqualThan { FieldName = leftValue.ToString(), FieldValue = rightValue };
+                    break;
+                // TODO: Discuss later.
+                /* case ExpressionType.OrElse:
+                    yield return new Or { OperadoresInternos = new List<IOperator> { ((IEnumerable<IOperator>)leftValue).First(), ((IEnumerable<IOperator>)rightValue).First() } };
+                    break; */
+                case ExpressionType.NotEqual:
+                    if (rightValue != null)
+                    {
+                        yield return new SqlNotEqual { FieldName = leftValue.ToString(), FieldValue = rightValue };
+                    }
+                    else
+                    {
+                        yield return new SqlNotNull { FieldName = leftValue.ToString() };
+                    }
+                    break;
+                default:
+                    if (rightValue != null)
+                    {
+                        yield return new SqlEqual { FieldName = leftValue.ToString(), FieldValue = rightValue };
+                    }
+                    else
+                    {
+                        yield return new SqlNull { FieldName = leftValue.ToString() };
+                    }
+                    break;
+            }
+        }
+
+        /// <summary>
+        ///     Get all entity entries. 
+        /// </summary>
+        /// <returns>An enumeration with all the entries from database.</returns>
         public static IEnumerable<T> GetAll()
         {
             if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
