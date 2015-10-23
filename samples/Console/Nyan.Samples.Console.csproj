@@ -60,9 +60,9 @@
       <Project>{5f53ab9e-fdda-4a45-b0be-d1fce1916fde}</Project>
       <Name>Nyan.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Portable\Nyan.Portable.csproj">
-      <Project>{7dfe0172-5732-4b96-aeea-95cbccd04600}</Project>
-      <Name>Nyan.Portable</Name>
+    <ProjectReference Include="..\..\Modules\Data\MySQL\Nyan.Modules.Data.MySql.csproj">
+      <Project>{f51739fe-c8a8-4328-b265-1d975d6950fe}</Project>
+      <Name>Nyan.Modules.Data.MySql</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
