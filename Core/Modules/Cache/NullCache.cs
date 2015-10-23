@@ -31,7 +31,8 @@ namespace Nyan.Core.Modules.Cache
 
         public void Remove(string key, string oSet = null)
         {
-            throw new NotImplementedException();
+            // Commenting to make Sample Program work.
+            // throw new NotImplementedException();
         }
 
         public void SetSingleton(object value, string fullName = null)

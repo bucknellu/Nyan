@@ -5,6 +5,7 @@ using Nyan.Core.Modules.Encryption;
 using Nyan.Core.Modules.Environment;
 using Nyan.Core.Modules.Log;
 using Nyan.Core.Settings;
+using Nyan.Modules.Cache.Memory;
 
 namespace Nyan.Modules.Data.MySQL
 {
@@ -15,7 +16,7 @@ namespace Nyan.Modules.Data.MySQL
         public MySqlSettingsPackage()
         {
             Log = new NullLogProvider();
-            Cache = new NullCacheProvider();
+            Cache = new MemoryCacheProvider();
             Encryption = new NullEncryptionProvider();
             Environment = new DefaultEnvironmentProvider();
             GlobalConnectionBundleType = typeof(MySqlBundle);
