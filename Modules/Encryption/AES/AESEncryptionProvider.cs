@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -11,33 +12,27 @@ namespace Nyan.Modules.Encryption.AES
     {
         private readonly object _lock = new object();
 
-        // ReSharper disable once FieldCanBeMadeReadOnly.Local
         private RijndaelManaged _aesAlg;
 
         private bool _isInitialized;
         private string _rjiv = "";
-        // ReSharper disable once FieldCanBeMadeReadOnly.Local
         private string _rjkey = "";
 
         #region Instanced methods
 
         public AESEncryptionProvider()
         {
-            _rjkey = "BuCkNeLlUnIvErSiTy29374857@(#*$$";
-            _rjiv = "LaNdIt-EnTsYsTeM";
-        }
-
-        public AESEncryptionProvider(string key)
-        {
-            _rjkey = key;
-
-            if (_rjkey.Length < 32) _rjkey = _rjkey.PadRight(32);
-
-            _rjiv = "LaNdIt-EnTsYsTeM";
+            _rjkey = "NyAn1DaTa2SeRvIcE3StAcK*#^$&%^#@";
+                // I know. Default key and vector for encryption, right? This is just a demo, though.
+            _rjiv = "NyAn-nYaN-NyAn-!"; 
+            //This class should be properly instanced via the constructor below:
         }
 
         public AESEncryptionProvider(string key, string iv)
         {
+            if (key.Length != 32) throw new ConfigurationException("An AES key must be 32 characters long.");
+            if (key.Length != 16) throw new ConfigurationException("An AES key must be 16 characters long.");
+
             _rjkey = key;
             _rjiv = iv;
         }

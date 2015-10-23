@@ -88,7 +88,7 @@ namespace Nyan.Core.Modules.Data.Adapter
 
             statements.SqlInsertSingleWithReturn =
                 sqlTemplateInsertSingleWithReturn
-                    .format(refTableName, "{0}", "{1}");
+                    .format(refTableName, "{0}", "{1}", statements.IdPropertyRaw);
 
             statements.SqlUpdateSingle =
                 sqlTemplateUpdateSingle
@@ -159,20 +159,30 @@ namespace Nyan.Core.Modules.Data.Adapter
         public virtual void SetConnectionString<T>() where T : MicroEntity<T>
         {
             var statements = MicroEntity<T>.Statements;
-            var td = MicroEntity<T>.TableData;
 
-            statements.ConnectionString = statements.ConnectionCypherKeys[Current.Environment.CurrentCode];
+            var envCode = Current.Environment.CurrentCode;
+
+            if (envCode == "UND") envCode = "DEV";
+
+            statements.ConnectionString = statements.ConnectionCypherKeys[envCode];
+
+            try
+            {
+                var tmpConn = Current.Encryption.Decrypt(statements.ConnectionString);
+                statements.ConnectionString = tmpConn;
+            }
+            catch { }
 
             if (statements.ConnectionString == "")
                 throw new ArgumentNullException(@"Connection Cypher Key not set for " + typeof(T).FullName +
                                                 ". Check class definition/configuration files.");
-
-            statements.ConnectionString = Current.Encryption.Decrypt(statements.ConnectionString);
         }
 
         public abstract void RenderSchemaEntityNames<T>() where T : MicroEntity<T>;
 
-        public virtual void ClearPools() { }
+        public virtual void ClearPools()
+        {
+        }
 
         public abstract DbConnection Connection(string connectionString);
 

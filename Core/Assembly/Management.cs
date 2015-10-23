@@ -20,7 +20,8 @@ namespace Nyan.Core.Assembly
 
         private static void LoadLocalAssemblies()
         {
-            var allAssemblies = new List<System.Reflection.Assembly>();
+            var self = System.Reflection.Assembly.GetEntryAssembly();
+            _assys.Add(self.ToString(), self);
 
             var assylist = Directory.GetFiles(Current.BaseDirectory, "*.dll");
 
@@ -32,8 +33,6 @@ namespace Nyan.Core.Assembly
 
                     if (!_assys.ContainsKey(assy.ToString()))
                         _assys.Add(assy.ToString(), assy);
-
-                    allAssemblies.Add(assy);
                 }
                 catch
                 {
