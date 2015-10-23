@@ -59,10 +59,6 @@
       <Project>{5f53ab9e-fdda-4a45-b0be-d1fce1916fde}</Project>
       <Name>Nyan.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Cache\Memory\Nyan.Modules.Cache.Memory.csproj">
-      <Project>{ce77d796-c158-48ff-b141-54489564a7e1}</Project>
-      <Name>Nyan.Modules.Cache.Memory</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

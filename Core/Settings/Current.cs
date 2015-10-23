@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Web.Hosting;
 using Nyan.Core.Assembly;
+using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Authorization;
 using Nyan.Core.Modules.Cache;
 using Nyan.Core.Modules.Encryption;
@@ -26,6 +27,21 @@ namespace Nyan.Core.Settings
             Encryption = refObj.Encryption;
             GlobalConnectionBundleType = refObj.GlobalConnectionBundleType;
             Authorization = refObj.Authorization;
+
+            Log.Add("Nyan - settings initialization: " + refObj.GetType(),
+                Message.EContentType.StartupSequence);
+            Log.Add("    Cache                     : " + (Cache.ToString() ?? "(none)"),
+                Message.EContentType.StartupSequence);
+            Log.Add("    Environment               : " + (Environment.ToString() ?? "(none)"),
+                Message.EContentType.StartupSequence);
+            Log.Add("    Log                       : " + (Log.ToString() ?? "(none)"),
+                Message.EContentType.StartupSequence);
+            Log.Add("    Encryption                : " + (Encryption.ToString() ?? "(none)"),
+                Message.EContentType.StartupSequence);
+            Log.Add("    Authorization             : " + (Authorization == null ? "(none)" : Authorization.ToString()),
+                Message.EContentType.StartupSequence);
+            Log.Add("    GlobalConnectionBundleType: " + (GlobalConnectionBundleType.ToString() ?? "(none)"),
+                Message.EContentType.StartupSequence);
         }
 
         public static ICacheProvider Cache { get; private set; }
@@ -60,10 +76,10 @@ namespace Nyan.Core.Settings
             {
                 var level = 0;
 
-                var attrs = item.GetCustomAttributes(typeof (PackagePriorityAttribute), true);
+                var attrs = item.GetCustomAttributes(typeof(PackagePriorityAttribute), true);
 
                 if (attrs.Length > 0)
-                    level = ((PackagePriorityAttribute) attrs[0]).Level;
+                    level = ((PackagePriorityAttribute)attrs[0]).Level;
 
                 priorityList.Add(new KeyValuePair<int, Type>(level, item));
             }
@@ -76,7 +92,7 @@ namespace Nyan.Core.Settings
                 throw new Exception("(╯°□°）╯︵ ┻━┻ - There are no Nyan Packages included in the project.");
             }
 
-            return (IPackage) Activator.CreateInstance(priorityList[0].Value);
+            return (IPackage)Activator.CreateInstance(priorityList[0].Value);
         }
     }
 }

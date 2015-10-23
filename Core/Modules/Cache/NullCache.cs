@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace Nyan.Core.Modules.Cache
 {
-    public class NullCache : ICacheProvider
+    public class NullCacheProvider : ICacheProvider
     {
-        public NullCache()
+        public NullCacheProvider()
         {
             OperationalStatus = EOperationalStatus.NonOperational;
         }

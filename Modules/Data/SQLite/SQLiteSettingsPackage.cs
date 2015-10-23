@@ -6,19 +6,20 @@ using Nyan.Core.Modules.Environment;
 using Nyan.Core.Modules.Log;
 using Nyan.Core.Settings;
 
-namespace Nyan.Modules.Data.MySQL
+namespace Nyan.Modules.Data.SQLite
 {
     [PackagePriority(Level = -2)]
     // Data adapter package priority (higher than default (-3), but lower than pre-specified packages (-1)
-    public class MySqlSettingsPackage : IPackage
+    // ReSharper disable once InconsistentNaming
+    public class SQLiteSettingsPackage : IPackage
     {
-        public MySqlSettingsPackage()
+        public SQLiteSettingsPackage()
         {
             Log = new NullLogProvider();
             Cache = new NullCacheProvider();
             Encryption = new NullEncryptionProvider();
             Environment = new DefaultEnvironmentProvider();
-            GlobalConnectionBundleType = typeof(MySqlBundle);
+            GlobalConnectionBundleType = typeof(SQLiteBundle);
         }
 
         public ICacheProvider Cache { get; set; }

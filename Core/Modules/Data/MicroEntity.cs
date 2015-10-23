@@ -784,7 +784,7 @@ namespace Nyan.Core.Modules.Data
         {
             try
             {
-                Current.Log.Add(DateTime.Now + ": " + typeof(T).FullName + " config changed.",Message.EContentType.Maintenance);
+                Current.Log.Add(DateTime.Now + ": " + typeof(T).FullName + " config changed.", Message.EContentType.Maintenance);
                 Statements.Adapter.SetConnectionString<T>();
             }
             catch (Exception e)
