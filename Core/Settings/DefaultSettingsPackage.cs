@@ -7,13 +7,13 @@ using Nyan.Core.Modules.Log;
 
 namespace Nyan.Core.Settings
 {
-    [PackagePriority(Level = -2)]
+    [PackagePriority(Level = -3)]
     internal class DefaultSettingsPackage : IPackage
     {
         public DefaultSettingsPackage()
         {
             Log = new NullLogProvider();
-            Cache = new NullCache();
+            Cache = new NullCacheProvider();
             Encryption = new NullEncryptionProvider();
             Environment = new DefaultEnvironmentProvider();
             Authorization = new NullAuthorizationProvider();

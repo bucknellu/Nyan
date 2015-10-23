@@ -64,6 +64,10 @@
       <Project>{f51739fe-c8a8-4328-b265-1d975d6950fe}</Project>
       <Name>Nyan.Modules.Data.MySql</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Portable\Nyan.Portable.csproj">
+      <Project>{7dfe0172-5732-4b96-aeea-95cbccd04600}</Project>
+      <Name>Nyan.Portable</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

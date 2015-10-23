@@ -48,7 +48,7 @@ namespace Nyan.Core.Assembly
         /// <returns></returns>
         public static List<Type> GetClassesByInterface<T>()
         {
-            var type = typeof (T);
+            var type = typeof(T);
             var ret = new List<Type>();
 
             foreach (var item in _assys.Values)
