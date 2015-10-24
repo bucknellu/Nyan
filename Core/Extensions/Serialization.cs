@@ -711,6 +711,11 @@ namespace Nyan.Core.Extensions
             return true;
         }
 
+        public static T ConvertTo<T>(ref object input)
+        {
+            return (T)Convert.ChangeType(input, typeof(T));
+        }
+
         #endregion
 
         /// <summary>

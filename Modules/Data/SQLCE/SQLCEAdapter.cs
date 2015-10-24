@@ -1,19 +1,19 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
-using Nyan.Core.Extensions;
+﻿using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Data;
 using Nyan.Core.Modules.Data.Adapter;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Data.Common;
-using Oracle.ManagedDataAccess.Client;
+using System.Data.SqlServerCe;
+using System.Reflection;
+using System.Text;
 
-namespace Nyan.Modules.Data.Oracle
+namespace Nyan.Modules.Data.SQLCE
 {
-    public class OracleAdapter : AdapterPrimitive
+    public class SQLCEAdapter : AdapterPrimitive
     {
-        public OracleAdapter()
+        public SQLCEAdapter()
         {
             //SQLite implements regular ANSI SQL, so we don't to customize the base templates.
 
@@ -22,7 +22,7 @@ namespace Nyan.Modules.Data.Oracle
             sqlTemplateInsertSingleWithReturn = "INSERT INTO {0} ({1}) VALUES ({2}) RETURNING CAST({3} AS VARCHAR2(38) ) INTO :newid";
             sqlTemplateTableTruncate = "TRUNCATE TABLE {0}"; //No such thing as TRUNCATE on SQLite, but open DELETE works the same way.
 
-            dynamicParameterType = typeof(OracleDynamicParameters);
+            dynamicParameterType = typeof(SQLCEDynamicParameters);
         }
 
         public override void CheckDatabaseEntities<T>()
@@ -75,7 +75,8 @@ namespace Nyan.Modules.Data.Oracle
                         if (typeof(IDictionary).IsAssignableFrom(pType)) continue;
 
                         if (pType.BaseType != null &&
-                            (typeof(IList).IsAssignableFrom(pType.BaseType) && pType.BaseType.IsGenericType)) continue;
+                            (typeof(IList).IsAssignableFrom(pType.BaseType) && pType.BaseType.IsGenericType))
+                            continue;
 
                         var isNullable = false;
 
@@ -279,7 +280,7 @@ namespace Nyan.Modules.Data.Oracle
 
         public override DbConnection Connection(string connectionString)
         {
-            return new OracleConnection(connectionString);
+            return new SqlCeConnection(connectionString);
         }
 
         public override void RenderSchemaEntityNames<T>()

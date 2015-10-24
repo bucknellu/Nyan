@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using Dapper;
+using System.Data.Common;
 
 namespace Nyan.Core.Modules.Data.Adapter
 {
@@ -19,21 +20,67 @@ namespace Nyan.Core.Modules.Data.Adapter
             LargeObject
         }
 
-        private static readonly Dictionary<SqlMapper.Identity, Action<IDbCommand, object>> _paramReaderCache =
-            new Dictionary<SqlMapper.Identity, Action<IDbCommand, object>>();
+        private static readonly Dictionary<SqlMapper.Identity, Action<IDbCommand, object>> _paramReaderCache = new Dictionary<SqlMapper.Identity, Action<IDbCommand, object>>();
+        private readonly Dictionary<string, ParameterInformation> _internalParameters = new Dictionary<string, ParameterInformation>();
 
-        private readonly Dictionary<string, ParameterInformation> _internalParameters =
-            new Dictionary<string, ParameterInformation>();
+        protected internal Type CommandType;
+        protected internal Type ParameterType;
+
+        public List<object> _templates;
 
         private string _sqlInClause;
         private string _sqlWhereClause;
 
-        protected DynamicParametersPrimitive()
+        public virtual void AddDynamicParams(object param)
         {
+            var obj = param;
+
+            if (obj == null) return;
+
+            ResetCachedWhereClause();
+
+            var subDynamic = (DynamicParametersPrimitive)Activator.CreateInstance(GetType(), param);
+            if (subDynamic == null)
+            {
+                var dictionary = obj as IEnumerable<KeyValuePair<string, object>>;
+                if (dictionary == null)
+                {
+                    _templates = _templates ?? new List<object>();
+                    _templates.Add(obj);
+                }
+                else
+                {
+                    foreach (var kvp in dictionary)
+                        Add(kvp.Key, kvp.Value);
+                }
+            }
+            else
+            {
+                if (subDynamic.Parameters != null)
+                {
+                    foreach (var kvp in subDynamic.Parameters)
+                        Parameters.Add(kvp.Key, kvp.Value);
+                }
+
+                if (subDynamic._templates != null)
+                {
+                    _templates = _templates ?? new List<object>();
+                    foreach (var t in subDynamic._templates)
+                        _templates.Add(t);
+                }
+            }
         }
 
-        protected DynamicParametersPrimitive(object template)
+        public DynamicParametersPrimitive()
         {
+        }
+        public DynamicParametersPrimitive(object template)
+        {
+            AddDynamicParams(template);
+        }
+        void SqlMapper.IDynamicParameters.AddParameters(IDbCommand command, SqlMapper.Identity identity)
+        {
+            AddParameters(command, identity);
         }
 
         public virtual IEnumerable<string> ParameterNames
@@ -90,7 +137,75 @@ namespace Nyan.Core.Modules.Data.Adapter
             get { return _paramReaderCache; }
         }
 
-        public abstract void AddParameters(IDbCommand command, SqlMapper.Identity identity);
+        public virtual void AddParameters(IDbCommand command, SqlMapper.Identity identity)
+        {
+            ResetCachedWhereClause();
+
+            if (_templates != null)
+            {
+                foreach (var template in _templates)
+                {
+                    var newIdent = identity.ForDynamicParameters(template.GetType());
+
+                    Action<IDbCommand, object> appender;
+
+                    lock (ParamReaderCache)
+                    {
+                        if (!ParamReaderCache.TryGetValue(newIdent, out appender))
+                        {
+                            appender = SqlMapper.CreateParamInfoGenerator(newIdent, false, false);
+                            ParamReaderCache[newIdent] = appender;
+                        }
+                    }
+
+                    appender(command, template);
+                }
+            }
+
+            foreach (var param in Parameters)
+            {
+                var name = param.Key;
+
+                dynamic dCommand = Convert.ChangeType(command, CommandType);
+
+                var add = !dCommand.Parameters.Contains(name);
+
+                var p = (DbParameter)Activator.CreateInstance(ParameterType);
+
+                if (add)
+                {
+                    p = dCommand.CreateParameter();
+                    p.ParameterName = name;
+                }
+                else
+                {
+                    p = dCommand.Parameters[name];
+                }
+                var val = param.Value.Value;
+
+                p.Value = val ?? DBNull.Value;
+                p.Direction = param.Value.ParameterDirection;
+
+                var s = val as string;
+
+                if (s != null)
+                {
+                    if (s.Length <= 4000)
+                        p.Size = 4000;
+                }
+                if (param.Value.Size != null)
+                {
+                    p.Size = param.Value.Size.Value;
+                }
+
+                p.DbType = (DbType)param.Value.TargetDatabaseType;
+
+                if (add)
+                    command.Parameters.Add(p);
+
+                param.Value.AttachedParameter = p;
+            }
+        }
 
         public void ResetCachedWhereClause()
         {
@@ -102,8 +217,7 @@ namespace Nyan.Core.Modules.Data.Adapter
             _sqlInClause = null;
         }
 
-        public virtual void Add(string name, object value = null, DbGenericType? dbType = DbGenericType.String,
-            ParameterDirection? direction = ParameterDirection.Input, int? size = null)
+        public virtual void Add(string name, object value = null, DbGenericType? dbType = DbGenericType.String, ParameterDirection? direction = ParameterDirection.Input, int? size = null)
         {
             _sqlWhereClause = null; // Always reset WHERE clause.
             _sqlInClause = null; // Always reset IN clause.
@@ -130,7 +244,7 @@ namespace Nyan.Core.Modules.Data.Adapter
         public virtual T Get<T>(string name)
         {
             var val = Parameters[name].AttachedParameter.Value;
-            if (val != DBNull.Value) return (T) val;
+            if (val != DBNull.Value) return (T)val;
             if (default(T) == null) return default(T);
 
             throw new ApplicationException("Attempting to cast a DBNull to a non nullable type!");

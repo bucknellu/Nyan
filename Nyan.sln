@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.40629.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nyan.Core", "Core\Nyan.Core.csproj", "{5F53AB9E-FDDA-4A45-B0BE-D1FCE1916FDE}"
 EndProject
@@ -44,6 +44,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nyan.Modules.Data.SqlServer", "Nyan.Modules.Data.SqlServer\Nyan.Modules.Data.SqlServer.csproj", "{2599BC6B-1CCE-4EBC-848E-2021AFFDDE20}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nyan.Modules.Encryption.AES", "Modules\Encryption\AES\Nyan.Modules.Encryption.AES.csproj", "{006F0226-BF59-4621-B06A-0D5D6CE537D2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nyan.Modules.Data.SQLCE", "Modules\Data\SQLCE\Nyan.Modules.Data.SQLCE.csproj", "{6ABC14A3-5FD6-4400-824D-14420E9848B0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -103,6 +105,10 @@ Global
 		{006F0226-BF59-4621-B06A-0D5D6CE537D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{006F0226-BF59-4621-B06A-0D5D6CE537D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{006F0226-BF59-4621-B06A-0D5D6CE537D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6ABC14A3-5FD6-4400-824D-14420E9848B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6ABC14A3-5FD6-4400-824D-14420E9848B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6ABC14A3-5FD6-4400-824D-14420E9848B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6ABC14A3-5FD6-4400-824D-14420E9848B0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -125,5 +131,6 @@ Global
 		{EF7B9192-B800-4FF0-9EA8-D0A5744CDBF1} = {0CA1E54C-62A0-44E4-88BE-89519A580F3A}
 		{2599BC6B-1CCE-4EBC-848E-2021AFFDDE20} = {DB0EFF75-9EB0-49FB-B069-462C3F90DD98}
 		{006F0226-BF59-4621-B06A-0D5D6CE537D2} = {A4C34393-05E7-40BF-9ABA-CD945DD55B98}
+		{6ABC14A3-5FD6-4400-824D-14420E9848B0} = {DB0EFF75-9EB0-49FB-B069-462C3F90DD98}
 	EndGlobalSection
 EndGlobal
