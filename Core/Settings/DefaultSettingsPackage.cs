@@ -2,7 +2,7 @@
 using Nyan.Core.Modules.Authorization;
 using Nyan.Core.Modules.Cache;
 using Nyan.Core.Modules.Encryption;
-using Nyan.Core.Modules.Environment;
+using Nyan.Core.Modules.Scope;
 using Nyan.Core.Modules.Log;
 
 namespace Nyan.Core.Settings

@@ -3,7 +3,7 @@ using Nyan.Core.Settings;
 using System;
 using Nyan.Core.Modules.Cache;
 using Nyan.Core.Modules.Encryption;
-using Nyan.Core.Modules.Environment;
+using Nyan.Core.Modules.Scope;
 using Nyan.Core.Modules.Log;
 
 namespace Nyan.Portable.Settings
@@ -13,7 +13,7 @@ namespace Nyan.Portable.Settings
     {
         public PortableSettingsPackage()
         {
-            Log = new NullLogProvider();
+            Log = new FileLogProvider();
             Cache = new Modules.Cache.Memory.MemoryCacheProvider();
             Encryption = new NullEncryptionProvider();
             Environment = new DefaultEnvironmentProvider();

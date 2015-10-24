@@ -1,17 +1,17 @@
 ﻿using Dapper;
 using Nyan.Core.Modules.Data.Adapter;
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
 using System.Data.SqlServerCe;
 
 namespace Nyan.Modules.Data.SQLCE
 {
     public class SQLCEDynamicParameters : DynamicParametersPrimitive, SqlMapper.IDynamicParameters
     {
-        protected internal new Type CommandType = typeof(SqlCeCommand);
-        protected internal new Type ParameterType = typeof(SqlCeParameter);
+        public SQLCEDynamicParameters()
+        {
+            CommandType = typeof(SqlCeCommand);
+            ParameterType = typeof(SqlCeParameter);
+        }
 
         private static DbType ConvertGenericTypeToCustomType(DbGenericType type)
         {

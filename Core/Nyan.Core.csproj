@@ -72,10 +72,11 @@
     <Compile Include="Modules\Data\NotNullAttribute.cs" />
     <Compile Include="Modules\Encryption\IEncryptionProvider.cs" />
     <Compile Include="Modules\Encryption\NullEncryptionProvider.cs" />
-    <Compile Include="Modules\Environment\DefaultEnvironmentProvider.cs" />
-    <Compile Include="Modules\Environment\IEnvironmentDescriptor.cs" />
-    <Compile Include="Modules\Environment\IEnvironmentProvider.cs" />
-    <Compile Include="Modules\Environment\DefaultEnvironmentDescriptor.cs" />
+    <Compile Include="Modules\Scope\DefaultEnvironmentProvider.cs" />
+    <Compile Include="Modules\Scope\IEnvironmentDescriptor.cs" />
+    <Compile Include="Modules\Scope\IEnvironmentProvider.cs" />
+    <Compile Include="Modules\Scope\DefaultEnvironmentDescriptor.cs" />
+    <Compile Include="Modules\Log\FileLogProvider.cs" />
     <Compile Include="Modules\Log\LogProvider.cs" />
     <Compile Include="Modules\Log\Message.cs" />
     <Compile Include="Modules\Log\NullLogProvider.cs" />

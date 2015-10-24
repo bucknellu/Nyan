@@ -8,8 +8,12 @@ namespace Nyan.Modules.Data.SQLite
 {
     public class SQLiteDynamicParameters : DynamicParametersPrimitive, SqlMapper.IDynamicParameters
     {
-        protected internal new Type CommandType = typeof(SQLiteCommand);
-        protected internal new Type ParameterType = typeof(SQLiteParameter);
+
+        public SQLiteDynamicParameters()
+        {
+            CommandType = typeof(SQLiteCommand);
+            ParameterType = typeof(SQLiteParameter);
+        }
 
         private static DbType ConvertGenericTypeToCustomType(DbGenericType type)
         {

@@ -20,8 +20,13 @@ namespace Nyan.Core.Assembly
 
         private static void LoadLocalAssemblies()
         {
-            var self = System.Reflection.Assembly.GetEntryAssembly();
-            _assys.Add(self.ToString(), self);
+            try
+            {
+                var self = System.Reflection.Assembly.GetEntryAssembly();
+                _assys.Add(self.ToString(), self);
+            }
+            catch { }
+
 
             var assylist = Directory.GetFiles(Current.BaseDirectory, "*.dll");
 

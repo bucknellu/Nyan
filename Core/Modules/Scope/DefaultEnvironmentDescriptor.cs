@@ -1,11 +1,11 @@
-﻿namespace Nyan.Core.Modules.Environment
+﻿namespace Nyan.Core.Modules.Scope
 {
-    public sealed class DefaultEnvironmentDescriptor : IEnvironmentDescriptor
+    public sealed class DefaultScopeDescriptor : IScopeDescriptor
     {
         //The default Descriptor handles only one environment.
-        public static readonly IEnvironmentDescriptor Standard = new DefaultEnvironmentDescriptor(0, "STD", "Standard");
+        public static readonly IScopeDescriptor Standard = new DefaultScopeDescriptor(0, "STD", "Standard");
 
-        private DefaultEnvironmentDescriptor(int value, string code, string name)
+        private DefaultScopeDescriptor(int value, string code, string name)
         {
             Value = value;
             Name = name;

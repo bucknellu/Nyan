@@ -1,6 +1,6 @@
-﻿namespace Nyan.Core.Modules.Environment
+﻿namespace Nyan.Core.Modules.Scope
 {
-    public interface IEnvironmentDescriptor
+    public interface IScopeDescriptor
     {
         string Name { get; }
         string Code { get; }

@@ -25,8 +25,7 @@ namespace Nyan.Core.Modules.Data
     public class MicroEntity<T> where T : MicroEntity<T>
     {
         // ReSharper disable once StaticFieldInGenericType
-        private static readonly ConcurrentDictionary<Type, MicroEntityCompiledStatements> ClassRegistration =
-            new ConcurrentDictionary<Type, MicroEntityCompiledStatements>();
+        private static readonly ConcurrentDictionary<Type, MicroEntityCompiledStatements> ClassRegistration = new ConcurrentDictionary<Type, MicroEntityCompiledStatements>();
 
         // ReSharper disable once StaticFieldInGenericType
         private static readonly object AccessLock = new object();
@@ -133,8 +132,7 @@ namespace Nyan.Core.Modules.Data
         public static IEnumerable<T> GetAll()
         {
             if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
-                throw new InvalidDataException("Class is not operational: {0}, {1}".format(
-                    Statements.Status.ToString(), Statements.StatusDescription));
+                throw new InvalidDataException("Class is not operational: {0}, {1}".format(Statements.Status.ToString(), Statements.StatusDescription));
 
             //GetAll should never use cache, always hitting the DB.
             var ret = Query(Statements.SqlGetAll);
@@ -591,16 +589,16 @@ namespace Nyan.Core.Modules.Data
             {
                 try
                 {
-                    Current.Log.Add("{0} @ {1} - {2} : Initializing".format(typeof(T).FullName,
-                        System.Environment.MachineName, Current.Environment.Current));
-
                     ClassRegistration.TryAdd(typeof(T), new MicroEntityCompiledStatements());
-
                     Statements.Status = MicroEntityCompiledStatements.EStatus.Initializing;
                     Statements.StatusStep = "Instantiating ColumnAttributeTypeMapper";
 
                     var cat = new ColumnAttributeTypeMapper<T>();
                     SqlMapper.SetTypeMap(typeof(T), cat);
+
+                    Current.Log.Add("{0} @ {1} - {2} : Initializing".format(typeof(T).FullName, System.Environment.MachineName, Current.Environment.Current));
+
+
 
                     var refBundle = TableData.ConnectionBundleType ?? Current.GlobalConnectionBundleType;
 
@@ -723,7 +721,7 @@ namespace Nyan.Core.Modules.Data
                 catch (Exception e)
                 {
                     Statements.Status = MicroEntityCompiledStatements.EStatus.CriticalFailure;
-                    Statements.StatusDescription = typeof(T).FullName + " : Error while initializing - " + e.Message;
+                    Statements.StatusDescription = typeof(T).FullName + " : Error while " + Statements.StatusStep + " - " + e.Message;
 
                     var refEx = e;
                     while (refEx.InnerException != null)
