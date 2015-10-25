@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Web.Hosting;
 using Nyan.Core.Assembly;
-using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Authorization;
 using Nyan.Core.Modules.Cache;
 using Nyan.Core.Modules.Encryption;
