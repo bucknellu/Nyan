@@ -15,10 +15,6 @@ namespace Nyan.Samples.Console
             var s = new Stopwatch();
             Core.Settings.Current.Log.Add("Fetching all records...");
 
-            s.Start();
-            var a = Model.User.Get().ToList();
-            s.Stop();
-
             Core.Settings.Current.Log.Add(s.ElapsedMilliseconds + " ms");
 
             Core.Settings.Current.Log.Add("Creating " + amountToTest + " records...");
@@ -41,7 +37,7 @@ namespace Nyan.Samples.Console
             Core.Settings.Current.Log.Add("Fetching all records...");
 
             s.Restart();
-            a = Model.User.Get().ToList();
+            var a = Model.User.GetAll().ToList();
             s.Stop();
             Core.Settings.Current.Log.Add(s.ElapsedMilliseconds + " ms - {0}/s, {1} records fetched".format(a.Count / ((double)s.ElapsedMilliseconds / 1000), a.Count));
 
@@ -55,6 +51,13 @@ namespace Nyan.Samples.Console
             }
             s.Stop();
             Core.Settings.Current.Log.Add(s.ElapsedMilliseconds + " ms - {0}/s".format(a.Count / ((double)s.ElapsedMilliseconds / 1000)));
+
+            Core.Settings.Current.Log.Add("Selecting using predicates...");
+
+            s.Restart();
+            // var a = Model.User.GetAll().ToList();
+            a = Model.User.Where(x => x.id > 3000).ToList();
+            s.Stop();
 
             Core.Settings.Current.Log.Add("Removing records by iteration...");
 
