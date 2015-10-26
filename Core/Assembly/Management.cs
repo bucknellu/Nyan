@@ -7,25 +7,17 @@ namespace Nyan.Core.Assembly
 {
     public static class Management
     {
-        private static readonly Dictionary<string, System.Reflection.Assembly> _assys =
-            new Dictionary<string, System.Reflection.Assembly>();
+        private static readonly Dictionary<string, System.Reflection.Assembly> _assys = new Dictionary<string, System.Reflection.Assembly>();
 
         static Management()
         {
             // This bootstrapper loads all assemblies placed in the same physical directory as the caller project,
             // And keep a static reference to them.
 
-            LoadLocalAssemblies();
-        }
+            var self = System.Reflection.Assembly.GetEntryAssembly();
 
-        private static void LoadLocalAssemblies()
-        {
-            try
-            {
-                var self = System.Reflection.Assembly.GetEntryAssembly();
+            if (self != null)
                 _assys.Add(self.ToString(), self);
-            }
-            catch { }
 
 
             var assylist = Directory.GetFiles(Current.BaseDirectory, "*.dll");
@@ -41,15 +33,11 @@ namespace Nyan.Core.Assembly
                 }
                 catch
                 {
+                    //Some DLLs may fail to load. That's fine, let's just ignore them.
                 }
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
         public static List<Type> GetClassesByInterface<T>()
         {
             var type = typeof(T);
