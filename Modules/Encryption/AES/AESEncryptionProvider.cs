@@ -31,7 +31,7 @@ namespace Nyan.Modules.Encryption.AES
         public AESEncryptionProvider(string key, string iv)
         {
             if (key.Length != 32) throw new ConfigurationException("An AES key must be 32 characters long.");
-            if (key.Length != 16) throw new ConfigurationException("An AES key must be 16 characters long.");
+            if (iv.Length != 16) throw new ConfigurationException("An AES vector must be 16 characters long.");
 
             _rjkey = key;
             _rjiv = iv;
