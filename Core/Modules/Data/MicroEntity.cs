@@ -139,8 +139,7 @@ namespace Nyan.Core.Modules.Data
         public static IEnumerable<T> Where(Expression<Func<T, bool>> predicate)
         {
             if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
-                throw new InvalidDataException("Class is not operational: {0}, {1}".format(
-                    Statements.Status.ToString(), Statements.StatusDescription));
+                throw new InvalidDataException("Class is not operational: {0}, {1}".format(Statements.Status.ToString(), Statements.StatusDescription));
 
             var body = predicate.Body as BinaryExpression;
             object leftSideValue = null;
@@ -154,8 +153,7 @@ namespace Nyan.Core.Modules.Data
 
             var test = ResolveNodeType(body.NodeType, leftSideValue, rightSideValue);
 
-            var q = string.Format(Statements.SqlAllFieldsQueryTemplate,
-                    test.First());
+            var q = string.Format(Statements.SqlAllFieldsQueryTemplate, test.First());
 
             var ret = Query(q);
             if (!TableData.UseCaching) return ret;
@@ -167,7 +165,7 @@ namespace Nyan.Core.Modules.Data
         }
 
         /// <summary>
-            /// Tries to resolve an expression.
+        /// Tries to resolve an expression.
         /// </summary>
         /// <param name="expression">An expression.</param>
         /// <returns>A value used to compose a search query.</returns>
@@ -177,7 +175,7 @@ namespace Nyan.Core.Modules.Data
             {
                 case "System.Linq.Expressions.LogicalBinaryExpression":
                 case "System.Linq.Expressions.MethodBinaryExpression":
-                    // TODO: Finish
+                // TODO: Finish
                 case "System.Linq.Expressions.PropertyExpression":
                     // return ResolveMemberExpression(expression as MemberExpression);
                     return (expression as MemberExpression).Member.Name;
@@ -267,7 +265,7 @@ namespace Nyan.Core.Modules.Data
         ///     Get all entity entries. 
         /// </summary>
         /// <returns>An enumeration with all the entries from database.</returns>
-        public static IEnumerable<T> GetAll()
+        public static IEnumerable<T> Get()
         {
             if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
                 throw new InvalidDataException("Class is not operational: {0}, {1}".format(Statements.Status.ToString(), Statements.StatusDescription));

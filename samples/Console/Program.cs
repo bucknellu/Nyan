@@ -37,7 +37,7 @@ namespace Nyan.Samples.Console
             Core.Settings.Current.Log.Add("Fetching all records...");
 
             s.Restart();
-            var a = Model.User.GetAll().ToList();
+            var a = Model.User.Get().ToList();
             s.Stop();
             Core.Settings.Current.Log.Add(s.ElapsedMilliseconds + " ms - {0}/s, {1} records fetched".format(a.Count / ((double)s.ElapsedMilliseconds / 1000), a.Count));
 
