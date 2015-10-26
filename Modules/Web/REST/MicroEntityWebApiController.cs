@@ -81,7 +81,7 @@ namespace Nyan.Modules.Web.REST
                 object preRet;
                 if (RESTHeaderQuery == null)
                 {
-                    preRet = MicroEntity<T>.GetAll();
+                    preRet = MicroEntity<T>.Get();
                 }
                 else
                 {

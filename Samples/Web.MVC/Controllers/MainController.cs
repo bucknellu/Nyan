@@ -8,7 +8,7 @@ namespace Nyan.WebSample.Controllers
         // GET: /Main/
         public ActionResult Index()
         {
-            var a = Models.User.GetAll();
+            var a = Models.User.Get();
             return View(a);
         }
 	}

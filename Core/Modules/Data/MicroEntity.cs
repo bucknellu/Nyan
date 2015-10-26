@@ -129,7 +129,7 @@ namespace Nyan.Core.Modules.Data
             return ret;
         }
 
-        public static IEnumerable<T> GetAll()
+        public static IEnumerable<T> Get()
         {
             if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
                 throw new InvalidDataException("Class is not operational: {0}, {1}".format(Statements.Status.ToString(), Statements.StatusDescription));

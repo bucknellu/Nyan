@@ -9,7 +9,7 @@ namespace Nyan.Samples.REST
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-            var a = Model.User.GetAll().ToList();
+            var a = Model.User.Get().ToList();
 
             if (a.Count < 5)
             {
