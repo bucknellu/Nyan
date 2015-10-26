@@ -3,11 +3,11 @@ using Nyan.Core.Modules.Data.Adapter;
 using System.Data;
 using System.Data.SqlServerCe;
 
-namespace Nyan.Modules.Data.SQLCE
+namespace Nyan.Modules.Data.SQLCompact
 {
-    public class SQLCEDynamicParameters : DynamicParametersPrimitive, SqlMapper.IDynamicParameters
+    public class SQLCompactDynamicParameters : DynamicParametersPrimitive, SqlMapper.IDynamicParameters
     {
-        public SQLCEDynamicParameters()
+        public SQLCompactDynamicParameters()
         {
             CommandType = typeof(SqlCeCommand);
             ParameterType = typeof(SqlCeParameter);

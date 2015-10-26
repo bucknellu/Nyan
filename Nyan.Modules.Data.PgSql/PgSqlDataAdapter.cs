@@ -18,6 +18,7 @@ namespace Nyan.Modules.Data.PgSql
         {
             parameterIdentifier = "@";
             useOutputParameterForInsertedKeyExtraction = false; //Some DBs may require an OUT parameter to extract the new ID. Not the case here.
+            useNumericPrimaryKeyOnly = true;
             sqlTemplateInsertSingleWithReturn = "INSERT INTO {0} ({1}) VALUES ({2}) RETURNING id";
             sqlTemplateTableTruncate = "DELETE FROM {0}"; //No such thing as TRUNCATE on SQLite, but open DELETE works the same way.
 

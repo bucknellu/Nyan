@@ -78,7 +78,13 @@ namespace Nyan.Core.Modules.Data
         /// <returns>An object instance if the ID exists, or NULL otherwise.</returns>
         internal static T GetFromDatabase(object identifier)
         {
-            var retCol = Query(Statements.SqlGetSingle, new { Id = Convert.ToInt32(identifier) });
+            List<T> retCol = null;
+
+            if (Statements.Adapter.useNumericPrimaryKeyOnly)
+                retCol = Query(Statements.SqlGetSingle, new { Id = Convert.ToInt32(identifier) });
+            else
+                retCol = Query(Statements.SqlGetSingle, new { Id = identifier });
+
             var ret = retCol.Count > 0 ? retCol[0] : null;
             return ret;
         }

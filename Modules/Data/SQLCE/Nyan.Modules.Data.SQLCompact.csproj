@@ -7,8 +7,8 @@
     <ProjectGuid>{6ABC14A3-5FD6-4400-824D-14420E9848B0}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Nyan.Modules.Data.SQLCE</RootNamespace>
-    <AssemblyName>Nyan.Modules.Data.SQLCE</AssemblyName>
+    <RootNamespace>Nyan.Modules.Data.SQLCompact</RootNamespace>
+    <AssemblyName>Nyan.Modules.Data.SQLCompact</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

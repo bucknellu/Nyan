@@ -9,20 +9,20 @@ using System.Data.SqlServerCe;
 using System.Reflection;
 using System.Text;
 
-namespace Nyan.Modules.Data.SQLCE
+namespace Nyan.Modules.Data.SQLCompact
 {
-    public class SQLCEAdapter : AdapterPrimitive
+    public class SQLCompactAdapter : AdapterPrimitive
     {
-        public SQLCEAdapter()
+        public SQLCompactAdapter()
         {
             //SQLite implements regular ANSI SQL, so we don't to customize the base templates.
 
-            parameterIdentifier = ":";
-            useOutputParameterForInsertedKeyExtraction = true; //Some DBs may require an OUT parameter to extract the new ID. Not the case here.
-            sqlTemplateInsertSingleWithReturn = "INSERT INTO {0} ({1}) VALUES ({2}) RETURNING CAST({3} AS VARCHAR2(38) ) INTO :newid";
+            parameterIdentifier = "@";
+            useOutputParameterForInsertedKeyExtraction = true; //Some DBs may require an OUT parameter to extract the new ID.
+            sqlTemplateInsertSingleWithReturn = "INSERT INTO {0} ({1}) VALUES ({2}); select @newid = @@IDENTITY";
             sqlTemplateTableTruncate = "TRUNCATE TABLE {0}"; //No such thing as TRUNCATE on SQLite, but open DELETE works the same way.
 
-            dynamicParameterType = typeof(SQLCEDynamicParameters);
+            dynamicParameterType = typeof(SQLCompactDynamicParameters);
         }
 
         public override void CheckDatabaseEntities<T>()
@@ -38,8 +38,7 @@ namespace Nyan.Modules.Data.SQLCE
                 var tn = MicroEntity<T>.Statements.SchemaElements["Table"].Value;
 
                 var tableCount =
-                    MicroEntity<T>.QuerySingleValue<int>("SELECT COUNT(*) FROM ALL_TABLES WHERE table_name = '" + tn +
-                                                          "'");
+                    MicroEntity<T>.QuerySingleValue<int>("SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '" + tn + "'");
 
                 if (tableCount != 0) return;
 

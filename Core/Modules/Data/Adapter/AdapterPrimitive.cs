@@ -44,6 +44,7 @@ namespace Nyan.Core.Modules.Data.Adapter
             "UPDATE {0} SET {1} WHERE {2} = {3}";
 
         protected internal bool useOutputParameterForInsertedKeyExtraction = false;
+        protected internal bool useNumericPrimaryKeyOnly = false;
 
         public bool UseOutputParameterForInsertedKeyExtraction
         {

@@ -49,7 +49,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nyan.Modules.Data.SqlServer
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nyan.Modules.Data.PgSql", "Nyan.Modules.Data.PgSql\Nyan.Modules.Data.PgSql.csproj", "{4F9410BC-CAEA-4192-8391-8F5AEF982CA9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nyan.Modules.Data.SQLCE", "Modules\Data\SQLCE\Nyan.Modules.Data.SQLCE.csproj", "{6ABC14A3-5FD6-4400-824D-14420E9848B0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nyan.Modules.Data.SQLCompact", "Modules\Data\SQLCE\Nyan.Modules.Data.SQLCompact.csproj", "{6ABC14A3-5FD6-4400-824D-14420E9848B0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
