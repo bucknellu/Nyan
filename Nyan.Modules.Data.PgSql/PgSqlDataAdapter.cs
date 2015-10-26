@@ -28,7 +28,6 @@ namespace Nyan.Modules.Data.PgSql
         {
             if (MicroEntity<T>.TableData.IsReadOnly) return;
 
-            //First step - check if the table is there.
             try
             {
                 var tn = MicroEntity<T>.Statements.SchemaElements["Table"].Value;
@@ -38,8 +37,22 @@ namespace Nyan.Modules.Data.PgSql
                     sn = MicroEntity<T>.Statements.SchemaElements["Schema"].Value;
                 }
 
+                // First step - ensure schema existance.
+
+                /* try
+                {
+                    MicroEntity<T>.Execute("CREATE SCHEMA IF NOT EXISTS " + sn + ";");
+                    Core.Settings.Current.Log.Add(typeof(T).FullName + ": Schema [" + sn + "] verified.");
+                }
+                catch (Exception e)
+                {
+                    Core.Settings.Current.Log.Add(e);
+                } */
+
+                // Second step - check if the table is there.
+
                 var tableCount =
-                    MicroEntity<T>.QuerySingleValue<int>("SELECT COUNT(*) FROM information_schema.tables WHERE TABLE_CATALOG='nyan' and TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA='" + sn + "' AND TABLE_NAME='" + tn + "';");
+                    MicroEntity<T>.QuerySingleValue<int>("SELECT COUNT(*) FROM information_schema.tables WHERE TABLE_CATALOG='" + sn + "' and TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA='public' AND TABLE_NAME='" + tn + "';");
 
                 if (tableCount != 0) return;
 
@@ -47,7 +60,7 @@ namespace Nyan.Modules.Data.PgSql
 
                 var tableRender = new StringBuilder();
 
-                tableRender.Append("CREATE TABLE " + sn + "." + tn + "(");
+                tableRender.Append("CREATE TABLE " + tn + " (");
 
                 var isFirst = true;
 
@@ -57,7 +70,7 @@ namespace Nyan.Modules.Data.PgSql
                     var pDestinyType = "VARCHAR";
                     var pLength = "";
                     var pNullableSpec = "";
-                    var pAutoKeySpec = "";
+                    // var pAutoKeySpec = "";
                     var pSourceName = prop.Name;
 
                     if (pType.IsPrimitiveType())
@@ -86,7 +99,7 @@ namespace Nyan.Modules.Data.PgSql
 
                         if (pType == typeof(long)) pDestinyType = "NUMBER";
                         if (pType == typeof(int)) pDestinyType = "INTEGER";
-                        if (pType == typeof(DateTime)) pDestinyType = "DATETIME";
+                        if (pType == typeof(DateTime)) pDestinyType = "TIMESTAMP";
                         if (pType == typeof(bool)) pDestinyType = "BOOLEAN";
                         if (pType == typeof(object)) pDestinyType = "BLOB";
                         if (pType.IsEnum) pDestinyType = "INTEGER";
@@ -105,7 +118,7 @@ namespace Nyan.Modules.Data.PgSql
                         if (string.Equals(pSourceName, MicroEntity<T>.Statements.IdColumn,
                             StringComparison.CurrentCultureIgnoreCase))
                         {
-                            pAutoKeySpec = " SERIAL PRIMARY KEY ";
+                            pDestinyType = " SERIAL PRIMARY KEY ";
                             isNullable = false;
                         }
 
@@ -139,11 +152,11 @@ namespace Nyan.Modules.Data.PgSql
                         pLength = "(255)";
                     }
 
-                    tableRender.Append(pSourceName + " " + pDestinyType + pLength + pNullableSpec + pAutoKeySpec);
+                    tableRender.Append(pSourceName + " " + pDestinyType + pLength + pNullableSpec);
                 }
 
-                tableRender.Append(", RCTS DATETIME DEFAULT CURRENT_TIMESTAMP");
-                tableRender.Append(", RUTS DATETIME DEFAULT CURRENT_TIMESTAMP");
+                tableRender.Append(", RCTS TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
+                tableRender.Append(", RUTS TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
 
                 tableRender.Append(")");
 
