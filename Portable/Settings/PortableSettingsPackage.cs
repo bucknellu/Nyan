@@ -17,7 +17,7 @@ namespace Nyan.Portable.Settings
             Cache = new Modules.Cache.Memory.MemoryCacheProvider();
             Encryption = new NullEncryptionProvider();
             Environment = new DefaultEnvironmentProvider();
-            GlobalConnectionBundleType = typeof(Modules.Data.SQLite.SQLiteBundle);
+            GlobalConnectionBundleType = typeof(Modules.Data.SQLite.SqLiteBundle);
             Authorization = new NullAuthorizationProvider();
         }
         public ICacheProvider Cache { get; set; }

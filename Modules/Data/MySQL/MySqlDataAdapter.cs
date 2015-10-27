@@ -56,7 +56,7 @@ namespace Nyan.Modules.Data.MySql
                     var pType = prop.PropertyType;
                     var pDestinyType = "VARCHAR";
                     var pLength = "";
-                    var pNullableSpec = "";
+                    string pNullableSpec;
                     var pAutoKeySpec = "";
                     var pSourceName = prop.Name;
 

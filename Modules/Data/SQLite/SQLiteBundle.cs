@@ -5,17 +5,16 @@ using System.IO;
 
 namespace Nyan.Modules.Data.SQLite
 {
-    public class SQLiteBundle : BundlePrimitive
+    public class SqLiteBundle : BundlePrimitive
     {
-        private string _dbName = null;
+        private string _dbName;
 
-
-        public SQLiteBundle()
+        public SqLiteBundle()
         {
             Initialize();
         }
 
-        public SQLiteBundle(string dbName)
+        public SqLiteBundle(string dbName)
         {
             Initialize(dbName);
         }
@@ -24,7 +23,7 @@ namespace Nyan.Modules.Data.SQLite
         {
             _dbName = dbName;
 
-            AdapterType = typeof(SQLiteDataAdapter);
+            AdapterType = typeof(SqLiteDataAdapter);
             EnvironmentCypherKeys = new Dictionary<string, string> { { "STD", "Data Source=" + Core.Settings.Current.BaseDirectory + "\\" + _dbName + ";Version=3;" } };
         }
 

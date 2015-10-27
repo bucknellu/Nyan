@@ -70,7 +70,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SQLiteBundle.cs" />
     <Compile Include="SQLiteDataAdapter.cs" />
-    <Compile Include="SQLiteDynamicParameter.cs" />
+    <Compile Include="SqLiteDynamicParameters.cs" />
     <Compile Include="SQLiteSettingsPackage.cs" />
   </ItemGroup>
   <ItemGroup>

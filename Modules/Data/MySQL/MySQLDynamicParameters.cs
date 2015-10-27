@@ -1,16 +1,15 @@
-﻿using Dapper;
+﻿using System.Data;
 using MySql.Data.MySqlClient;
 using Nyan.Core.Modules.Data.Adapter;
-using System.Data;
 
 namespace Nyan.Modules.Data.MySql
 {
-    public class MySqlDynamicParameters : DynamicParametersPrimitive, SqlMapper.IDynamicParameters
+    public class MySqlDynamicParameters : DynamicParametersPrimitive
     {
         public MySqlDynamicParameters()
         {
-            CommandType = typeof(MySqlCommand);
-            ParameterType = typeof(MySqlParameter);
+            CommandType = typeof (MySqlCommand);
+            ParameterType = typeof (MySqlParameter);
         }
 
         private static DbType ConvertGenericTypeToCustomType(DbGenericType type)

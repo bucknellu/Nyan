@@ -11,7 +11,7 @@ using System.Text;
 
 namespace Nyan.Modules.Data.SQLite
 {
-    public class SQLiteDataAdapter : AdapterPrimitive
+    public class SqLiteDataAdapter : AdapterPrimitive
     {
         public override void CheckDatabaseEntities<T1>()
         {
@@ -153,7 +153,7 @@ namespace Nyan.Modules.Data.SQLite
             }
         }
 
-        public SQLiteDataAdapter()
+        public SqLiteDataAdapter()
         {
             //SQLite implements regular ANSI SQL, so we don't to customize the base templates.
 
@@ -162,7 +162,7 @@ namespace Nyan.Modules.Data.SQLite
             sqlTemplateInsertSingleWithReturn = "INSERT INTO {0} ({1}) VALUES ({2}); select last_insert_rowid() as newid";
             sqlTemplateTableTruncate = "DELETE FROM {0}"; //No such thing as TRUNCATE on SQLite, but open DELETE works the same way.
 
-            dynamicParameterType = typeof(SQLiteDynamicParameters);
+            dynamicParameterType = typeof(SqLiteDynamicParameters);
         }
 
         public override void RenderSchemaEntityNames<T>()

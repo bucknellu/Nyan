@@ -52,8 +52,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="SQLCEAdapter.cs" />
-    <Compile Include="SQLCEDynamicParameters.cs" />
+    <Compile Include="SqlCompactAdapter.cs" />
+    <Compile Include="SqlCompactDynamicParameters.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

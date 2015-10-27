@@ -7,8 +7,7 @@ using Nyan.Core.Modules.Encryption;
 
 namespace Nyan.Modules.Encryption.AES
 {
-    // ReSharper disable once InconsistentNaming
-    public class AESEncryptionProvider : IEncryptionProvider
+    public class AesEncryptionProvider : IEncryptionProvider
     {
         private readonly object _lock = new object();
 
@@ -20,7 +19,7 @@ namespace Nyan.Modules.Encryption.AES
 
         #region Instanced methods
 
-        public AESEncryptionProvider()
+        public AesEncryptionProvider()
         {
             _rjkey = "NyAn1DaTa2SeRvIcE3StAcK*#^$&%^#@";
                 // I know. Default key and vector for encryption, right? This is just a demo, though.
@@ -28,7 +27,7 @@ namespace Nyan.Modules.Encryption.AES
             //This class should be properly instanced via the constructor below:
         }
 
-        public AESEncryptionProvider(string key, string iv)
+        public AesEncryptionProvider(string key, string iv)
         {
             if (key.Length != 32) throw new ConfigurationException("An AES key must be 32 characters long.");
             if (iv.Length != 16) throw new ConfigurationException("An AES vector must be 16 characters long.");

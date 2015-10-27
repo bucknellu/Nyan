@@ -1,34 +1,36 @@
-﻿using Nyan.Core.Extensions;
-using Nyan.Core.Modules.Data;
-using Nyan.Core.Modules.Data.Adapter;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Data.SqlServerCe;
 using System.Reflection;
 using System.Text;
+using Nyan.Core.Extensions;
+using Nyan.Core.Modules.Data;
+using Nyan.Core.Modules.Data.Adapter;
+using Nyan.Core.Settings;
 
 namespace Nyan.Modules.Data.SQLCompact
 {
-    public class SQLCompactAdapter : AdapterPrimitive
+    public class SqlCompactAdapter : AdapterPrimitive
     {
-        public SQLCompactAdapter()
+        public SqlCompactAdapter()
         {
             //SQLite implements regular ANSI SQL, so we don't to customize the base templates.
 
             parameterIdentifier = "@";
-            useOutputParameterForInsertedKeyExtraction = true; //Some DBs may require an OUT parameter to extract the new ID.
+            useOutputParameterForInsertedKeyExtraction = true;
+                //Some DBs may require an OUT parameter to extract the new ID.
             sqlTemplateInsertSingleWithReturn = "INSERT INTO {0} ({1}) VALUES ({2}); select @newid = @@IDENTITY";
-            sqlTemplateTableTruncate = "TRUNCATE TABLE {0}"; //No such thing as TRUNCATE on SQLite, but open DELETE works the same way.
+            sqlTemplateTableTruncate = "TRUNCATE TABLE {0}";
+                //No such thing as TRUNCATE on SQLite, but open DELETE works the same way.
 
-            dynamicParameterType = typeof(SQLCompactDynamicParameters);
+            dynamicParameterType = typeof (SqlCompactDynamicParameters);
         }
 
         public override void CheckDatabaseEntities<T>()
         {
-
-            Core.Settings.Current.Log.Add("Oracle Adapter: Checking database entities");
+            Current.Log.Add("Oracle Adapter: Checking database entities");
 
             if (MicroEntity<T>.TableData.IsReadOnly) return;
 
@@ -38,11 +40,12 @@ namespace Nyan.Modules.Data.SQLCompact
                 var tn = MicroEntity<T>.Statements.SchemaElements["Table"].Value;
 
                 var tableCount =
-                    MicroEntity<T>.QuerySingleValue<int>("SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '" + tn + "'");
+                    MicroEntity<T>.QuerySingleValue<int>(
+                        "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '" + tn + "'");
 
                 if (tableCount != 0) return;
 
-                Core.Settings.Current.Log.Add(typeof(T).FullName + ": Initializing schema");
+                Current.Log.Add(typeof (T).FullName + ": Initializing schema");
 
                 //Create sequence.
                 var seqName = MicroEntity<T>.Statements.SchemaElements["Sequence"].Value;
@@ -58,7 +61,7 @@ namespace Nyan.Modules.Data.SQLCompact
                 //bool isRCTSFound = false;
                 //bool isRUTSFound = false;
 
-                foreach (var prop in typeof(T).GetProperties())
+                foreach (var prop in typeof (T).GetProperties())
                 {
                     var pType = prop.PropertyType;
                     var pDestinyType = "VARCHAR2(255)";
@@ -68,13 +71,13 @@ namespace Nyan.Modules.Data.SQLCompact
                     if (pType.IsPrimitiveType())
                     {
                         if (pType.IsArray) continue;
-                        if (!(typeof(string) == pType) && typeof(IEnumerable).IsAssignableFrom(pType)) continue;
-                        if (typeof(ICollection).IsAssignableFrom(pType)) continue;
-                        if (typeof(IList).IsAssignableFrom(pType)) continue;
-                        if (typeof(IDictionary).IsAssignableFrom(pType)) continue;
+                        if (!(typeof (string) == pType) && typeof (IEnumerable).IsAssignableFrom(pType)) continue;
+                        if (typeof (ICollection).IsAssignableFrom(pType)) continue;
+                        if (typeof (IList).IsAssignableFrom(pType)) continue;
+                        if (typeof (IDictionary).IsAssignableFrom(pType)) continue;
 
                         if (pType.BaseType != null &&
-                            (typeof(IList).IsAssignableFrom(pType.BaseType) && pType.BaseType.IsGenericType))
+                            (typeof (IList).IsAssignableFrom(pType.BaseType) && pType.BaseType.IsGenericType))
                             continue;
 
                         var isNullable = false;
@@ -89,14 +92,14 @@ namespace Nyan.Modules.Data.SQLCompact
                             pType = nullProbe;
                         }
 
-                        if (pType == typeof(long)) pDestinyType = "NUMBER (20)";
-                        if (pType == typeof(int)) pDestinyType = "NUMBER (20)";
-                        if (pType == typeof(DateTime)) pDestinyType = "TIMESTAMP";
-                        if (pType == typeof(bool)) pDestinyType = "NUMBER (1) DEFAULT 0";
-                        if (pType == typeof(object)) pDestinyType = "BLOB";
+                        if (pType == typeof (long)) pDestinyType = "NUMBER (20)";
+                        if (pType == typeof (int)) pDestinyType = "NUMBER (20)";
+                        if (pType == typeof (DateTime)) pDestinyType = "TIMESTAMP";
+                        if (pType == typeof (bool)) pDestinyType = "NUMBER (1) DEFAULT 0";
+                        if (pType == typeof (object)) pDestinyType = "BLOB";
                         if (pType.IsEnum) pDestinyType = "NUMBER (10)";
 
-                        if (pType == typeof(string)) isNullable = true;
+                        if (pType == typeof (string)) isNullable = true;
 
                         if (MicroEntity<T>.Statements.PropertyFieldMap.ContainsKey(pSourceName))
                             pSourceName = MicroEntity<T>.Statements.PropertyFieldMap[pSourceName];
@@ -143,12 +146,12 @@ namespace Nyan.Modules.Data.SQLCompact
 
                 try
                 {
-                    Core.Settings.Current.Log.Add(typeof(T).FullName + ": Applying schema");
+                    Current.Log.Add(typeof (T).FullName + ": Applying schema");
                     MicroEntity<T>.Execute(tableRender.ToString());
                 }
                 catch (Exception e)
                 {
-                    Core.Settings.Current.Log.Add(e);
+                    Current.Log.Add(e);
                 }
 
                 if (MicroEntity<T>.Statements.IdColumn != null)
@@ -163,12 +166,12 @@ namespace Nyan.Modules.Data.SQLCompact
 
                     try
                     {
-                        Core.Settings.Current.Log.Add(typeof(T).FullName + ": Creating Sequence " + seqName);
+                        Current.Log.Add(typeof (T).FullName + ": Creating Sequence " + seqName);
                         MicroEntity<T>.Execute("CREATE SEQUENCE " + seqName);
                     }
                     catch (Exception e)
                     {
-                        Core.Settings.Current.Log.Add(e);
+                        Current.Log.Add(e);
                     }
 
                     //Primary Key
@@ -177,12 +180,12 @@ namespace Nyan.Modules.Data.SQLCompact
 
                     try
                     {
-                        Core.Settings.Current.Log.Add(typeof(T).FullName + ": Adding Primary Key");
+                        Current.Log.Add(typeof (T).FullName + ": Adding Primary Key");
                         MicroEntity<T>.Execute(pkStat);
                     }
                     catch (Exception e)
                     {
-                        Core.Settings.Current.Log.Add(e);
+                        Current.Log.Add(e);
                     }
                 }
                 //Trigger
@@ -206,14 +209,14 @@ namespace Nyan.Modules.Data.SQLCompact
 
                 try
                 {
-                    Core.Settings.Current.Log.Add(typeof(T).FullName + ": Adding BEFORE INSERT Trigger");
+                    Current.Log.Add(typeof (T).FullName + ": Adding BEFORE INSERT Trigger");
                     MicroEntity<T>.Execute(string.Format(trigStat,
                         MicroEntity<T>.Statements.SchemaElements["BeforeInsertTrigger"].Value, tn, seqName,
                         MicroEntity<T>.TableData.IdentifierColumnName));
                 }
                 catch (Exception e)
                 {
-                    Core.Settings.Current.Log.Add(e);
+                    Current.Log.Add(e);
                 }
 
                 trigStat =
@@ -226,23 +229,24 @@ namespace Nyan.Modules.Data.SQLCompact
 
                 try
                 {
-                    Core.Settings.Current.Log.Add(typeof(T).FullName + ": Adding BEFORE UPDATE Trigger");
+                    Current.Log.Add(typeof (T).FullName + ": Adding BEFORE UPDATE Trigger");
                     MicroEntity<T>.Execute(string.Format(trigStat,
                         MicroEntity<T>.Statements.SchemaElements["BeforeUpdateTrigger"].Value, tn, seqName,
                         MicroEntity<T>.TableData.IdentifierColumnName));
                 }
                 catch (Exception e)
                 {
-                    Core.Settings.Current.Log.Add(e);
+                    Current.Log.Add(e);
                 }
 
 
                 //Now, add comments to everything.
 
-                var ocld = "|| CHAR(10) ||";
-                var ocfld = "|| CHAR(10);";
+                const string ocld = "|| CHAR(10) ||";
+                const string ocfld = "|| CHAR(10);";
+
                 var commentStat =
-                    "COMMENT ON TABLE " + tn + " IS 'Auto-generated table for Entity " + typeof(T).FullName + ".'" +
+                    "COMMENT ON TABLE " + tn + " IS 'Auto-generated table for Entity " + typeof (T).FullName + ".'" +
                     ocld +
                     "'Supporting structures:' " + ocld +
                     "'    Sequence: " + seqName + "'" + ocld +
@@ -263,7 +267,7 @@ namespace Nyan.Modules.Data.SQLCompact
                 //'Event' hook for post-schema initialization procedure:
                 try
                 {
-                    typeof(T).GetMethod("OnSchemaInitialization", BindingFlags.Public | BindingFlags.Static)
+                    typeof (T).GetMethod("OnSchemaInitialization", BindingFlags.Public | BindingFlags.Static)
                         .Invoke(null, null);
                 }
                 catch
@@ -272,7 +276,7 @@ namespace Nyan.Modules.Data.SQLCompact
             }
             catch (Exception e)
             {
-                Core.Settings.Current.Log.Add("  Schema render Error: " + e.Message);
+                Current.Log.Add("  Schema render Error: " + e.Message);
                 throw;
             }
         }
@@ -284,7 +288,7 @@ namespace Nyan.Modules.Data.SQLCompact
 
         public override void RenderSchemaEntityNames<T>()
         {
-            Core.Settings.Current.Log.Add(GetType().FullName + ": Rendering schema element names");
+            Current.Log.Add(GetType().FullName + ": Rendering schema element names");
 
             var tn = MicroEntity<T>.TableData.TableName;
 

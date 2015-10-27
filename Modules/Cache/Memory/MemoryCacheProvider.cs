@@ -8,22 +8,22 @@ namespace Nyan.Modules.Cache.Memory
 {
     public class MemoryCacheProvider : ICacheProvider
     {
-        private MemoryCache cache;
+        private MemoryCache _cache;
 
         public MemoryCacheProvider()
         {
             OperationalStatus = EOperationalStatus.Initialized;
-            cache = new MemoryCache("NyanCache");
+            _cache = new MemoryCache("NyanCache");
             OperationalStatus = EOperationalStatus.Operational;
         }
 
-        static readonly object oLock = new object();
+        static readonly object OLock = new object();
 
         public string this[string key, string oSet = null, int cacheTimeOutSeconds = 600]
         {
             get
             {
-                var res = cache[key];
+                var res = _cache[key];
                 return res == null ? null : res.ToString();
             }
 
@@ -32,7 +32,7 @@ namespace Nyan.Modules.Cache.Memory
                 if (value == null)
                     Remove(key);
                 else
-                    lock (oLock) { cache.Add(key, value, DateTimeOffset.Now.AddMilliseconds(cacheTimeOutSeconds)); }
+                    lock (OLock) { _cache.Add(key, value, DateTimeOffset.Now.AddMilliseconds(cacheTimeOutSeconds)); }
 
             }
         }
@@ -41,7 +41,7 @@ namespace Nyan.Modules.Cache.Memory
 
         public bool Contains(string key)
         {
-            return cache.Contains(key);
+            return _cache.Contains(key);
         }
 
         public IEnumerable<string> GetAll(string oNamespace)
@@ -59,7 +59,7 @@ namespace Nyan.Modules.Cache.Memory
 
         public void Remove(string key, string oSet = null)
         {
-            lock (oLock) { cache.Remove(key); }
+            lock (OLock) { _cache.Remove(key); }
         }
 
         public void SetSingleton(object value, string fullName = null)
@@ -70,8 +70,8 @@ namespace Nyan.Modules.Cache.Memory
 
         public void RemoveAll(string oSet = null)
         {
-            cache.Dispose();
-            cache = new MemoryCache("NyanCache");
+            _cache.Dispose();
+            _cache = new MemoryCache("NyanCache");
         }
     }
 }

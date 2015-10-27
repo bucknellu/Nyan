@@ -1,18 +1,15 @@
-﻿using Dapper;
-using Nyan.Core.Modules.Data.Adapter;
-using System;
+﻿using Nyan.Core.Modules.Data.Adapter;
 using System.Data;
-using System.Data.SQLite;
+using System.Data.SqlServerCe;
 
-namespace Nyan.Modules.Data.SQLite
+namespace Nyan.Modules.Data.SQLCompact
 {
-    public class SQLiteDynamicParameters : DynamicParametersPrimitive, SqlMapper.IDynamicParameters
+    public class SqlCompactDynamicParameters : DynamicParametersPrimitive
     {
-
-        public SQLiteDynamicParameters()
+        public SqlCompactDynamicParameters()
         {
-            CommandType = typeof(SQLiteCommand);
-            ParameterType = typeof(SQLiteParameter);
+            CommandType = typeof(SqlCeCommand);
+            ParameterType = typeof(SqlCeParameter);
         }
 
         private static DbType ConvertGenericTypeToCustomType(DbGenericType type)

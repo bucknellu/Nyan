@@ -2,8 +2,8 @@
 using Nyan.Core.Modules.Authorization;
 using Nyan.Core.Modules.Cache;
 using Nyan.Core.Modules.Encryption;
-using Nyan.Core.Modules.Scope;
 using Nyan.Core.Modules.Log;
+using Nyan.Core.Modules.Scope;
 using Nyan.Core.Settings;
 
 namespace Nyan.Modules.Data.SQLite
@@ -19,7 +19,7 @@ namespace Nyan.Modules.Data.SQLite
             Cache = new NullCacheProvider();
             Encryption = new NullEncryptionProvider();
             Environment = new DefaultEnvironmentProvider();
-            GlobalConnectionBundleType = typeof(SQLiteBundle);
+            GlobalConnectionBundleType = typeof(SqLiteBundle);
         }
 
         public ICacheProvider Cache { get; set; }
