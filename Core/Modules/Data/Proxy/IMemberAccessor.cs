@@ -1,6 +1,6 @@
 ﻿namespace Nyan.Core.Modules.Data.Proxy
 {
-    internal interface IMemberAccessor : IMemberInfo
+    public interface IMemberAccessor : IMemberInfo
     {
         /// <summary>
         /// Returns the value of the member.

@@ -90,11 +90,14 @@
     <Compile Include="Modules\Data\Operators\NotNull.cs" />
     <Compile Include="Modules\Data\Operators\Null.cs" />
     <Compile Include="Modules\Data\Proxy\DelegateFactory.cs" />
+    <Compile Include="Modules\Data\Proxy\FieldAccessor.cs" />
     <Compile Include="Modules\Data\Proxy\ILExtensions.cs" />
     <Compile Include="Modules\Data\Proxy\IMemberAccessor.cs" />
     <Compile Include="Modules\Data\Proxy\IMemberInfo.cs" />
     <Compile Include="Modules\Data\Proxy\IMethodAccessor.cs" />
+    <Compile Include="Modules\Data\Proxy\MemberAccessor.cs" />
     <Compile Include="Modules\Data\Proxy\MethodAccessor.cs" />
+    <Compile Include="Modules\Data\Proxy\PropertyAccessor.cs" />
     <Compile Include="Modules\Data\Proxy\TypeAccessor.cs" />
     <Compile Include="Modules\Encryption\IEncryptionProvider.cs" />
     <Compile Include="Modules\Encryption\NullEncryptionProvider.cs" />

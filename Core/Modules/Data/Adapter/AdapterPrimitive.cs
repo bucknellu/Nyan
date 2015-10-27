@@ -56,9 +56,9 @@ namespace Nyan.Core.Modules.Data.Adapter
             get { return parameterIdentifier; }
         }
 
-        public abstract void CheckDatabaseEntities<T>() where T : MicroEntity<T>;
+        public abstract void CheckDatabaseEntities<T>() where T : MicroEntity<T>, new();
 
-        public virtual void SetSqlStatements<T>() where T : MicroEntity<T>
+        public virtual void SetSqlStatements<T>() where T : MicroEntity<T>, new()
         {
             var tableData = MicroEntity<T>.TableData;
             var statements = MicroEntity<T>.Statements;
@@ -157,7 +157,7 @@ namespace Nyan.Core.Modules.Data.Adapter
                 statements.IdPropertyRaw, parameterIdentifier);
         }
 
-        public virtual void SetConnectionString<T>() where T : MicroEntity<T>
+        public virtual void SetConnectionString<T>() where T : MicroEntity<T>, new()
         {
             var statements = MicroEntity<T>.Statements;
 
@@ -179,7 +179,7 @@ namespace Nyan.Core.Modules.Data.Adapter
                                                 ". Check class definition/configuration files.");
         }
 
-        public abstract void RenderSchemaEntityNames<T>() where T : MicroEntity<T>;
+        public abstract void RenderSchemaEntityNames<T>() where T : MicroEntity<T>, new();
 
         public virtual void ClearPools()
         {
@@ -187,7 +187,7 @@ namespace Nyan.Core.Modules.Data.Adapter
 
         public abstract DbConnection Connection(string connectionString);
 
-        public virtual DynamicParametersPrimitive Parameters<T>(object obj) where T : MicroEntity<T>
+        public virtual DynamicParametersPrimitive Parameters<T>(object obj) where T : MicroEntity<T>, new()
         {
             var ret = (DynamicParametersPrimitive)Activator.CreateInstance(dynamicParameterType);
 
@@ -244,7 +244,7 @@ namespace Nyan.Core.Modules.Data.Adapter
             return ret;
         }
 
-        public virtual DynamicParametersPrimitive InsertableParameters<T>(object obj) where T : MicroEntity<T>
+        public virtual DynamicParametersPrimitive InsertableParameters<T>(object obj) where T : MicroEntity<T>, new()
         {
             var ret = (DynamicParametersPrimitive)Activator.CreateInstance(dynamicParameterType);
 

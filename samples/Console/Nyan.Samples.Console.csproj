@@ -60,9 +60,9 @@
       <Project>{5f53ab9e-fdda-4a45-b0be-d1fce1916fde}</Project>
       <Name>Nyan.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Nyan.Modules.Data.PgSql\Nyan.Modules.Data.PgSql.csproj">
-      <Project>{4f9410bc-caea-4192-8391-8f5aef982ca9}</Project>
-      <Name>Nyan.Modules.Data.PgSql</Name>
+    <ProjectReference Include="..\..\Nyan.Modules.Data.SqlServer\Nyan.Modules.Data.SqlServer.csproj">
+      <Project>{2599bc6b-1cce-4ebc-848e-2021affdde20}</Project>
+      <Name>Nyan.Modules.Data.SqlServer</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
