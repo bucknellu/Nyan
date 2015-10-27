@@ -17,6 +17,8 @@ using Dapper;
 using System.Linq.Expressions;
 using Nyan.Core.Modules.Data.Operators;
 using Nyan.Core.Modules.Data.Operators.AnsiSql;
+using System.Dynamic;
+using Nyan.Core.Modules.Data.Proxy;
 
 namespace Nyan.Core.Modules.Data
 {
@@ -25,7 +27,8 @@ namespace Nyan.Core.Modules.Data
     /// </summary>
     /// <typeparam name="T">The data class that inherits from Entity.</typeparam>
     /// <example>Class DataLayer: Entity/<DataLayer /></example>
-    public abstract class MicroEntity<T> where T : MicroEntity<T>
+    public abstract class MicroEntity<T> : DynamicObject 
+        where T : MicroEntity<T>, new()
     {
         // ReSharper disable once StaticFieldInGenericType
         private static readonly ConcurrentDictionary<Type, MicroEntityCompiledStatements> ClassRegistration = new ConcurrentDictionary<Type, MicroEntityCompiledStatements>();
@@ -35,17 +38,32 @@ namespace Nyan.Core.Modules.Data
 
         private bool _isDeleted;
 
+        // Dynamic Object properties
+        private readonly T wrappedEntity;
+        public bool SafeMode { get; set; }
+        private readonly TypeAccessor _typeAccessor;
+        private const BindingFlags _flags = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public;
+
         #region Generic methods
 
         #region Static Methods
 
-        private static string _typeName;
+        private static string _typeName; 
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="identifier"></param>
+        /// <returns></returns>
         public static T Get(long identifier)
         {
             return Get(identifier.ToString(CultureInfo.InvariantCulture));
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public static string GetTypeName()
         {
             if (_typeName != null) return _typeName;
@@ -286,11 +304,18 @@ namespace Nyan.Core.Modules.Data
             return ret;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="identifier"></param>
         public static void Remove(long identifier)
         {
             Remove(identifier.ToString(CultureInfo.InvariantCulture));
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public static void RemoveAll()
         {
             if (TableData.IsReadOnly)
@@ -303,6 +328,10 @@ namespace Nyan.Core.Modules.Data
             Current.Cache.RemoveAll();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="identifier"></param>
         public static void Remove(string identifier)
         {
             if (TableData.IsReadOnly)
@@ -315,17 +344,29 @@ namespace Nyan.Core.Modules.Data
             Current.Cache.Remove(CacheKey(identifier));
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="objs"></param>
         public static void Insert(List<T> objs)
         {
             foreach (var obj in objs)
                 obj.Insert();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="objs"></param>
         public static void Update(List<T> objs)
         {
             Save(objs);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="objs"></param>
         public static void Save(List<T> objs)
         {
             if (TableData.IsReadOnly)
@@ -335,6 +376,10 @@ namespace Nyan.Core.Modules.Data
                 obj.Save();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="objs"></param>
         public static void Put(List<T> objs)
         {
             var updbag = objs.Where(x => !x.IsNew()).ToList();
@@ -344,6 +389,11 @@ namespace Nyan.Core.Modules.Data
             Insert(insbag);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="query"></param>
+        /// <returns></returns>
         public static IEnumerable<T> ReferenceQuery(object query)
         {
             var b = Statements.Adapter.Parameters<T>(query);
@@ -352,6 +402,12 @@ namespace Nyan.Core.Modules.Data
             return set;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="field"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public static IEnumerable<T> ReferenceQueryByField(string field, string id)
         {
             var b = GetNewDynamicParameterBag();
@@ -362,6 +418,11 @@ namespace Nyan.Core.Modules.Data
             return set;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="clause"></param>
+        /// <returns></returns>
         public static IEnumerable<T> QueryByWhereClause(string clause)
         {
             var statement = string.Format(Statements.SqlAllFieldsQueryTemplate, clause);
@@ -369,16 +430,30 @@ namespace Nyan.Core.Modules.Data
             return set;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public static DynamicParametersPrimitive GetNewDynamicParameterBag()
         {
             return Statements.Adapter.Parameters<T>(null);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="identifier"></param>
+        /// <returns></returns>
         public static bool IsCached(long identifier)
         {
             return IsCached(identifier.ToString(CultureInfo.InvariantCulture));
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="identifier"></param>
+        /// <returns></returns>
         public static bool IsCached(string identifier)
         {
             return TableData.UseCaching && Current.Cache.Contains(CacheKey(identifier));
@@ -388,6 +463,10 @@ namespace Nyan.Core.Modules.Data
 
         #region Instanced methods
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public bool IsNew()
         {
             var probe = GetEntityIdentifier();
@@ -397,6 +476,11 @@ namespace Nyan.Core.Modules.Data
             return oProbe == null;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="oRef"></param>
+        /// <returns></returns>
         public string GetEntityIdentifier(MicroEntity<T> oRef = null)
         {
             if (oRef == null) oRef = this;
@@ -404,6 +488,9 @@ namespace Nyan.Core.Modules.Data
             return (GetType().GetProperty(Statements.IdPropertyRaw).GetValue(oRef, null) ?? "").ToString();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public void Remove()
         {
             if (TableData.IsReadOnly)
@@ -421,6 +508,10 @@ namespace Nyan.Core.Modules.Data
             OnRemove();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public string Save()
         {
             if (TableData.IsReadOnly)
@@ -456,11 +547,20 @@ namespace Nyan.Core.Modules.Data
             return ret;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public string SaveAndGetId()
         {
             return SaveAndGetId(this);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
         public string SaveAndGetId(object obj)
         {
             if (TableData.IsReadOnly)
@@ -478,6 +578,9 @@ namespace Nyan.Core.Modules.Data
             return ret;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public void Insert()
         {
             if (TableData.IsReadOnly)
@@ -500,6 +603,11 @@ namespace Nyan.Core.Modules.Data
 
         #region Executors
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sqlStatement"></param>
+        /// <returns></returns>
         public static List<IDictionary<string, object>> QueryObject(string sqlStatement)
         {
             if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
@@ -522,6 +630,13 @@ namespace Nyan.Core.Modules.Data
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sqlStatement"></param>
+        /// <param name="sqlParameters"></param>
+        /// <param name="pCommandType"></param>
+        /// <returns></returns>
         public static List<T> Query(string sqlStatement, object sqlParameters = null,
             CommandType pCommandType = CommandType.Text)
         {
@@ -561,6 +676,12 @@ namespace Nyan.Core.Modules.Data
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sqlStatement"></param>
+        /// <param name="sqlParameters"></param>
+        /// <param name="pCommandType"></param>
         public static void Execute(string sqlStatement, object sqlParameters = null,
             CommandType pCommandType = CommandType.Text)
         {
@@ -584,6 +705,11 @@ namespace Nyan.Core.Modules.Data
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sqlStatement"></param>
+        /// <returns></returns>
         public static string QuerySingleValueString(string sqlStatement)
         {
             using (var conn = Statements.Adapter.Connection(Statements.ConnectionString))
@@ -601,6 +727,12 @@ namespace Nyan.Core.Modules.Data
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T1"></typeparam>
+        /// <param name="sqlStatement"></param>
+        /// <returns></returns>
         public static T1 QuerySingleValue<T1>(string sqlStatement)
         {
             using (var conn = Statements.Adapter.Connection(Statements.ConnectionString))
@@ -610,11 +742,25 @@ namespace Nyan.Core.Modules.Data
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TU"></typeparam>
+        /// <param name="sqlStatement"></param>
+        /// <returns></returns>
         public static List<TU> Query<TU>(string sqlStatement)
         {
             return Query<TU>(sqlStatement, null);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TU"></typeparam>
+        /// <param name="sqlStatement"></param>
+        /// <param name="sqlParameters"></param>
+        /// <param name="pCommandType"></param>
+        /// <returns></returns>
         public static List<TU> Query<TU>(string sqlStatement, object sqlParameters = null,
             CommandType pCommandType = CommandType.Text)
         {
@@ -644,6 +790,12 @@ namespace Nyan.Core.Modules.Data
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sqlStatement"></param>
+        /// <param name="p"></param>
+        /// <returns></returns>
         public static Dictionary<string, dynamic> ExecuteOutputParameters(string sqlStatement,
             DynamicParametersPrimitive p)
         {
@@ -687,6 +839,13 @@ namespace Nyan.Core.Modules.Data
             return result;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sqlStatement"></param>
+        /// <param name="sqlParameters"></param>
+        /// <param name="pCommandType"></param>
+        /// <returns></returns>
         public static string ExecuteAndReturnIdentifier(string sqlStatement, object sqlParameters = null,
             CommandType pCommandType = CommandType.Text)
         {
@@ -725,6 +884,29 @@ namespace Nyan.Core.Modules.Data
 
         #region Bootstrappers
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="wrappedObject"></param>
+        /// <param name="safeMode"></param>
+        public MicroEntity(T wrappedObject, bool safeMode = true)
+        {
+            wrappedEntity = wrappedObject;
+            SafeMode = safeMode;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public MicroEntity()
+        {
+            wrappedEntity = new T();
+            SafeMode = true;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         static MicroEntity()
         {
             lock (AccessLock)
@@ -740,8 +922,6 @@ namespace Nyan.Core.Modules.Data
 
                     Current.Log.Add("{0} @ {1} - {2} : Initializing".format(typeof(T).FullName, System.Environment.MachineName, Current.Environment.Current));
 
-
-
                     var refBundle = TableData.ConnectionBundleType ?? Current.GlobalConnectionBundleType;
 
                     var probeType = typeof(T);
@@ -753,7 +933,6 @@ namespace Nyan.Core.Modules.Data
                          let fieldName = (p1.Count != 0 ? p1[0].Name : pInfo.Name)
                          select new KeyValuePair<string, string>(pInfo.Name, fieldName))
                             .ToDictionary(x => x.Key, x => x.Value);
-
 
                     //First, probe for a valid Connection bundle
                     if (refBundle != null)
@@ -878,11 +1057,17 @@ namespace Nyan.Core.Modules.Data
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public static MicroEntityCompiledStatements Statements
         {
             get { return ClassRegistration[typeof(T)]; }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public static MicroEntitySetupAttribute TableData
         {
             get
@@ -893,6 +1078,38 @@ namespace Nyan.Core.Modules.Data
             }
         }
 
+        /// <summary>
+        /// Provides the implementation for operations that get member values. Classes derived from the <see cref="T:System.Dynamic.DynamicObject"/> class can override this method to specify dynamic behavior for operations such as getting a value for a property.
+        /// </summary>
+        /// <param name="binder">Provides information about the object that called the dynamic operation. The binder.Name property provides the name of the member on which the dynamic operation is performed. For example, for the Console.WriteLine(sampleObject.SampleProperty) statement, where sampleObject is an instance of the class derived from the <see cref="T:System.Dynamic.DynamicObject"/> class, binder.Name returns "SampleProperty". The binder.IgnoreCase property specifies whether the member name is case-sensitive.</param>
+        /// <param name="result">The result of the get operation. For example, if the method is called for a property, you can assign the property value to <paramref name="result"/>.</param>
+        /// <returns>
+        /// true if the operation is successful; otherwise, false. If this method returns false, the run-time binder of the language determines the behavior. (In most cases, a run-time exception is thrown.)
+        /// </returns>
+        public override bool TryGetMember(GetMemberBinder binder, out object result)
+        {
+            result = null;
+
+            var member = _typeAccessor.Find(binder.Name, _flags);
+            if (member == null)
+                return SafeMode;
+
+            if (!member.HasGetter)
+                return SafeMode;
+
+            if (!member.MemberType.IsPrimitive && member.MemberType != typeof(String) && member.MemberType != typeof(DateTime) && member.MemberType != typeof(Decimal))
+            {
+                // TODO: Finish
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private static void Scope_EnvironmentChanged(object sender, EventArgs e)
         {
             //Target environment changed; pick the proper connection strings.
@@ -900,6 +1117,9 @@ namespace Nyan.Core.Modules.Data
             HandleConfigurationChange();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private static void OnEntityInitializationHook()
         {
             //'Event' hook for post-schema initialization procedure:
@@ -920,6 +1140,9 @@ namespace Nyan.Core.Modules.Data
         // ReSharper disable once StaticFieldInGenericType
         private static string _cacheKeyBase;
 
+        /// <summary>
+        /// 
+        /// </summary>
         private static void HandleConfigurationChange()
         {
             try
@@ -933,9 +1156,11 @@ namespace Nyan.Core.Modules.Data
             }
         }
 
-
-        // ReSharper disable once StaticFieldInGenericType
-
+        /// <summary>
+        ///     ReSharper disable once StaticFieldInGenericType.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
         public static string CacheKey(string key = "")
         {
             if (_cacheKeyBase != null)
@@ -949,22 +1174,38 @@ namespace Nyan.Core.Modules.Data
 
         #region Events
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="newIdentifier"></param>
         public virtual void OnSave(string newIdentifier)
         {
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public virtual void OnRemove()
         {
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public virtual void OnInsert()
         {
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public static void OnSchemaInitialization()
         {
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public static void OnEntityInitialization()
         {
         }
