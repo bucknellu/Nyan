@@ -47,6 +47,7 @@ namespace Nyan.Core.Modules.Data
 
         public string SqlInsertSingle;
         public string SqlInsertSingleWithReturn;
+        public string SqlReturnNewIdentifier;
         public string SqlRemoveSingleParametrized;
         public string SqlTruncateTable;
         public string SqlUpdateSingle;
