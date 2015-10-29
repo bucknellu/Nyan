@@ -12,39 +12,28 @@ namespace Nyan.Core.Modules.Data.Adapter
 {
     public abstract class AdapterPrimitive
     {
-        protected internal DynamicParametersPrimitive ParameterSourceType;
-        protected internal Type dynamicParameterType = null;
+
+        // ReSharper disable InconsistentNaming
         protected internal string parameterIdentifier = "#";
+        protected internal string sqlTemplateAllFieldsQuery = "SELECT * FROM {0} WHERE ({1})";
+        protected internal string sqlTemplateCustomSelectQuery = "SELECT {0} FROM {2} WHERE ({1})";
+        protected internal string sqlTemplateGetAll = "SELECT * FROM {0}";
+        protected internal string sqlTemplateGetSingle = "SELECT * FROM {0} WHERE {1} = {2}Id";
+        protected internal string sqlTemplateInsertSingle = "INSERT INTO {0} ({1}) VALUES ({2})";
+        protected internal string sqlTemplateInsertSingleWithReturn = "INSERT INTO {0} ({1}) VALUES ({2}); select last_insert_rowid() as newid";
+        protected internal string sqlTemplateReturnNewIdentifier = "select last_insert_rowid() as newid";
+        protected internal string sqlTemplateRemoveSingleParametrized = "DELETE FROM {0} WHERE {1} = {2}Id";
+        protected internal string sqlTemplateTableTruncate = "TRUNCATE TABLE {0}";
+        protected internal string sqlTemplateUpdateSingle = "UPDATE {0} SET {1} WHERE {2} = {3}";
 
-        protected internal string sqlTemplateAllFieldsQuery =
-            "SELECT * FROM {0} WHERE ({1})";
-
-        protected internal string sqlTemplateCustomSelectQuery =
-            "SELECT {0} FROM {2} WHERE ({1})";
-
-        protected internal string sqlTemplateGetAll =
-            "SELECT * FROM {0}";
-
-        protected internal string sqlTemplateGetSingle =
-            "SELECT * FROM {0} WHERE {1} = {2}Id";
-
-        protected internal string sqlTemplateInsertSingle =
-            "INSERT INTO {0} ({1}) VALUES ({2})";
-
-        protected internal string sqlTemplateInsertSingleWithReturn =
-            "INSERT INTO {0} ({1}) VALUES ({2}); select last_insert_rowid() as newid";
-
-        protected internal string sqlTemplateRemoveSingleParametrized =
-            "DELETE FROM {0} WHERE {1} = {2}Id";
-
-        protected internal string sqlTemplateTableTruncate =
-            "TRUNCATE TABLE {0}";
-
-        protected internal string sqlTemplateUpdateSingle =
-            "UPDATE {0} SET {1} WHERE {2} = {3}";
+        protected internal Type dynamicParameterType = null;
+        protected internal DynamicParametersPrimitive ParameterSourceType;
 
         protected internal bool useOutputParameterForInsertedKeyExtraction = false;
+        protected internal bool useIndependentStatementsForKeyExtraction = false;
         protected internal bool useNumericPrimaryKeyOnly = false;
+
+        // ReSharper restore InconsistentNaming
 
         public bool UseOutputParameterForInsertedKeyExtraction
         {
@@ -66,44 +55,17 @@ namespace Nyan.Core.Modules.Data.Adapter
             var refTableName = tableData.TablePrefix + tableData.TableName;
 
             statements.SqlGetAll = sqlTemplateGetAll.format(refTableName);
+            statements.SqlGetSingle = sqlTemplateGetSingle.format(refTableName, statements.IdPropertyRaw, ParameterIdentifier);
+            statements.SqlRemoveSingleParametrized = sqlTemplateRemoveSingleParametrized.format(refTableName, statements.IdPropertyRaw, ParameterIdentifier);
+            statements.SqlAllFieldsQueryTemplate = sqlTemplateAllFieldsQuery.format(refTableName, "{0}");
+            statements.SqlCustomSelectQueryTemplate = sqlTemplateCustomSelectQuery.format("{0}", "{1}", refTableName);
+            statements.SqlInsertSingle = sqlTemplateInsertSingle.format(refTableName, "{0}", "{1}");
+            statements.SqlInsertSingleWithReturn = sqlTemplateInsertSingleWithReturn.format(refTableName, "{0}", "{1}", statements.IdPropertyRaw);
+            statements.SqlUpdateSingle = sqlTemplateUpdateSingle.format(refTableName, "{0}", "{1}", "{2}");
+            statements.SqlRemoveSingleParametrized = sqlTemplateRemoveSingleParametrized.format(refTableName, "{0}", "{1}");
+            statements.SqlTruncateTable = sqlTemplateTableTruncate.format(refTableName);
+            statements.SqlReturnNewIdentifier = sqlTemplateReturnNewIdentifier;
 
-            statements.SqlGetSingle =
-                sqlTemplateGetSingle
-                    .format(refTableName, statements.IdPropertyRaw, ParameterIdentifier);
-
-            statements.SqlRemoveSingleParametrized =
-                sqlTemplateRemoveSingleParametrized
-                    .format(refTableName, statements.IdPropertyRaw, ParameterIdentifier);
-
-            statements.SqlAllFieldsQueryTemplate =
-                sqlTemplateAllFieldsQuery
-                    .format(refTableName, "{0}");
-
-            statements.SqlCustomSelectQueryTemplate =
-                sqlTemplateCustomSelectQuery
-                    .format("{0}", "{1}", refTableName);
-
-            statements.SqlInsertSingle =
-                sqlTemplateInsertSingle
-                    .format(refTableName, "{0}", "{1}");
-
-            statements.SqlInsertSingleWithReturn =
-                sqlTemplateInsertSingleWithReturn
-                    .format(refTableName, "{0}", "{1}", statements.IdPropertyRaw);
-
-            statements.SqlUpdateSingle =
-                sqlTemplateUpdateSingle
-                    .format(refTableName, "{0}", "{1}", "{2}");
-
-            statements.SqlRemoveSingleParametrized =
-                sqlTemplateRemoveSingleParametrized
-                    .format(refTableName, "{0}", "{1}");
-
-            statements.SqlTruncateTable =
-                sqlTemplateTableTruncate
-                    .format(refTableName);
-
-            var probeType = typeof(T);
             var preInsFieldList = new StringBuilder();
             var preInsParamList = new StringBuilder();
             var preUpd = new StringBuilder();
@@ -149,12 +111,9 @@ namespace Nyan.Core.Modules.Data.Adapter
 
 
             statements.SqlInsertSingle = string.Format(statements.SqlInsertSingle, preInsFieldList, preInsParamList);
-            statements.SqlInsertSingleWithReturn = string.Format(statements.SqlInsertSingleWithReturn, preInsFieldList,
-                preInsParamList, statements.IdPropertyRaw);
-            statements.SqlUpdateSingle = string.Format(statements.SqlUpdateSingle, preUpd, statements.IdPropertyRaw,
-                statements.IdProperty);
-            statements.SqlRemoveSingleParametrized = string.Format(statements.SqlRemoveSingleParametrized,
-                statements.IdPropertyRaw, parameterIdentifier);
+            statements.SqlInsertSingleWithReturn = string.Format(statements.SqlInsertSingleWithReturn, preInsFieldList, preInsParamList, statements.IdPropertyRaw);
+            statements.SqlUpdateSingle = string.Format(statements.SqlUpdateSingle, preUpd, statements.IdPropertyRaw, statements.IdProperty);
+            statements.SqlRemoveSingleParametrized = string.Format(statements.SqlRemoveSingleParametrized, statements.IdPropertyRaw, parameterIdentifier);
         }
 
         public virtual void SetConnectionString<T>() where T : MicroEntity<T>
