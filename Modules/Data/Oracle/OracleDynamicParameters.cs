@@ -8,15 +8,14 @@ namespace Nyan.Modules.Data.Oracle
     {
         public OracleDynamicParameters()
         {
-            CommandType = typeof (OracleCommand);
-            ParameterType = typeof (OracleParameter);
+            CommandType = typeof(OracleCommand);
+            ParameterType = typeof(OracleParameter);
         }
 
-        public override void Add(string name, object value = null, DbGenericType? dbType = null,
-            ParameterDirection? direction = null, int? size = null)
+        public override void Add(string name, object value = null, DbGenericType? dbType = null, ParameterDirection? direction = null, int? size = null)
         {
             if (value is bool)
-                value = (bool) value ? 1 : 0; //Oracle doesn't like BOOL.
+                value = (bool)value ? 1 : 0; //Oracle doesn't like BOOL.
 
             base.Add(name, value, dbType, direction, size);
         }

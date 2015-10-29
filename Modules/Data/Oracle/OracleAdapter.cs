@@ -27,9 +27,6 @@ namespace Nyan.Modules.Data.Oracle
 
         public override void CheckDatabaseEntities<T>()
         {
-
-            Core.Settings.Current.Log.Add("Oracle Adapter: Checking database entities");
-
             if (MicroEntity<T>.TableData.IsReadOnly) return;
 
             //First step - check if the table is there.
