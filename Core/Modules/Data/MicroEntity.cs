@@ -39,8 +39,7 @@ namespace Nyan.Core.Modules.Data
         private bool _isDeleted;
 
         // Dynamic Object properties
-        private readonly T wrappedEntity;
-        public bool SafeMode { get; set; }
+        private readonly T wrappedEntity = new T();
         private readonly TypeAccessor _typeAccessor;
         private const BindingFlags _flags = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public;
 
@@ -887,26 +886,6 @@ namespace Nyan.Core.Modules.Data
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="wrappedObject"></param>
-        /// <param name="safeMode"></param>
-        public MicroEntity(T wrappedObject, bool safeMode = true)
-        {
-            wrappedEntity = wrappedObject;
-            SafeMode = safeMode;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public MicroEntity()
-        {
-            wrappedEntity = new T();
-            SafeMode = true;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
         static MicroEntity()
         {
             lock (AccessLock)
@@ -1092,10 +1071,10 @@ namespace Nyan.Core.Modules.Data
 
             var member = _typeAccessor.Find(binder.Name, _flags);
             if (member == null)
-                return SafeMode;
+                return true;
 
             if (!member.HasGetter)
-                return SafeMode;
+                return true;
 
             if (!member.MemberType.IsPrimitive && member.MemberType != typeof(String) && member.MemberType != typeof(DateTime) && member.MemberType != typeof(Decimal))
             {
