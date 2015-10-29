@@ -8,8 +8,8 @@ namespace Nyan.Modules.Data.SQLite
     {
         public SqLiteDynamicParameters()
         {
-            CommandType = typeof (SQLiteCommand);
-            ParameterType = typeof (SQLiteParameter);
+            CommandType = typeof(SQLiteCommand);
+            ParameterType = typeof(SQLiteParameter);
         }
 
         private static DbType ConvertGenericTypeToCustomType(DbGenericType type)
