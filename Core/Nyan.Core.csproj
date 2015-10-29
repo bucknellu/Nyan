@@ -57,9 +57,10 @@
     <Compile Include="Modules\Cache\Helper.cs" />
     <Compile Include="Modules\Cache\ICacheProvider.cs" />
     <Compile Include="Modules\Cache\NullCache.cs" />
+    <Compile Include="Modules\Data\Adapter\NoSqlAdapterPrimitive.cs" />
     <Compile Include="Modules\Data\Connection\BundlePrimitive.cs" />
     <Compile Include="Modules\Data\Adapter\AdapterPrimitive.cs" />
-    <Compile Include="Modules\Data\Adapter\DynamicAdapterPrimitive.cs" />
+    <Compile Include="Modules\Data\Adapter\DynamicParametersPrimitive.cs" />
     <Compile Include="Modules\Data\CacheEntityAttribute.cs" />
     <Compile Include="Modules\Data\MicroEntitySetupAttribute.cs" />
     <Compile Include="Modules\Data\MicroEntityCompiledStatements.cs" />
