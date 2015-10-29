@@ -5,18 +5,18 @@ using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
+using Dapper;
 using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Cache;
 using Nyan.Core.Modules.Data.Adapter;
 using Nyan.Core.Modules.Data.Connection;
-using Nyan.Core.Modules.Log;
-using Nyan.Core.Settings;
-using Dapper;
-using System.Linq.Expressions;
 using Nyan.Core.Modules.Data.Operators;
 using Nyan.Core.Modules.Data.Operators.AnsiSql;
+using Nyan.Core.Modules.Log;
+using Nyan.Core.Settings;
 
 namespace Nyan.Core.Modules.Data
 {
@@ -28,7 +28,8 @@ namespace Nyan.Core.Modules.Data
     public abstract class MicroEntity<T> where T : MicroEntity<T>
     {
         // ReSharper disable once StaticFieldInGenericType
-        private static readonly ConcurrentDictionary<Type, MicroEntityCompiledStatements> ClassRegistration = new ConcurrentDictionary<Type, MicroEntityCompiledStatements>();
+        private static readonly ConcurrentDictionary<Type, MicroEntityCompiledStatements> ClassRegistration =
+            new ConcurrentDictionary<Type, MicroEntityCompiledStatements>();
 
         // ReSharper disable once StaticFieldInGenericType
         private static readonly object AccessLock = new object();
@@ -39,6 +40,7 @@ namespace Nyan.Core.Modules.Data
 
         #region Static Methods
 
+        // ReSharper disable once StaticFieldInGenericType
         private static string _typeName;
 
         public static T Get(long identifier)
@@ -52,6 +54,12 @@ namespace Nyan.Core.Modules.Data
 
             _typeName = typeof(T).FullName;
             return _typeName;
+        }
+
+        private static void LogLocal(string pMessage, Message.EContentType pType = null)
+        {
+            if (pType == null) pType = Message.EContentType.StartupSequence;
+            Current.Log.Add(typeof(T).FullName + " : " + pMessage, pType);
         }
 
         /// <summary>
@@ -78,12 +86,7 @@ namespace Nyan.Core.Modules.Data
         /// <returns>An object instance if the ID exists, or NULL otherwise.</returns>
         internal static T GetFromDatabase(object identifier)
         {
-            List<T> retCol = null;
-
-            if (Statements.Adapter.useNumericPrimaryKeyOnly)
-                retCol = Query(Statements.SqlGetSingle, new { Id = Convert.ToInt32(identifier) });
-            else
-                retCol = Query(Statements.SqlGetSingle, new { Id = identifier });
+            var retCol = Statements.Adapter.useNumericPrimaryKeyOnly ? Query(Statements.SqlGetSingle, new { Id = Convert.ToInt32(identifier) }) : Query(Statements.SqlGetSingle, new { Id = identifier });
 
             var ret = retCol.Count > 0 ? retCol[0] : null;
             return ret;
@@ -122,6 +125,7 @@ namespace Nyan.Core.Modules.Data
             foreach (var task in tasks)
                 task.Start();
 
+            // ReSharper disable once CoVariantArrayConversion
             Task.WaitAll(tasks.ToArray());
 
             ret = tasks.Aggregate(ret, (current, task) => current.Concat(task.Result));
@@ -145,7 +149,8 @@ namespace Nyan.Core.Modules.Data
         public static IEnumerable<T> Where(Expression<Func<T, bool>> predicate)
         {
             if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
-                throw new InvalidDataException("Class is not operational: {0}, {1}".format(Statements.Status.ToString(), Statements.StatusDescription));
+                throw new InvalidDataException("Class is not operational: {0}, {1}".format(
+                    Statements.Status.ToString(), Statements.StatusDescription));
 
             var body = predicate.Body as BinaryExpression;
             object leftSideValue = null;
@@ -157,11 +162,16 @@ namespace Nyan.Core.Modules.Data
                 rightSideValue = ResolveExpression(body.Right);
             }
 
-            var test = ResolveNodeType(body.NodeType, leftSideValue, rightSideValue);
+            var queryParm = GetNewDynamicParameterBag();
+            // ReSharper disable once PossibleNullReferenceException
+            queryParm.Add(leftSideValue.ToString(), rightSideValue);
 
-            var q = string.Format(Statements.SqlAllFieldsQueryTemplate, test.First());
+            var querySpec = ResolveNodeType(body.NodeType, leftSideValue,
+                Statements.Adapter.ParameterIdentifier + leftSideValue);
 
-            var ret = Query(q);
+            var q = string.Format(Statements.SqlAllFieldsQueryTemplate, querySpec.First());
+
+            var ret = Query(q, queryParm);
             if (!TableData.UseCaching) return ret;
 
             //...but it populates the cache with all the individual results, saving time for future FETCHes.
@@ -184,8 +194,11 @@ namespace Nyan.Core.Modules.Data
                 // TODO: Finish
                 case "System.Linq.Expressions.PropertyExpression":
                     // return ResolveMemberExpression(expression as MemberExpression);
+
+                    // ReSharper disable once PossibleNullReferenceException
                     return (expression as MemberExpression).Member.Name;
                 case "System.Linq.Expressions.ConstantExpression":
+                    // ReSharper disable once PossibleNullReferenceException
                     return (expression as ConstantExpression).Value;
                 default:
                     // This will resolve NewExpression and MethodCallExpression.
@@ -214,7 +227,8 @@ namespace Nyan.Core.Modules.Data
         /// <param name="leftValue">The left value. Can be a value or enumeration.</param>
         /// <param name="rightValue">The right value. Can be a value or enumeration.</param>
         /// <returns></returns>
-        private static IEnumerable<IOperator> ResolveNodeType(ExpressionType nodeType, object leftValue, object rightValue)
+        private static IEnumerable<IOperator> ResolveNodeType(ExpressionType nodeType, object leftValue,
+            object rightValue)
         {
             switch (nodeType)
             {
@@ -242,8 +256,8 @@ namespace Nyan.Core.Modules.Data
                     break;
                 // TODO: Discuss later.
                 /* case ExpressionType.OrElse:
-                    yield return new Or { OperadoresInternos = new List<IOperator> { ((IEnumerable<IOperator>)leftValue).First(), ((IEnumerable<IOperator>)rightValue).First() } };
-                    break; */
+                yield return new Or { OperadoresInternos = new List<IOperator> { ((IEnumerable<IOperator>)leftValue).First(), ((IEnumerable<IOperator>)rightValue).First() } };
+                break; */
                 case ExpressionType.NotEqual:
                     if (rightValue != null)
                     {
@@ -274,15 +288,18 @@ namespace Nyan.Core.Modules.Data
         public static IEnumerable<T> Get()
         {
             if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
-                throw new InvalidDataException("Class is not operational: {0}, {1}".format(Statements.Status.ToString(), Statements.StatusDescription));
+                throw new InvalidDataException("Class is not operational: {0}, {1}".format(
+                    Statements.Status.ToString(), Statements.StatusDescription));
 
             //GetAll should never use cache, always hitting the DB.
             var ret = Query(Statements.SqlGetAll);
             if (!TableData.UseCaching) return ret;
 
             //...but it populates the cache with all the individual results, saving time for future FETCHes.
-            foreach (var o in ret) Current.Cache[CacheKey(o.GetEntityIdentifier())] = o.ToJson();
 
+            if (Current.Cache.OperationalStatus != EOperationalStatus.Operational) return ret;
+
+            foreach (var o in ret) Current.Cache[CacheKey(o.GetEntityIdentifier())] = o.ToJson();
             return ret;
         }
 
@@ -299,7 +316,7 @@ namespace Nyan.Core.Modules.Data
             Execute(Statements.SqlTruncateTable);
 
             if (!TableData.UseCaching) return;
-
+            if (Current.Cache.OperationalStatus != EOperationalStatus.Operational) return;
             Current.Cache.RemoveAll();
         }
 
@@ -468,7 +485,7 @@ namespace Nyan.Core.Modules.Data
 
             if (_isDeleted) return null;
 
-            var ret = ExecuteAndReturnIdentifier(Statements.SqlInsertSingleWithReturn, obj);
+            var ret = ExecuteAndReturnIdentifier(obj);
 
             Current.Cache.Remove(CacheKey(ret));
             Get(ret);
@@ -596,7 +613,7 @@ namespace Nyan.Core.Modules.Data
                 catch (Exception e)
                 {
                     Current.Log.Add(e);
-                    throw (e);
+                    throw;
                 }
             }
         }
@@ -615,8 +632,7 @@ namespace Nyan.Core.Modules.Data
             return Query<TU>(sqlStatement, null);
         }
 
-        public static List<TU> Query<TU>(string sqlStatement, object sqlParameters = null,
-            CommandType pCommandType = CommandType.Text)
+        public static List<TU> Query<TU>(string sqlStatement, object sqlParameters = null, CommandType pCommandType = CommandType.Text)
         {
             if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
                 throw new InvalidOperationException(typeof(T).FullName + " - state is not operational: " +
@@ -687,28 +703,63 @@ namespace Nyan.Core.Modules.Data
             return result;
         }
 
-        public static string ExecuteAndReturnIdentifier(string sqlStatement, object sqlParameters = null,
+        public static string ExecuteAndReturnIdentifier(object sqlParameters = null,
             CommandType pCommandType = CommandType.Text)
         {
+            var sqlStatement = Statements.Adapter.useIndependentStatementsForKeyExtraction ? Statements.SqlInsertSingle : Statements.SqlInsertSingleWithReturn;
+
             var p = Statements.Adapter.InsertableParameters<T>(sqlParameters);
 
             try
             {
-                if (Statements.Adapter.UseOutputParameterForInsertedKeyExtraction)
-                {
-                    p.Add("newid", dbType: DynamicParametersPrimitive.DbGenericType.String,
-                        direction: ParameterDirection.Output,
-                        size: 38);
-
-                    using (var conn = Statements.Adapter.Connection(Statements.ConnectionString))
-                    {
-                        conn.Query<string>(sqlStatement, p, null, true, null, pCommandType);
-                        var ret = p.Get<object>("newid").ToString();
-                        return ret;
-                    }
-                }
                 using (var conn = Statements.Adapter.Connection(Statements.ConnectionString))
                 {
+                    if (Statements.Adapter.useIndependentStatementsForKeyExtraction)
+                    {
+                        conn.Open();
+                        var trans = conn.BeginTransaction();
+
+                        conn.Execute(sqlStatement, p);
+
+                        if (!Statements.Adapter.useOutputParameterForInsertedKeyExtraction)
+                        {
+                            var ret = conn.ExecuteScalar<string>(Statements.SqlReturnNewIdentifier);
+
+                            trans.Commit();
+
+                            return ret;
+                        }
+                        else
+                        {
+                            p = GetNewDynamicParameterBag();
+                            p.Add("newid", dbType: DynamicParametersPrimitive.DbGenericType.String, direction: ParameterDirection.Output, size: 38);
+                            conn.Execute(Statements.SqlReturnNewIdentifier, p);
+                            var ret = p.Get<object>("newid").ToString();
+
+                            trans.Commit();
+
+                            return ret;
+                        }
+
+                    }
+                    else
+                    {
+                        if (Statements.Adapter.UseOutputParameterForInsertedKeyExtraction)
+                        {
+                            p.Add("newid", dbType: DynamicParametersPrimitive.DbGenericType.String, direction: ParameterDirection.Output, size: 38);
+
+                            conn.Query<string>(sqlStatement, p, null, true, null, pCommandType);
+                            var ret = p.Get<object>("newid").ToString();
+                            return ret;
+                        }
+                        else
+                        {
+                            return conn.ExecuteScalar<string>(sqlStatement);
+                        }
+
+
+                    }
+
                     return conn.Query<string>(sqlStatement, p).First();
                 }
             }
@@ -738,8 +789,8 @@ namespace Nyan.Core.Modules.Data
                     var cat = new ColumnAttributeTypeMapper<T>();
                     SqlMapper.SetTypeMap(typeof(T), cat);
 
-                    Current.Log.Add("{0} @ {1} - {2} : Initializing".format(typeof(T).FullName, System.Environment.MachineName, Current.Environment.Current));
-
+                    Current.Log.Add("{0} @ {1} - {2} : Initializing".format(typeof(T).FullName, Environment.MachineName,
+                        Current.Environment.Current));
 
 
                     var refBundle = TableData.ConnectionBundleType ?? Current.GlobalConnectionBundleType;
@@ -763,10 +814,7 @@ namespace Nyan.Core.Modules.Data
                         Statements.Bundle = refType;
 
                         refType.ValidateDatabase();
-
-                        Current.Log.Add(
-                            typeof(T).FullName + " : Reading Connection bundle [" + refType.GetType().Name + "]",
-                            Message.EContentType.StartupSequence);
+                        LogLocal("Reading Connection bundle [" + refType.GetType().Name + "]");
 
                         Statements.StatusStep = "Transferring configuration settings from Bundle to Entity Statements";
 
@@ -787,11 +835,11 @@ namespace Nyan.Core.Modules.Data
                                 .Where(prop => Attribute.IsDefined(prop, typeof(KeyAttribute)))
                                 .ToList();
                         if (props.Count > 0)
-
                             identifierColumnName = props[0].Name;
                     }
 
-                    var mapEntry = Statements.PropertyFieldMap.First(p => p.Value.ToLower().Equals(identifierColumnName.ToLower()));
+                    var mapEntry =
+                        Statements.PropertyFieldMap.First(p => p.Value.ToLower().Equals(identifierColumnName.ToLower()));
 
                     Statements.IdProperty = Statements.Adapter.ParameterIdentifier + mapEntry.Key;
                     Statements.IdPropertyRaw = mapEntry.Key;
@@ -833,7 +881,9 @@ namespace Nyan.Core.Modules.Data
 
                             Statements.StatusStep = "Connecting to " + prb;
                         }
-                        catch { }
+                        catch
+                        {
+                        }
 
 
                         //Test Connectivity
@@ -842,12 +892,14 @@ namespace Nyan.Core.Modules.Data
                         conn.Close();
                         conn.Dispose();
 
-                        Current.Log.Add(typeof(T).FullName + " : " + prb, Message.EContentType.StartupSequence);
+                        LogLocal(prb);
                     }
 
                     if (TableData.AutoGenerateMissingSchema)
                     {
-                        Statements.StatusStep = "Checking database schema";
+                        Statements.StatusStep = "Checking database entities";
+                        LogLocal(Statements.Adapter.GetType().Name + " is checking database entities");
+
                         Statements.Adapter.CheckDatabaseEntities<T>();
                     }
 
@@ -856,14 +908,15 @@ namespace Nyan.Core.Modules.Data
 
                     Current.Environment.EnvironmentChanged += Scope_EnvironmentChanged;
 
-                    Current.Log.Add(typeof(T).FullName + ": Initialized");
+                    LogLocal("Initialized");
 
                     Statements.Status = MicroEntityCompiledStatements.EStatus.Operational;
                 }
                 catch (Exception e)
                 {
                     Statements.Status = MicroEntityCompiledStatements.EStatus.CriticalFailure;
-                    Statements.StatusDescription = typeof(T).FullName + " : Error while " + Statements.StatusStep + " - " + e.Message;
+                    Statements.StatusDescription = typeof(T).FullName + " : Error while " + Statements.StatusStep +
+                                                   " - " + e.Message;
 
                     var refEx = e;
                     while (refEx.InnerException != null)
@@ -908,9 +961,8 @@ namespace Nyan.Core.Modules.Data
                 typeof(T).GetMethod("OnEntityInitialization", BindingFlags.Public | BindingFlags.Static)
                     .Invoke(null, null);
             }
-            catch
-            {
-            }
+            // ReSharper disable once EmptyGeneralCatchClause
+            catch { }
         }
 
         #endregion
@@ -924,7 +976,7 @@ namespace Nyan.Core.Modules.Data
         {
             try
             {
-                Current.Log.Add(DateTime.Now + ": " + typeof(T).FullName + " config changed.", Message.EContentType.Maintenance);
+                LogLocal("Configuration changed config changed.", Message.EContentType.Maintenance);
                 Statements.Adapter.SetConnectionString<T>();
             }
             catch (Exception e)
