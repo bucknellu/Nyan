@@ -12,10 +12,12 @@ namespace Nyan.Samples.Console
     {
         private static void Main(string[] args)
         {
-            const int amountToTest = 512;
+            const int amountToTest = 32;
 
             var s = new Stopwatch();
             Current.Log.Add("Fetching all records...");
+
+            var allUsers = User.Get();
 
             Current.Log.Add(s.ElapsedMilliseconds + " ms");
 
@@ -27,14 +29,14 @@ namespace Nyan.Samples.Console
             {
                 new User
                 {
-                    Name = Name.FullName(),
+                    Name = Name.First()
+                    ,Surname = Name.Last(),
                     isAdmin = (RandomNumber.Next(0, 2) == 0),
                     BirthDate = RandomDay()
                 }.Save();
             }
             s.Stop();
-            Current.Log.Add(s.ElapsedMilliseconds +
-                            " ms - {0}/s".format(amountToTest/((double) s.ElapsedMilliseconds/1000)));
+            Current.Log.Add(s.ElapsedMilliseconds + " ms - {0}/s".format(amountToTest / ((double)s.ElapsedMilliseconds / 1000)));
 
             Current.Log.Add("Fetching all records...");
 
@@ -42,7 +44,7 @@ namespace Nyan.Samples.Console
             var a = User.Get().ToList();
             s.Stop();
             Current.Log.Add(s.ElapsedMilliseconds +
-                            " ms - {0}/s, {1} records fetched".format(a.Count/((double) s.ElapsedMilliseconds/1000),
+                            " ms - {0}/s, {1} records fetched".format(a.Count / ((double)s.ElapsedMilliseconds / 1000),
                                 a.Count));
 
             Current.Log.Add("Updating all records...");
@@ -54,7 +56,7 @@ namespace Nyan.Samples.Console
                 item.Save();
             }
             s.Stop();
-            Current.Log.Add(s.ElapsedMilliseconds + " ms - {0}/s".format(a.Count/((double) s.ElapsedMilliseconds/1000)));
+            Current.Log.Add(s.ElapsedMilliseconds + " ms - {0}/s".format(a.Count / ((double)s.ElapsedMilliseconds / 1000)));
 
             Current.Log.Add("Selecting using predicates...");
 
