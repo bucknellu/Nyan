@@ -16,7 +16,7 @@
     <RootNamespace>Nyan.Samples.REST</RootNamespace>
     <AssemblyName>Nyan.Samples.REST</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <UseIISExpress>false</UseIISExpress>
+    <UseIISExpress>true</UseIISExpress>
     <IISExpressSSLPort />
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
@@ -119,13 +119,13 @@
       <Project>{5f53ab9e-fdda-4a45-b0be-d1fce1916fde}</Project>
       <Name>Nyan.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Modules\Data\SQLCE\Nyan.Modules.Data.SQLCompact.csproj">
+      <Project>{6abc14a3-5fd6-4400-824d-14420e9848b0}</Project>
+      <Name>Nyan.Modules.Data.SQLCompact</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Modules\Web\REST\Nyan.Modules.Web.REST.csproj">
       <Project>{4b7081c2-21fc-4934-80ae-e4f91ea5e193}</Project>
       <Name>Nyan.Modules.Web.REST</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Portable\Nyan.Portable.csproj">
-      <Project>{7dfe0172-5732-4b96-aeea-95cbccd04600}</Project>
-      <Name>Nyan.Portable</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
@@ -143,7 +143,7 @@
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>49801</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>http://localhost/Nyan.Samples.REST</IISUrl>
+          <IISUrl>http://localhost:49801/</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>
