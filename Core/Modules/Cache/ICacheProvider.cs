@@ -14,9 +14,10 @@ namespace Nyan.Core.Modules.Cache
 
     public interface ICacheProvider
     {
-        string this[string key, string oSet = null, int cacheTimeOutSeconds = 600]
-            // Standard cache timeout: 10m (600 secs)
-        { get; set; }
+        // Standard cache timeout: 10m (600 secs)
+        string this[string key, string oSet = null, int cacheTimeOutSeconds = 600] { get; set; }
+        Dictionary<string, ICacheConfiguration> ScopeConfiguration { get; set; }
+        string ServerName { get; }
 
         EOperationalStatus OperationalStatus { get; }
 
@@ -26,5 +27,7 @@ namespace Nyan.Core.Modules.Cache
         void RemoveAll(string oSet = null);
         void SetSingleton(object value, string fullName = null);
         T GetSingleton<T>(string fullName = null);
+
+        void Initialize();
     }
 }

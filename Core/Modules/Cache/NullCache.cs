@@ -16,6 +16,9 @@ namespace Nyan.Core.Modules.Cache
             set { throw new NotImplementedException(); }
         }
 
+        public Dictionary<string, ICacheConfiguration> ScopeConfiguration { get; set; }
+
+        public string ServerName { get; private set; }
         public EOperationalStatus OperationalStatus { get; set; }
 
         public IEnumerable<string> GetAll(string oNamespace)
@@ -43,6 +46,11 @@ namespace Nyan.Core.Modules.Cache
         T ICacheProvider.GetSingleton<T>(string fullName)
         {
             throw new NotImplementedException();
+        }
+
+        public void Initialize()
+        {
+            //Not necessary.
         }
 
         public void RemoveAll(string oSet = null)
