@@ -120,7 +120,7 @@ namespace Nyan.Core.Modules.Data.Adapter
         {
             var statements = MicroEntity<T>.Statements;
 
-            var envCode = Current.Environment.CurrentCode;
+            var envCode = Current.Scope.CurrentCode;
 
             if (envCode == "UND") envCode = "DEV";
 

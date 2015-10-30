@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace Nyan.Core.Modules.Data.Connection
 {
-    public abstract class BundlePrimitive
+    public abstract class ConnectionBundlePrimitive
     {
-        public Dictionary<string, string> EnvironmentCypherKeys { get; set; }
+        public Dictionary<string, string> ConnectionCypherKeys { get; set; }
         public Type AdapterType { get; set; }
         public virtual void ValidateDatabase() { }
     }
