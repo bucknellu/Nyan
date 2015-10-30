@@ -30,7 +30,8 @@ namespace Nyan.Samples.Console
                 new User
                 {
                     Name = Name.First()
-                    ,Surname = Name.Last(),
+                    ,
+                    Surname = Name.Last(),
                     isAdmin = (RandomNumber.Next(0, 2) == 0),
                     BirthDate = RandomDay()
                 }.Save();
@@ -43,9 +44,7 @@ namespace Nyan.Samples.Console
             s.Restart();
             var a = User.Get().ToList();
             s.Stop();
-            Current.Log.Add(s.ElapsedMilliseconds +
-                            " ms - {0}/s, {1} records fetched".format(a.Count / ((double)s.ElapsedMilliseconds / 1000),
-                                a.Count));
+            Current.Log.Add(s.ElapsedMilliseconds + " ms - {0}/s, {1} records fetched".format(a.Count / ((double)s.ElapsedMilliseconds / 1000), a.Count));
 
             Current.Log.Add("Updating all records...");
             s.Restart();

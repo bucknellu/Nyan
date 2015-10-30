@@ -54,10 +54,11 @@
     <Compile Include="Extensions\Serialization.cs" />
     <Compile Include="Modules\Authorization\IAuthorizationProvider.cs" />
     <Compile Include="Modules\Authorization\NullAuthorizationProvider.cs" />
+    <Compile Include="Modules\Cache\ICacheConfiguration.cs" />
     <Compile Include="Modules\Cache\Helper.cs" />
     <Compile Include="Modules\Cache\ICacheProvider.cs" />
     <Compile Include="Modules\Cache\NullCache.cs" />
-    <Compile Include="Modules\Data\Connection\BundlePrimitive.cs" />
+    <Compile Include="Modules\Data\Connection\ConnectionBundlePrimitive.cs" />
     <Compile Include="Modules\Data\Adapter\AdapterPrimitive.cs" />
     <Compile Include="Modules\Data\Adapter\DynamicAdapterPrimitive.cs" />
     <Compile Include="Modules\Data\CacheEntityAttribute.cs" />
@@ -91,10 +92,10 @@
     <Compile Include="Modules\Data\Operators\Null.cs" />
     <Compile Include="Modules\Encryption\IEncryptionProvider.cs" />
     <Compile Include="Modules\Encryption\NullEncryptionProvider.cs" />
-    <Compile Include="Modules\Scope\DefaultEnvironmentProvider.cs" />
-    <Compile Include="Modules\Scope\IEnvironmentDescriptor.cs" />
-    <Compile Include="Modules\Scope\IEnvironmentProvider.cs" />
-    <Compile Include="Modules\Scope\DefaultEnvironmentDescriptor.cs" />
+    <Compile Include="Modules\Scope\DefaultScopeProvider.cs" />
+    <Compile Include="Modules\Scope\IScopeDescriptor.cs" />
+    <Compile Include="Modules\Scope\IScopeProvider.cs" />
+    <Compile Include="Modules\Scope\DefaultScopeDescriptor.cs" />
     <Compile Include="Modules\Log\FileLogProvider.cs" />
     <Compile Include="Modules\Log\LogProvider.cs" />
     <Compile Include="Modules\Log\Message.cs" />

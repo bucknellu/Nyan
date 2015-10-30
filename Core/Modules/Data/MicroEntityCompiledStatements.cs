@@ -17,7 +17,7 @@ namespace Nyan.Core.Modules.Data
         }
 
         protected internal AdapterPrimitive Adapter;
-        protected internal BundlePrimitive Bundle;
+        protected internal ConnectionBundlePrimitive Bundle;
         public Dictionary<string, string> ConnectionCypherKeys = new Dictionary<string, string>();
 
         public string ConnectionString;
