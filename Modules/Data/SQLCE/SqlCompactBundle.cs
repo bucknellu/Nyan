@@ -6,7 +6,7 @@ using Nyan.Core.Settings;
 
 namespace Nyan.Modules.Data.SQLCompact
 {
-    public class SqlCompactBundle : BundlePrimitive
+    public class SqlCompactBundle : ConnectionBundlePrimitive
     {
         private string _dbName;
 
@@ -25,7 +25,7 @@ namespace Nyan.Modules.Data.SQLCompact
             _dbName = dbName;
 
             AdapterType = typeof (SqlCompactDataAdapter);
-            EnvironmentCypherKeys = new Dictionary<string, string>
+            ConnectionCypherKeys = new Dictionary<string, string>
             {
                 {"STD", "Data Source='" + Current.BaseDirectory + "\\" + _dbName + "';"}
             };

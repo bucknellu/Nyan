@@ -4,7 +4,7 @@ using Nyan.Modules.Data.MySql;
 
 namespace Nyan.Modules.Data.MySQL
 {
-    public class MySqlBundle : BundlePrimitive
+    public class MySqlBundle : ConnectionBundlePrimitive
     {
         private string _dbName = null;
 
@@ -23,7 +23,7 @@ namespace Nyan.Modules.Data.MySQL
             _dbName = dbName;
 
             AdapterType = typeof(MySqlDataAdapter);
-            EnvironmentCypherKeys = new Dictionary<string, string> { { "STD", "server=localhost;user id=root;persistsecurityinfo=True;database=nyan;password=123" } };
+            ConnectionCypherKeys = new Dictionary<string, string> { { "STD", "server=localhost;user id=root;persistsecurityinfo=True;database=nyan;password=123" } };
         }
     }
 }

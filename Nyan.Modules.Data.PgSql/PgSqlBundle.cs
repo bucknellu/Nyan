@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Nyan.Modules.Data.PgSql
 {
-    public class PgSqlBundle : BundlePrimitive
+    public class PgSqlBundle : ConnectionBundlePrimitive
     {
         private string _dbName = null;
 
@@ -22,7 +22,7 @@ namespace Nyan.Modules.Data.PgSql
             _dbName = dbName;
 
             AdapterType = typeof(PgSqlDataAdapter);
-            EnvironmentCypherKeys = new Dictionary<string, string> { { "STD", "Database=nyan;User ID=postgres;Host=localhost;Password=123;Port=5432" } };
+            ConnectionCypherKeys = new Dictionary<string, string> { { "STD", "Database=nyan;User ID=postgres;Host=localhost;Password=123;Port=5432" } };
         }
 
         public override void ValidateDatabase()

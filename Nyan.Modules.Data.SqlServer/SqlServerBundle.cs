@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Nyan.Modules.Data.SqlServer
 {
-    public class SqlServerBundle : BundlePrimitive
+    public class SqlServerBundle : ConnectionBundlePrimitive
     {
         private string _dbName = null;
 
@@ -22,7 +22,7 @@ namespace Nyan.Modules.Data.SqlServer
             _dbName = dbName;
 
             AdapterType = typeof(SqlServerDataAdapter);
-            EnvironmentCypherKeys = new Dictionary<string, string> { { "STD", "Data Source=.\\SQLEXPRESS;Initial Catalog=Nyan;Integrated Security=True" } };
+            ConnectionCypherKeys = new Dictionary<string, string> { { "STD", "Data Source=.\\SQLEXPRESS;Initial Catalog=Nyan;Integrated Security=True" } };
         }
 
         public override void ValidateDatabase()
