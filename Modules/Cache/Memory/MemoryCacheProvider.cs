@@ -37,6 +37,9 @@ namespace Nyan.Modules.Cache.Memory
             }
         }
 
+        public Dictionary<string, ICacheConfiguration> ScopeConfiguration { get; set; }
+
+        public string ServerName { get; private set; }
         public EOperationalStatus OperationalStatus { get; private set; }
 
         public bool Contains(string key)
@@ -55,6 +58,11 @@ namespace Nyan.Modules.Cache.Memory
             var c = this[n];
 
             return c == null ? default(T) : c.FromJson<T>();
+        }
+
+        public void Initialize()
+        {
+            //Not really necessary for memory cache.
         }
 
         public void Remove(string key, string oSet = null)
