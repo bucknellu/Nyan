@@ -754,7 +754,7 @@ namespace Nyan.Core.Modules.Data
                         }
                         else
                         {
-                            return conn.ExecuteScalar<string>(sqlStatement);
+                            return conn.ExecuteScalar<string>(sqlStatement, p);
                         }
 
 
