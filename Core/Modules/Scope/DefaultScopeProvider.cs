@@ -2,7 +2,7 @@
 
 namespace Nyan.Core.Modules.Scope
 {
-    public class DefaultEnvironmentProvider : IEnvironmentProvider
+    public class DefaultScopeProvider : IScopeProvider
     {
         public IScopeDescriptor Current
         {

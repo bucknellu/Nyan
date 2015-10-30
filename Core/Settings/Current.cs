@@ -21,7 +21,7 @@ namespace Nyan.Core.Settings
             var refObj = ResolveSettingsPackage();
 
             Cache = refObj.Cache;
-            Environment = refObj.Environment;
+            Scope = refObj.Scope;
             Log = refObj.Log;
             Encryption = refObj.Encryption;
             GlobalConnectionBundleType = refObj.GlobalConnectionBundleType;
@@ -31,7 +31,7 @@ namespace Nyan.Core.Settings
                 Message.EContentType.StartupSequence);
             Log.Add("    Cache                     : " + (Cache.ToString() ?? "(none)"),
                 Message.EContentType.StartupSequence);
-            Log.Add("    Environment               : " + (Environment.ToString() ?? "(none)"),
+            Log.Add("    Environment               : " + (Scope.ToString() ?? "(none)"),
                 Message.EContentType.StartupSequence);
             Log.Add("    Log                       : " + (Log.ToString() ?? "(none)"),
                 Message.EContentType.StartupSequence);
@@ -41,10 +41,13 @@ namespace Nyan.Core.Settings
                 Message.EContentType.StartupSequence);
             Log.Add("    GlobalConnectionBundleType: " + (GlobalConnectionBundleType.ToString() ?? "(none)"),
                 Message.EContentType.StartupSequence);
+
+            //Post-initialization procedures
+            Cache.Initialize();
         }
 
         public static ICacheProvider Cache { get; private set; }
-        public static IEnvironmentProvider Environment { get; private set; }
+        public static IScopeProvider Scope { get; private set; }
         public static IEncryptionProvider Encryption { get; private set; }
         public static IAuthorizationProvider Authorization { get; set; }
         public static LogProvider Log { get; private set; }

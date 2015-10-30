@@ -16,14 +16,14 @@ namespace Nyan.Portable.Settings
             Log = new FileLogProvider();
             Cache = new Modules.Cache.Memory.MemoryCacheProvider();
             Encryption = new NullEncryptionProvider();
-            Environment = new DefaultEnvironmentProvider();
+            Scope = new DefaultScopeProvider();
             GlobalConnectionBundleType = typeof(Modules.Data.SQLite.SqLiteBundle);
             Authorization = new NullAuthorizationProvider();
         }
         public ICacheProvider Cache { get; set; }
         public IEncryptionProvider Encryption { get; set; }
         public IAuthorizationProvider Authorization { get; private set; }
-        public IEnvironmentProvider Environment { get; set; }
+        public IScopeProvider Scope { get; set; }
         public Type GlobalConnectionBundleType { get; set; }
         public LogProvider Log { get; set; }
     }

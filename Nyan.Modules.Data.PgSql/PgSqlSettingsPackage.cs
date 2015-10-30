@@ -17,14 +17,14 @@ namespace Nyan.Modules.Data.PgSql
             Log = new NullLogProvider();
             Cache = new MemoryCacheProvider();
             Encryption = new NullEncryptionProvider();
-            Environment = new DefaultEnvironmentProvider();
+            Scope = new DefaultScopeProvider();
             GlobalConnectionBundleType = typeof(PgSqlBundle);
         }
 
         public ICacheProvider Cache { get; set; }
         public IEncryptionProvider Encryption { get; set; }
         public IAuthorizationProvider Authorization { get; private set; }
-        public IEnvironmentProvider Environment { get; set; }
+        public IScopeProvider Scope { get; set; }
         public Type GlobalConnectionBundleType { get; set; }
         public LogProvider Log { get; set; }
     }

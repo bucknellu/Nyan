@@ -11,7 +11,7 @@ namespace Nyan.Core.Settings
     {
         LogProvider Log { get; }
         ICacheProvider Cache { get; }
-        IEnvironmentProvider Environment { get; }
+        IScopeProvider Scope { get; }
         IEncryptionProvider Encryption { get; }
         IAuthorizationProvider Authorization { get; }
         Type GlobalConnectionBundleType { get; }

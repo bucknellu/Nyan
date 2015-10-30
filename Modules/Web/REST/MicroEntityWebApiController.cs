@@ -69,7 +69,7 @@ namespace Nyan.Modules.Web.REST
             {
                 Current.Log.Add("ClassSecurity.ReadPermission: " + ClassSecurity.ReadPermission +
                                 ". Environment.Current: " +
-                                Current.Environment.CurrentCode);
+                                Current.Scope.CurrentCode);
                 throw new UnauthorizedAccessException("Insufficient permissions.");
             }
 

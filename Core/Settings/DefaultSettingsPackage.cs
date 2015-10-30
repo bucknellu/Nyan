@@ -15,14 +15,14 @@ namespace Nyan.Core.Settings
             Log = new NullLogProvider();
             Cache = new NullCacheProvider();
             Encryption = new NullEncryptionProvider();
-            Environment = new DefaultEnvironmentProvider();
+            Scope = new DefaultScopeProvider();
             Authorization = new NullAuthorizationProvider();
             GlobalConnectionBundleType = null;
         }
 
         public LogProvider Log { get; private set; }
         public ICacheProvider Cache { get; private set; }
-        public IEnvironmentProvider Environment { get; private set; }
+        public IScopeProvider Scope { get; private set; }
         public IEncryptionProvider Encryption { get; private set; }
         public IAuthorizationProvider Authorization { get; private set; }
         public Type GlobalConnectionBundleType { get; set; }

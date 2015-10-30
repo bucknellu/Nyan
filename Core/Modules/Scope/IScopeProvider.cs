@@ -2,7 +2,7 @@
 
 namespace Nyan.Core.Modules.Scope
 {
-    public interface IEnvironmentProvider
+    public interface IScopeProvider
     {
         IScopeDescriptor Current { get; set; }
         string CurrentCode { get; }

@@ -789,8 +789,8 @@ namespace Nyan.Core.Modules.Data
                     var cat = new ColumnAttributeTypeMapper<T>();
                     SqlMapper.SetTypeMap(typeof(T), cat);
 
-                    Current.Log.Add("{0} @ {1} - {2} : Initializing".format(typeof(T).FullName, Environment.MachineName,
-                        Current.Environment.Current));
+                    Current.Log.Add("{0} @ {1} - {2} scope : Initializing".format(typeof(T).FullName, Environment.MachineName,
+                        Current.Scope.Current));
 
 
                     var refBundle = TableData.ConnectionBundleType ?? Current.GlobalConnectionBundleType;
@@ -809,7 +809,7 @@ namespace Nyan.Core.Modules.Data
                     //First, probe for a valid Connection bundle
                     if (refBundle != null)
                     {
-                        var refType = (BundlePrimitive)Activator.CreateInstance(refBundle);
+                        var refType = (ConnectionBundlePrimitive)Activator.CreateInstance(refBundle);
 
                         Statements.Bundle = refType;
 
@@ -819,7 +819,7 @@ namespace Nyan.Core.Modules.Data
                         Statements.StatusStep = "Transferring configuration settings from Bundle to Entity Statements";
 
                         Statements.Adapter = (AdapterPrimitive)Activator.CreateInstance(refType.AdapterType);
-                        Statements.ConnectionCypherKeys = refType.EnvironmentCypherKeys;
+                        Statements.ConnectionCypherKeys = refType.ConnectionCypherKeys;
                     }
                     else
                     {
@@ -906,7 +906,7 @@ namespace Nyan.Core.Modules.Data
                     Statements.StatusStep = "Calling initialization hooks";
                     OnEntityInitializationHook();
 
-                    Current.Environment.EnvironmentChanged += Scope_EnvironmentChanged;
+                    Current.Scope.EnvironmentChanged += Scope_EnvironmentChanged;
 
                     LogLocal("Initialized");
 
