@@ -53,7 +53,13 @@ namespace Nyan.Core.Modules.Log
 
         public virtual void Add(string content, Message.EContentType type = null)
         {
+            Dispatch(content, type);
+        }
+
+        public virtual void Dispatch(string content, Message.EContentType type = null)
+        {
             Console.WriteLine(content);
+            Debug.Print(content);
         }
     }
 }

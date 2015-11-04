@@ -3,6 +3,7 @@ using Nyan.Core.Diagnostics;
 
 namespace Nyan.Core.Modules.Log
 {
+    [Serializable]
     public class Message
     {
         public delegate void MessageArrivedHandler(object message);
@@ -30,6 +31,7 @@ namespace Nyan.Core.Modules.Log
             }
 
             public string Name { get; private set; }
+            public string ReplyToId { get; private set; }
             public string Code { get; private set; }
             public int Value { get; private set; }
 
