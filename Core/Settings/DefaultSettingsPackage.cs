@@ -20,11 +20,11 @@ namespace Nyan.Core.Settings
             GlobalConnectionBundleType = null;
         }
 
-        public LogProvider Log { get; private set; }
-        public ICacheProvider Cache { get; private set; }
-        public IScopeProvider Scope { get; private set; }
-        public IEncryptionProvider Encryption { get; private set; }
-        public IAuthorizationProvider Authorization { get; private set; }
-        public Type GlobalConnectionBundleType { get; set; }
+        public LogProvider Log { get; internal set; }
+        public ICacheProvider Cache { get; internal set; }
+        public IScopeProvider Scope { get; internal set; }
+        public IEncryptionProvider Encryption { get; internal set; }
+        public IAuthorizationProvider Authorization { get; internal set; }
+        public Type GlobalConnectionBundleType { get; internal set; }
     }
 }
