@@ -18,8 +18,5 @@ namespace Nyan.Samples.REST.Model
 
 
     [RoutePrefix("users")]
-    public class UserController : MicroEntityWebApiController<User>
-    {
-        public UserController() { }
-    }
+    public class UserController : MicroEntityWebApiController<User> { }
 }

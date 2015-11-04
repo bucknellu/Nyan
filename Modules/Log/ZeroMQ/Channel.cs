@@ -86,7 +86,20 @@ namespace Nyan.Modules.Log.ZeroMQ
                 {
                     var topic = subscriber.Receive();
                     var payload = subscriber.Receive();
-                    var message = payload.FromSerializedBytes<Message>();
+
+
+                    Message message = null;
+
+                    try { message = payload.FromSerializedBytes<Message>(); }
+                    catch { }
+
+                    if (message == null)
+                    {
+                        try { message = payload.GetString().FromJson<Message>(); }
+                        catch { }
+                    }
+
+                    if (message == null) continue;
 
                     if (MessageArrived == null) continue;
 
@@ -143,7 +156,7 @@ namespace Nyan.Modules.Log.ZeroMQ
                 task.Start();
             }
 
-            var payload = message.ToSerializedBytes();
+            var payload = message.ToJson().GetBytes();
 
             lock (_sendLock)
             {

@@ -1,5 +1,7 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Diagnostics;
+using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Log;
 
 namespace Nyan.Modules.Log.ZeroMQ
@@ -8,27 +10,35 @@ namespace Nyan.Modules.Log.ZeroMQ
     {
         public new event Message.MessageArrivedHandler MessageArrived;
 
-        private readonly Channel _out;
+        private Channel _out;
         private Channel _in;
-        private readonly string _multiCastAddress = "";
+        private string _multiCastAddress = "";
 
-        public ZeroMqLogProvider(string multiCastAddress = "pgm://239.255.42.99:5558")
+        public ZeroMqLogProvider()
+        {
+            Initialize("pgm://239.255.42.99:5558");
+        }
+
+        private void Initialize(string multiCastAddress)
         {
             _multiCastAddress = multiCastAddress;
             _out = new Channel("Log_Service", true, false, _multiCastAddress);
         }
 
-        public override void Dispatch(string content, Message.EContentType type = null)
+        public ZeroMqLogProvider(string multiCastAddress)
         {
-            if (type == null) type = Message.EContentType.Generic;
+            Initialize(multiCastAddress);
+        }
 
+        public override void Dispatch(string content, Message.EContentType type = Message.EContentType.Generic)
+        {
             if (Environment.UserInteractive)
             {
                 Console.WriteLine(content);
                 Debug.WriteLine(content);
             }
 
-            var payload = new Message { Content = content, Subject = type.Name, Type = type };
+            var payload = new Message { Content = content, Subject = type.ToString(), Type = type };
 
             _out.Send(payload);
         }
