@@ -26,7 +26,7 @@ namespace Nyan.Core.Extensions
             var serializer = new XmlSerializer(obj.GetType());
 
             using (var writer = new Utf8StringWriter())
-            using (var xmlWriter = XmlWriter.Create(writer, new XmlWriterSettings {Indent = false}))
+            using (var xmlWriter = XmlWriter.Create(writer, new XmlWriterSettings { Indent = false }))
             {
                 var ns = new XmlSerializerNamespaces();
 
@@ -52,6 +52,19 @@ namespace Nyan.Core.Extensions
 
         #endregion
 
+        public static byte[] GetBytes(this string str)
+        {
+            byte[] bytes = new byte[str.Length * sizeof(char)];
+            System.Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, bytes.Length);
+            return bytes;
+        }
+
+        public static string GetString(this byte[] bytes)
+        {
+            char[] chars = new char[bytes.Length / sizeof(char)];
+            System.Buffer.BlockCopy(bytes, 0, chars, 0, bytes.Length);
+            return new string(chars);
+        }
         #region JSON
 
         public static string FromXmlToJson(this string obj)
@@ -61,12 +74,17 @@ namespace Nyan.Core.Extensions
             return JsonConvert.SerializeXmlNode(doc);
         }
 
+        public static T CreateInstance<T>(this Type typeRef)
+        {
+            return (T)Activator.CreateInstance(typeRef);
+        }
+
         public static string GetJsonNode(this string obj, string nodeName)
         {
             var jo = JObject.Parse(obj);
             var myTest = jo.Descendants()
-                .Where(t => t.Type == JTokenType.Property && ((JProperty) t).Name == nodeName)
-                .Select(p => ((JProperty) p).Value)
+                .Where(t => t.Type == JTokenType.Property && ((JProperty)t).Name == nodeName)
+                .Select(p => ((JProperty)p).Value)
                 .FirstOrDefault();
             return myTest.ToString();
         }
@@ -91,7 +109,7 @@ namespace Nyan.Core.Extensions
 
                     if (obj[colpos].GetType().Name == "DateTime")
                     {
-                        sb.Append("\"" + ((DateTime) obj[colpos]).ToString("o") + "\"");
+                        sb.Append("\"" + ((DateTime)obj[colpos]).ToString("o") + "\"");
                     }
                     else
                     {
@@ -257,7 +275,7 @@ namespace Nyan.Core.Extensions
             using (var stream = new MemoryStream(obj))
             {
                 var ser = new BinaryFormatter();
-                return (T) ser.Deserialize(stream);
+                return (T)ser.Deserialize(stream);
             }
         }
 
@@ -274,7 +292,7 @@ namespace Nyan.Core.Extensions
         public static T GetObject<T>(this IDictionary<string, object> dict,
             Dictionary<string, string> translationDictionary = null)
         {
-            var type = typeof (T);
+            var type = typeof(T);
 
             var obj = Activator.CreateInstance(type);
 
@@ -298,13 +316,13 @@ namespace Nyan.Core.Extensions
                 if (k.PropertyType.IsPrimitiveType())
                 {
                     if (val is decimal) val = Convert.ToInt64(val);
-                    if (val is short && kt == typeof (bool)) val = (Convert.ToInt16(val) == 1);
-                    if (val is long && kt == typeof (string)) val = val.ToString();
-                    if (kt == typeof (decimal)) val = Convert.ToDecimal(val);
-                    if (kt == typeof (short)) val = Convert.ToInt16(val);
-                    if (kt == typeof (int)) val = Convert.ToInt32(val);
-                    if (kt == typeof (long)) val = Convert.ToInt64(val);
-                    if (kt == typeof (Guid)) val = new Guid(val.ToString());
+                    if (val is short && kt == typeof(bool)) val = (Convert.ToInt16(val) == 1);
+                    if (val is long && kt == typeof(string)) val = val.ToString();
+                    if (kt == typeof(decimal)) val = Convert.ToDecimal(val);
+                    if (kt == typeof(short)) val = Convert.ToInt16(val);
+                    if (kt == typeof(int)) val = Convert.ToInt32(val);
+                    if (kt == typeof(long)) val = Convert.ToInt64(val);
+                    if (kt == typeof(Guid)) val = new Guid(val.ToString());
                     if (kt.IsEnum) val = Enum.Parse(k.PropertyType, val.ToString());
 
                     k.SetValue(obj, val);
@@ -315,7 +333,7 @@ namespace Nyan.Core.Extensions
                 }
             }
 
-            return (T) obj;
+            return (T)obj;
         }
 
         #endregion
@@ -434,8 +452,8 @@ namespace Nyan.Core.Extensions
 
             // If the types are identical, or they're both generic parameters 
             // or the special 'T' type, treat as a match
-            if (thisType == type || ((thisType.IsGenericParameter || thisType == typeof (GetMethodExtT))
-                                     && (type.IsGenericParameter || type == typeof (GetMethodExtT))))
+            if (thisType == type || ((thisType.IsGenericParameter || thisType == typeof(GetMethodExtT))
+                                     && (type.IsGenericParameter || type == typeof(GetMethodExtT))))
                 return true;
 
             // Handle any generic arguments
@@ -501,7 +519,7 @@ namespace Nyan.Core.Extensions
 
         public static bool IsSubclassOfRawGeneric(this Type toCheck, Type generic)
         {
-            while (toCheck != null && toCheck != typeof (object))
+            while (toCheck != null && toCheck != typeof(object))
             {
                 var cur = toCheck.IsGenericType ? toCheck.GetGenericTypeDefinition() : toCheck;
                 if (generic == cur)
@@ -589,8 +607,8 @@ namespace Nyan.Core.Extensions
             {
                 if (!string.IsNullOrEmpty(s) && s.Trim().Length > 0)
                 {
-                    var conv = TypeDescriptor.GetConverter(typeof (T));
-                    result = (T) conv.ConvertFrom(s);
+                    var conv = TypeDescriptor.GetConverter(typeof(T));
+                    result = (T)conv.ConvertFrom(s);
                 }
             }
             catch
@@ -604,8 +622,8 @@ namespace Nyan.Core.Extensions
             var result = new T?();
             try
             {
-                var conv = TypeDescriptor.GetConverter(typeof (T));
-                result = (T) conv.ConvertFrom(s);
+                var conv = TypeDescriptor.GetConverter(typeof(T));
+                result = (T)conv.ConvertFrom(s);
             }
             catch
             {
@@ -657,8 +675,8 @@ namespace Nyan.Core.Extensions
 
         public static void CopyPropertiesTo<T, TU>(this T source, TU dest)
         {
-            var sourceProps = typeof (T).GetProperties().Where(x => x.CanRead).ToList();
-            var destProps = typeof (TU).GetProperties()
+            var sourceProps = typeof(T).GetProperties().Where(x => x.CanRead).ToList();
+            var destProps = typeof(TU).GetProperties()
                 .Where(x => x.CanWrite)
                 .ToList();
 
@@ -707,7 +725,7 @@ namespace Nyan.Core.Extensions
                 return false;
             }
 
-            t = (T) o;
+            t = (T)o;
             return true;
         }
 
