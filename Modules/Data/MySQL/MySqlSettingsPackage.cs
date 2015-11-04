@@ -1,5 +1,5 @@
 ﻿using System;
-using Nyan.Core.Modules.Authorization;
+using Nyan.Core.Modules.Identity;
 using Nyan.Core.Modules.Cache;
 using Nyan.Core.Modules.Encryption;
 using Nyan.Core.Modules.Scope;
@@ -7,7 +7,7 @@ using Nyan.Core.Modules.Log;
 using Nyan.Core.Settings;
 using Nyan.Modules.Cache.Memory;
 
-namespace Nyan.Modules.Data.MySQL
+namespace Nyan.Modules.Data.MySql
 {
     [PackagePriority(Level = -2)]
     // Data adapter package priority (higher than default (-3), but lower than pre-specified packages (-1)

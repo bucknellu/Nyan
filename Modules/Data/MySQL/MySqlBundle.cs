@@ -1,12 +1,11 @@
-﻿using Nyan.Core.Modules.Data.Connection;
-using System.Collections.Generic;
-using Nyan.Modules.Data.MySql;
+﻿using System.Collections.Generic;
+using Nyan.Core.Modules.Data.Connection;
 
-namespace Nyan.Modules.Data.MySQL
+namespace Nyan.Modules.Data.MySql
 {
     public class MySqlBundle : ConnectionBundlePrimitive
     {
-        private string _dbName = null;
+        private string _dbName;
 
         public MySqlBundle()
         {
@@ -22,8 +21,11 @@ namespace Nyan.Modules.Data.MySQL
         {
             _dbName = dbName;
 
-            AdapterType = typeof(MySqlDataAdapter);
-            ConnectionCypherKeys = new Dictionary<string, string> { { "STD", "server=localhost;user id=root;persistsecurityinfo=True;database=nyan;password=123" } };
+            AdapterType = typeof (MySqlDataAdapter);
+            ConnectionCypherKeys = new Dictionary<string, string>
+            {
+                {"STD", "server=localhost;user id=root;persistsecurityinfo=True;database=nyan;password=123"}
+            };
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Nyan.Core.Modules.Authorization;
+﻿using Nyan.Core.Modules.Identity;
 using Nyan.Core.Settings;
 using System;
 using Nyan.Core.Modules.Cache;
