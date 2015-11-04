@@ -6,47 +6,21 @@ namespace Nyan.Core.Modules.Log
     [Serializable]
     public class Message
     {
-        public delegate void MessageArrivedHandler(object message);
+        public delegate void MessageArrivedHandler(Message message);
 
         #region Enumerators
 
         //Type-safe-enum pattern standard interface
 
-        [Serializable]
-        public sealed class EContentType : IEContentType
+        public enum EContentType
         {
-            public static readonly EContentType Audit = new EContentType(0, "AUD", "Audit");
-            public static readonly EContentType Debug = new EContentType(1, "DBG", "Debug");
-            public static readonly EContentType Generic = new EContentType(2, "GEN", "Generic");
-            public static readonly EContentType Warning = new EContentType(3, "WRN", "Warning");
-            public static readonly EContentType Exception = new EContentType(4, "ERR", "Exception");
-            public static readonly EContentType Maintenance = new EContentType(5, "MTN", "Maintenance");
-            public static readonly EContentType StartupSequence = new EContentType(6, "STA", "Start-up Sequence");
-
-            private EContentType(int value, string code, string name)
-            {
-                Value = value;
-                Name = name;
-                Code = code;
-            }
-
-            public string Name { get; private set; }
-            public string ReplyToId { get; private set; }
-            public string Code { get; private set; }
-            public int Value { get; private set; }
-
-            public override string ToString()
-            {
-                return Name;
-            }
-        }
-
-        public interface IEContentType
-        {
-            string Name { get; }
-            string Code { get; }
-            int Value { get; }
-            string ToString();
+            Audit,
+            Debug,
+            Generic,
+            Warning,
+            Exception,
+            Maintenance,
+            StartupSequence
         }
 
         #endregion

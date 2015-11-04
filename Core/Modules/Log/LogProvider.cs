@@ -8,7 +8,7 @@ namespace Nyan.Core.Modules.Log
     {
         public event Message.MessageArrivedHandler MessageArrived;
 
-        protected virtual void OnMessageArrived(object message)
+        protected virtual void OnMessageArrived(Message message)
         {
             var handler = MessageArrived;
             if (handler != null) handler(message);
@@ -51,12 +51,12 @@ namespace Nyan.Core.Modules.Log
         {
         }
 
-        public virtual void Add(string content, Message.EContentType type = null)
+        public virtual void Add(string content, Message.EContentType type = Message.EContentType.Generic)
         {
             Dispatch(content, type);
         }
 
-        public virtual void Dispatch(string content, Message.EContentType type = null)
+        public virtual void Dispatch(string content, Message.EContentType type = Message.EContentType.Generic)
         {
             Console.WriteLine(content);
             Debug.Print(content);
