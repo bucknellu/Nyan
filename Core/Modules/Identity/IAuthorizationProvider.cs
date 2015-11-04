@@ -1,4 +1,4 @@
-﻿namespace Nyan.Core.Modules.Authorization
+﻿namespace Nyan.Core.Modules.Identity
 {
     public interface IAuthorizationProvider
     {
