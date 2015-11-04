@@ -38,13 +38,15 @@ namespace Nyan.Core.Assembly
             }
         }
 
-        public static List<Type> GetClassesByInterface<T>()
+        public static List<Type> GetClassesByInterface<T>(bool excludeCoreNullDefinitions = true)
         {
             var type = typeof(T);
             var ret = new List<Type>();
 
             foreach (var item in _assys.Values)
             {
+                if (excludeCoreNullDefinitions && (item == System.Reflection.Assembly.GetExecutingAssembly())) continue;
+
                 Type[] preTypes;
 
                 try
@@ -60,16 +62,14 @@ namespace Nyan.Core.Assembly
 
                 foreach (var item3 in preTypes)
                 {
-                    if (!item3.IsInterface)
-                    {
-                        if (type.IsAssignableFrom(item3))
-                        {
-                            ret.Add(item3);
-                        }
-                    }
+                    if (item3.IsInterface) continue;
+
+                    if (!type.IsAssignableFrom(item3)) continue;
+
+                    if (type != item3)
+                        ret.Add(item3);
                 }
             }
-
             return ret;
         }
     }
