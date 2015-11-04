@@ -5,7 +5,7 @@ using System.Data.SqlClient;
 
 namespace Nyan.Modules.Data.SqlServer
 {
-    public class SqlServerDynamicParameters : DynamicParametersPrimitive, SqlMapper.IDynamicParameters
+    public class SqlServerDynamicParameters : DynamicParametersPrimitive
     {
         public SqlServerDynamicParameters()
         {

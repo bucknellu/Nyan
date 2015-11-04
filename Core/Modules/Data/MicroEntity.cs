@@ -56,7 +56,7 @@ namespace Nyan.Core.Modules.Data
             return _typeName;
         }
 
-        private static void LogLocal(string pMessage, Message.EContentType pType = null)
+        private static void LogLocal(string pMessage, Message.EContentType pType = Message.EContentType.Generic)
         {
             if (pType == null) pType = Message.EContentType.StartupSequence;
             Current.Log.Add(typeof(T).FullName + " : " + pMessage, pType);

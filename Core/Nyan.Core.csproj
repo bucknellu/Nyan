@@ -36,6 +36,7 @@
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=7.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.7.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -52,8 +53,10 @@
     <Compile Include="Assembly\Management.cs" />
     <Compile Include="Diagnostics\TraceInfoContainer.cs" />
     <Compile Include="Extensions\Serialization.cs" />
-    <Compile Include="Modules\Authorization\IAuthorizationProvider.cs" />
-    <Compile Include="Modules\Authorization\NullAuthorizationProvider.cs" />
+    <Compile Include="Modules\Identity\IIdentityProvider.cs" />
+    <Compile Include="Modules\Identity\IAuthenticationProvider.cs" />
+    <Compile Include="Modules\Identity\IAuthorizationProvider.cs" />
+    <Compile Include="Modules\Identity\NullAuthorizationProvider.cs" />
     <Compile Include="Modules\Cache\ICacheConfiguration.cs" />
     <Compile Include="Modules\Cache\Helper.cs" />
     <Compile Include="Modules\Cache\ICacheProvider.cs" />
@@ -96,7 +99,6 @@
     <Compile Include="Modules\Scope\IScopeDescriptor.cs" />
     <Compile Include="Modules\Scope\IScopeProvider.cs" />
     <Compile Include="Modules\Scope\DefaultScopeDescriptor.cs" />
-    <Compile Include="Modules\Log\FileLogProvider.cs" />
     <Compile Include="Modules\Log\LogProvider.cs" />
     <Compile Include="Modules\Log\Message.cs" />
     <Compile Include="Modules\Log\NullLogProvider.cs" />
