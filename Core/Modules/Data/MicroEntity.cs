@@ -539,8 +539,56 @@ namespace Nyan.Core.Modules.Data
             }
         }
 
-        public static List<T> Query(string sqlStatement, object sqlParameters = null,
-            CommandType pCommandType = CommandType.Text)
+        public static List<List<Dictionary<string, object>>> QueryMultiple(string sqlStatement, object sqlParameters = null, CommandType pCommandType = CommandType.Text)
+        {
+            if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
+                throw new InvalidOperationException(typeof(T).FullName + " - state is not operational: " +
+                                                    Statements.StatusDescription);
+
+            var cDebug = "";
+
+            try
+            {
+                using (var conn = Statements.Adapter.Connection(Statements.ConnectionString))
+                {
+                    cDebug = conn.DataSource;
+                    conn.Open();
+
+                    var res = new List<List<Dictionary<string,object>>>();
+                    using (var m = conn.QueryMultiple(sqlStatement, sqlParameters, null, null, pCommandType))
+                    {
+
+                        while (!m.IsConsumed)
+                        {
+                            var probe = m.Read<object>();
+                            var buffer = probe
+                                .Select(a => (IDictionary<string, object>)a)
+                                .Select(v => v.ToDictionary(v2 => v2.Key, v2 => v2.Value))
+                                .ToList();
+                            res.Add(buffer);
+                        }
+                    }
+
+                    conn.Close();
+                    conn.Dispose();
+
+                    return res;
+                }
+            }
+            catch (Exception e)
+            {
+                Current.Log.Add(e,
+                    GetTypeName() +
+                    ": Entity/Dapper Query: Error while issuing statements to the database. Statement: [" + sqlStatement +
+                    "]. Database: " + cDebug);
+                throw new DataException(
+                    GetTypeName() +
+                    "Entity/Dapper Query: Error while issuing statements to the database. Error:  [" + e.Message + "].",
+                    e);
+            }
+        }
+
+        public static List<T> Query(string sqlStatement, object sqlParameters = null, CommandType pCommandType = CommandType.Text)
         {
             if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
                 throw new InvalidOperationException(typeof(T).FullName + " - state is not operational: " +
@@ -838,8 +886,7 @@ namespace Nyan.Core.Modules.Data
                             identifierColumnName = props[0].Name;
                     }
 
-                    var mapEntry =
-                        Statements.PropertyFieldMap.First(p => p.Value.ToLower().Equals(identifierColumnName.ToLower()));
+                    var mapEntry = Statements.PropertyFieldMap.FirstOrDefault(p => p.Value.ToLower().Equals(identifierColumnName.ToLower()));
 
                     Statements.IdProperty = Statements.Adapter.ParameterIdentifier + mapEntry.Key;
                     Statements.IdPropertyRaw = mapEntry.Key;
