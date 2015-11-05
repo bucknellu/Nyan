@@ -58,9 +58,6 @@ namespace Nyan.Modules.Log.ZeroMQ
             if (!_canReceive) return;
 
             Task.Factory.StartNew(MonitorMessages);
-
-            // do { Thread.Sleep(100); } while (!_ReceiveReady);
-
             Task.Run(async () => await CleanupAsync());
         }
 
