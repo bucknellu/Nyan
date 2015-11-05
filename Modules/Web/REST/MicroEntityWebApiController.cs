@@ -36,14 +36,10 @@ namespace Nyan.Modules.Web.REST
 
                 //var probe = GetType().GetMethods();
 
-                var probe =
-                    Attribute.GetCustomAttributes(GetType(), typeof(WebApiMicroEntityReferenceAttribute)).ToList();
+                var probe = Attribute.GetCustomAttributes(GetType(), typeof(WebApiMicroEntityReferenceAttribute)).ToList();
 
-                foreach (var att in probe)
-                {
-                    var attProbe = (WebApiMicroEntityReferenceAttribute)att;
+                foreach (var attProbe in probe.Cast<WebApiMicroEntityReferenceAttribute>())
                     _entityReferenceAttribute.Add(attProbe.MetaName, attProbe);
-                }
 
                 return _entityReferenceAttribute;
             }
@@ -67,9 +63,7 @@ namespace Nyan.Modules.Web.REST
                 ClassSecurity.ReadPermission != null &&
                 !Current.Authorization.CheckPermission(ClassSecurity.ReadPermission))
             {
-                Current.Log.Add("ClassSecurity.ReadPermission: " + ClassSecurity.ReadPermission +
-                                ". Environment.Current: " +
-                                Current.Scope.CurrentCode);
+                Current.Log.Add("ClassSecurity.ReadPermission: " + ClassSecurity.ReadPermission + ". Environment.Current: " + Current.Scope.CurrentCode);
                 throw new UnauthorizedAccessException("Insufficient permissions.");
             }
 
@@ -283,7 +277,7 @@ namespace Nyan.Modules.Web.REST
 
             if (ClassSecurity != null &&
                 ClassSecurity.RemovePermission != null &&
-                !Current.Authorization.CheckPermission(ClassSecurity.RemovePermission)) 
+                !Current.Authorization.CheckPermission(ClassSecurity.RemovePermission))
                 throw new UnauthorizedAccessException("Insufficient permissions.");
 
             HttpResponseMessage ret;

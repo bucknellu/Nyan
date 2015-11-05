@@ -610,7 +610,9 @@ namespace Nyan.Core.Modules.Data
                     conn.Close();
                     conn.Dispose();
 
-                    return o.Select(refObj => refObj.GetObject<T>(Statements.PropertyFieldMap)).ToList();
+                    var ret = o.Select(refObj => refObj.GetObject<T>(Statements.PropertyFieldMap)).ToList();
+
+                    return ret;
                 }
             }
             catch (Exception e)
