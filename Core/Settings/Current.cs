@@ -28,13 +28,17 @@ namespace Nyan.Core.Settings
             GlobalConnectionBundleType = refObj.GlobalConnectionBundleType;
             Authorization = refObj.Authorization;
 
-            Log.Add("Nyan - settings initialization : " + refObj.GetType(), Message.EContentType.StartupSequence);
-            Log.Add("    Cache                      : " + (Cache == null ? "(none)" : Cache.ToString()), Message.EContentType.StartupSequence);
-            Log.Add("    Environment                : " + (Scope == null ? "(none)" : Scope.ToString()), Message.EContentType.StartupSequence);
-            Log.Add("    Log                        : " + (Log == null ? "(none)" : Log.ToString()), Message.EContentType.StartupSequence);
-            Log.Add("    Encryption                 : " + (Encryption == null ? "(none)" : Encryption.ToString()), Message.EContentType.StartupSequence);
-            Log.Add("    Authorization              : " + (Authorization == null ? "(none)" : Authorization.ToString()), Message.EContentType.StartupSequence);
-            Log.Add("    GlobalConnectionBundleType : " + (GlobalConnectionBundleType == null ? "(none)" : GlobalConnectionBundleType.ToString()), Message.EContentType.StartupSequence);
+            Log.Add(@"  |\_/|", Message.EContentType.Warning);
+            Log.Add(@" >(o.O)<    Nyan " + System.Reflection.Assembly.GetCallingAssembly().GetName().Version, Message.EContentType.Warning);
+            Log.Add(@"  (___)", Message.EContentType.Warning);
+            Log.Add(@"   U", Message.EContentType.Warning);
+            Log.Add("  Settings          : " + refObj.GetType(), Message.EContentType.StartupSequence);
+            Log.Add("  Cache             : " + (Cache == null ? "(none)" : Cache.ToString()), Message.EContentType.StartupSequence);
+            Log.Add("  Environment       : " + (Scope == null ? "(none)" : Scope.ToString()), Message.EContentType.StartupSequence);
+            Log.Add("  Log               : " + (Log == null ? "(none)" : Log.ToString()), Message.EContentType.StartupSequence);
+            Log.Add("  Encryption        : " + (Encryption == null ? "(none)" : Encryption.ToString()), Message.EContentType.StartupSequence);
+            Log.Add("  Authorization     : " + (Authorization == null ? "(none)" : Authorization.ToString()), Message.EContentType.StartupSequence);
+            Log.Add("  Global BundleType : " + (GlobalConnectionBundleType == null ? "(none)" : GlobalConnectionBundleType.ToString()), Message.EContentType.StartupSequence);
 
             //Post-initialization procedures
             if (Cache != null)
