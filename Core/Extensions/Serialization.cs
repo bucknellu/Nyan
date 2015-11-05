@@ -19,7 +19,27 @@ namespace Nyan.Core.Extensions
 {
     public static class Extensions
     {
-        #region XML
+        private static readonly Type[] PrimitiveTypes =
+        {
+            typeof (string),
+            typeof (decimal),
+            typeof (DateTime),
+            typeof (DateTimeOffset),
+            typeof (TimeSpan),
+            typeof (Guid),
+            typeof (Enum),
+            typeof (byte[]),
+            typeof (object)
+        };
+
+        public static List<string> BlackListedModules = new List<string>
+        {
+            "System.Linq.Enumerable",
+            "System.Collections.Generic.List",
+            "System.Data.Common.DbCommand",
+            "Oracle.DataAccess.Client.OracleCommand",
+            "Dapper.SqlMapper+<QueryImpl>"
+        };
 
         public static string ToXml(this object obj)
         {
@@ -37,35 +57,19 @@ namespace Nyan.Core.Extensions
             }
         }
 
-        public class Utf8StringWriter : StringWriter
-        {
-            public override Encoding Encoding
-            {
-                get { return Encoding.UTF8; }
-            }
-
-            public override string NewLine
-            {
-                get { return ""; }
-            }
-        }
-
-        #endregion
-
         public static byte[] GetBytes(this string str)
         {
-            byte[] bytes = new byte[str.Length * sizeof(char)];
-            System.Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, bytes.Length);
+            var bytes = new byte[str.Length * sizeof(char)];
+            Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, bytes.Length);
             return bytes;
         }
 
         public static string GetString(this byte[] bytes)
         {
-            char[] chars = new char[bytes.Length / sizeof(char)];
-            System.Buffer.BlockCopy(bytes, 0, chars, 0, bytes.Length);
+            var chars = new char[bytes.Length / sizeof(char)];
+            Buffer.BlockCopy(bytes, 0, chars, 0, bytes.Length);
             return new string(chars);
         }
-        #region JSON
 
         public static string FromXmlToJson(this string obj)
         {
@@ -203,8 +207,6 @@ namespace Nyan.Core.Extensions
             return obj == null ? default(T) : JsonConvert.DeserializeObject<T>(obj);
         }
 
-        #region Dynamic Extensions
-
         public static object ToConcrete<T>(this ExpandoObject dynObject)
         {
             object instance = Activator.CreateInstance<T>();
@@ -237,27 +239,6 @@ namespace Nyan.Core.Extensions
             return expando;
         }
 
-        #endregion
-
-        // ReSharper restore InconsistentNaming
-
-        #endregion
-
-        #region Binary Extensions
-
-        private static readonly Type[] PrimitiveTypes =
-        {
-            typeof (string),
-            typeof (decimal),
-            typeof (DateTime),
-            typeof (DateTimeOffset),
-            typeof (TimeSpan),
-            typeof (Guid),
-            typeof (Enum),
-            typeof (byte[]),
-            typeof (object)
-        };
-
         public static byte[] ToSerializedBytes(this object obj)
         {
             byte[] result;
@@ -279,7 +260,6 @@ namespace Nyan.Core.Extensions
             }
         }
 
-
         public static bool IsPrimitiveType(this Type type)
         {
             return
@@ -289,8 +269,7 @@ namespace Nyan.Core.Extensions
                 Convert.GetTypeCode(type) != TypeCode.Object;
         }
 
-        public static T GetObject<T>(this IDictionary<string, object> dict,
-            Dictionary<string, string> translationDictionary = null)
+        public static T GetObject<T>(this IDictionary<string, object> dict, Dictionary<string, string> translationDictionary = null)
         {
             var type = typeof(T);
 
@@ -325,7 +304,17 @@ namespace Nyan.Core.Extensions
                     if (kt == typeof(Guid)) val = new Guid(val.ToString());
                     if (kt.IsEnum) val = Enum.Parse(k.PropertyType, val.ToString());
 
-                    k.SetValue(obj, val);
+                    try
+                    {
+                        k.SetValue(obj, val);
+
+                    }
+                    catch (Exception e)
+                    {
+                        
+                        throw;
+                    }
+
                 }
                 else
                 {
@@ -336,26 +325,7 @@ namespace Nyan.Core.Extensions
             return (T)obj;
         }
 
-        #endregion
-
-        public static List<string> BlackListedModules = new List<string>
-        {
-            "System.Linq.Enumerable",
-            "System.Collections.Generic.List",
-            "System.Data.Common.DbCommand",
-            "Oracle.DataAccess.Client.OracleCommand",
-            "Dapper.SqlMapper+<QueryImpl>"
-        };
-
-        /// <summary>
-        /// Search for a method by name and parameter types.  
-        /// Unlike GetMethod(), does 'loose' matching on generic
-        /// parameter types, and searches base interfaces.
-        /// </summary>
-        /// <exception cref="AmbiguousMatchException"/>
-        public static MethodInfo GetMethodExt(this Type thisType,
-            string name,
-            params Type[] parameterTypes)
+        public static MethodInfo GetMethodExt(this Type thisType, string name, params Type[] parameterTypes)
         {
             return GetMethodExt(thisType,
                 name,
@@ -367,16 +337,7 @@ namespace Nyan.Core.Extensions
                 parameterTypes);
         }
 
-        /// <summary>
-        /// Search for a method by name, parameter types, and binding flags.  
-        /// Unlike GetMethod(), does 'loose' matching on generic
-        /// parameter types, and searches base interfaces.
-        /// </summary>
-        /// <exception cref="AmbiguousMatchException"/>
-        public static MethodInfo GetMethodExt(this Type thisType,
-            string name,
-            BindingFlags bindingFlags,
-            params Type[] parameterTypes)
+        public static MethodInfo GetMethodExt(this Type thisType, string name, BindingFlags bindingFlags, params Type[] parameterTypes)
         {
             MethodInfo matchingMethod = null;
 
@@ -397,11 +358,7 @@ namespace Nyan.Core.Extensions
             return matchingMethod;
         }
 
-        private static void GetMethodExt(ref MethodInfo matchingMethod,
-            Type type,
-            string name,
-            BindingFlags bindingFlags,
-            params Type[] parameterTypes)
+        private static void GetMethodExt(ref MethodInfo matchingMethod, Type type, string name, BindingFlags bindingFlags, params Type[] parameterTypes)
         {
             // Check all methods with the specified name, including in base classes
             foreach (MethodInfo methodInfo in type.GetMember(name,
@@ -432,12 +389,6 @@ namespace Nyan.Core.Extensions
             }
         }
 
-        /// <summary>
-        /// Determines if the two types are either identical, or are both generic 
-        /// parameters or generic types with generic parameters in the same
-        ///  locations (generic parameters match any other generic paramter,
-        /// but NOT concrete types).
-        /// </summary>
         private static bool IsSimilarType(this Type thisType, Type type)
         {
             // Ignore any 'ref' types
@@ -469,7 +420,6 @@ namespace Nyan.Core.Extensions
 
             return false;
         }
-
 
         private static string CleanupJsonData(object data)
         {
@@ -530,7 +480,6 @@ namespace Nyan.Core.Extensions
             }
             return false;
         }
-
 
         public static string CacheKey(this Type baseclass, string id = null, string fullNameAlias = null)
         {
@@ -647,8 +596,6 @@ namespace Nyan.Core.Extensions
                 ;
         }
 
-        #region Object Extensions
-
         public static IDictionary<string, object> AddProperty(this object obj, string name, object value)
         {
             var dictionary = obj.ToDictionary();
@@ -656,7 +603,6 @@ namespace Nyan.Core.Extensions
             return dictionary;
         }
 
-        // helper
         public static IDictionary<string, object> ToDictionary(this object obj)
         {
             IDictionary<string, object> result = new Dictionary<string, object>();
@@ -734,13 +680,19 @@ namespace Nyan.Core.Extensions
             return (T)Convert.ChangeType(input, typeof(T));
         }
 
-        #endregion
+        public class GetMethodExtT { }
 
-        /// <summary>
-        /// Special type used to match any generic parameter type in GetMethodExt().
-        /// </summary>
-        public class GetMethodExtT
+        public class Utf8StringWriter : StringWriter
         {
+            public override Encoding Encoding
+            {
+                get { return Encoding.UTF8; }
+            }
+
+            public override string NewLine
+            {
+                get { return ""; }
+            }
         }
     }
 }
