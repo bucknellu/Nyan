@@ -36,7 +36,7 @@ namespace Nyan.Modules.Log.ZeroMQ
                 Debug.WriteLine(content);
             }
 
-            var payload = new Message {Content = content, Subject = type.ToString(), Type = type};
+            var payload = new Message { Content = content, Subject = type.ToString(), Type = type };
 
             _out.Send(payload);
         }
@@ -53,6 +53,13 @@ namespace Nyan.Modules.Log.ZeroMQ
         {
             if (MessageArrived == null) return;
             MessageArrived(message);
+        }
+
+
+        public override void Dispose()
+        {
+            _in.Dispose();
+            base.Dispose();
         }
     }
 }

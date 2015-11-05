@@ -4,7 +4,7 @@ using Nyan.Core.Extensions;
 
 namespace Nyan.Core.Modules.Log
 {
-    public abstract class LogProvider
+    public abstract class LogProvider : IDisposable
     {
         public event Message.MessageArrivedHandler MessageArrived;
 
@@ -61,5 +61,7 @@ namespace Nyan.Core.Modules.Log
             Console.WriteLine(content);
             Debug.Print(content);
         }
+
+        public virtual void Dispose(){}
     }
 }
