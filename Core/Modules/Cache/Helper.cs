@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Nyan.Core.Extensions;
 using Nyan.Core.Settings;
 
@@ -69,24 +70,33 @@ namespace Nyan.Core.Modules.Cache
             else
                 cacheid = namespaceSpec + ":s";
 
+            var sw = new Stopwatch();
+            sw.Start();
+
             if (Current.Cache.OperationalStatus == EOperationalStatus.Operational)
             {
 
                 cache = Current.Cache[cacheid].FromJson<T>();
                 if (cache != null)
                 {
+                    sw.Stop();
+                    Current.Log.Add("GET " + "edu.bucknell.webapps.Projects.Models.ReportData" + " CACHE (" + sw.ElapsedMilliseconds + " ms)");
+
                     return cache;
                 }
             }
 
             lock (singletonLock)
             {
-
                 if (Current.Cache.OperationalStatus == EOperationalStatus.Operational)
                 {
                     cache = Current.Cache[cacheid].FromJson<T>();
                     if (cache != null)
+                    {
+                        sw.Stop();
+                        Current.Log.Add("GET " + "edu.bucknell.webapps.Projects.Models.ReportData" + " CACHE (" + sw.ElapsedMilliseconds + " ms)");
                         return cache;
+                    }
                 }
 
                 var ret = method();
@@ -95,6 +105,10 @@ namespace Nyan.Core.Modules.Cache
                     Current.Cache[cacheid, null, timeOutSeconds] = ret.ToJson();
 
                 cache = ret;
+
+                sw.Stop();
+                Current.Log.Add("GET " + "edu.bucknell.webapps.Projects.Models.ReportData" + " OK (" + sw.ElapsedMilliseconds + " ms)");
+
             }
 
             return cache;
