@@ -32,13 +32,13 @@ namespace Nyan.Core.Settings
             Log.Add(@" >(o.O)<    Nyan " + System.Reflection.Assembly.GetCallingAssembly().GetName().Version, Message.EContentType.Warning);
             Log.Add(@"  (___)", Message.EContentType.Warning);
             Log.Add(@"   U", Message.EContentType.Warning);
-            Log.Add("  Settings          : " + refObj.GetType(), Message.EContentType.StartupSequence);
-            Log.Add("  Cache             : " + (Cache == null ? "(none)" : Cache.ToString()), Message.EContentType.StartupSequence);
-            Log.Add("  Environment       : " + (Scope == null ? "(none)" : Scope.ToString()), Message.EContentType.StartupSequence);
-            Log.Add("  Log               : " + (Log == null ? "(none)" : Log.ToString()), Message.EContentType.StartupSequence);
-            Log.Add("  Encryption        : " + (Encryption == null ? "(none)" : Encryption.ToString()), Message.EContentType.StartupSequence);
-            Log.Add("  Authorization     : " + (Authorization == null ? "(none)" : Authorization.ToString()), Message.EContentType.StartupSequence);
-            Log.Add("  Global BundleType : " + (GlobalConnectionBundleType == null ? "(none)" : GlobalConnectionBundleType.ToString()), Message.EContentType.StartupSequence);
+            Log.Add("Settings          : " + refObj.GetType(), Message.EContentType.StartupSequence);
+            Log.Add("Cache             : " + (Cache == null ? "(none)" : Cache.ToString()), Message.EContentType.StartupSequence);
+            Log.Add("Environment       : " + (Scope == null ? "(none)" : Scope.ToString()), Message.EContentType.StartupSequence);
+            Log.Add("Log               : " + (Log == null ? "(none)" : Log.ToString()), Message.EContentType.StartupSequence);
+            Log.Add("Encryption        : " + (Encryption == null ? "(none)" : Encryption.ToString()), Message.EContentType.StartupSequence);
+            Log.Add("Authorization     : " + (Authorization == null ? "(none)" : Authorization.ToString()), Message.EContentType.StartupSequence);
+            Log.Add("Global BundleType : " + (GlobalConnectionBundleType == null ? "(none)" : GlobalConnectionBundleType.ToString()), Message.EContentType.StartupSequence);
 
             //Post-initialization procedures
             if (Cache != null)
@@ -88,46 +88,36 @@ namespace Nyan.Core.Settings
             priorityList.Sort((firstPair, nextPair) => (nextPair.Key - firstPair.Key));
 
 
+            if (priorityList.Any()) return (IPackage) Activator.CreateInstance(priorityList[0].Value);
 
-            if (!priorityList.Any())
+            //No package defined? not to worry; let's create one with the provided pieces.
+
+            var package = new DefaultSettingsPackage();
+
+            try
             {
-                //No package defined? not to worry; let's create one with the provided pieces.
+                var logModules = Management.GetClassesByInterface<LogProvider>();
+                if (logModules.Any()) package.Log = logModules[0].CreateInstance<LogProvider>();
 
-                var package = new DefaultSettingsPackage();
+                var cacheModules = Management.GetClassesByInterface<ICacheProvider>();
+                if (cacheModules.Any()) package.Cache = cacheModules[0].CreateInstance<ICacheProvider>();
 
-                try
-                {
-                    var logModules = Management.GetClassesByInterface<LogProvider>();
-                    if (logModules.Any()) package.Log = logModules[0].CreateInstance<LogProvider>();
+                var encryptionModules = Management.GetClassesByInterface<IEncryptionProvider>();
+                if (encryptionModules.Any()) package.Encryption = encryptionModules[0].CreateInstance<IEncryptionProvider>();
 
-                    var cacheModules = Management.GetClassesByInterface<ICacheProvider>();
-                    if (cacheModules.Any()) package.Cache = cacheModules[0].CreateInstance<ICacheProvider>();
+                var scopeModules = Management.GetClassesByInterface<IScopeProvider>();
+                if (scopeModules.Any()) package.Scope = scopeModules[0].CreateInstance<IScopeProvider>();
 
-                    var encryptionModules = Management.GetClassesByInterface<IEncryptionProvider>();
-                    if (encryptionModules.Any()) package.Encryption = encryptionModules[0].CreateInstance<IEncryptionProvider>();
-
-                    var scopeModules = Management.GetClassesByInterface<IScopeProvider>();
-                    if (scopeModules.Any()) package.Scope = scopeModules[0].CreateInstance<IScopeProvider>();
-
-                    var suthorizationModules = Management.GetClassesByInterface<IAuthorizationProvider>();
-                    if (suthorizationModules.Any()) package.Authorization = suthorizationModules[0].CreateInstance<IAuthorizationProvider>();
-
-                }
-                catch (Exception e)
-                {
-
-                }
-
-
-                return package;
-
+                var suthorizationModules = Management.GetClassesByInterface<IAuthorizationProvider>();
+                if (suthorizationModules.Any()) package.Authorization = suthorizationModules[0].CreateInstance<IAuthorizationProvider>();
             }
-            else
+            catch
             {
-                return (IPackage)Activator.CreateInstance(priorityList[0].Value);
+                //It's OK to ignore errors here.
             }
 
 
+            return package;
         }
     }
 }
