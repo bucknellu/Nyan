@@ -13,7 +13,7 @@ namespace Nyan.Portable.Settings
     {
         public PortableSettingsPackage()
         {
-            Log = new FileLogProvider();
+            Log = new NullLogProvider();
             Cache = new Modules.Cache.Memory.MemoryCacheProvider();
             Encryption = new NullEncryptionProvider();
             Scope = new DefaultScopeProvider();
