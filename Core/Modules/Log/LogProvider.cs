@@ -6,7 +6,7 @@ namespace Nyan.Core.Modules.Log
 {
     public abstract class LogProvider : IDisposable
     {
-        public event Message.MessageArrivedHandler MessageArrived;
+        public virtual event Message.MessageArrivedHandler MessageArrived;
 
         protected virtual void OnMessageArrived(Message message)
         {
@@ -62,6 +62,8 @@ namespace Nyan.Core.Modules.Log
             Debug.Print(content);
         }
 
-        public virtual void Dispose(){}
+        public virtual void Dispose()
+        {
+        }
     }
 }

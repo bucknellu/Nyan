@@ -20,7 +20,7 @@ namespace Nyan.Modules.Log.ZeroMQ
             Initialize(multiCastAddress);
         }
 
-        public new event Message.MessageArrivedHandler MessageArrived;
+        public override event Message.MessageArrivedHandler MessageArrived;
 
         private void Initialize(string multiCastAddress)
         {
@@ -58,7 +58,8 @@ namespace Nyan.Modules.Log.ZeroMQ
 
         public override void Dispose()
         {
-            _in.Dispose();
+            if (_in != null) _in.Dispose();
+            if (_out != null) _out.Dispose();
             base.Dispose();
         }
     }
