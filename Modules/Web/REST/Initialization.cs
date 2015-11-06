@@ -1,5 +1,6 @@
 ﻿using System.Net.Http.Headers;
 using System.Web.Http;
+using Nyan.Core.Modules.Log;
 
 namespace Nyan.Modules.Web.REST
 {
@@ -19,6 +20,8 @@ namespace Nyan.Modules.Web.REST
         {
             config.MapHttpAttributeRoutes(new CustomDirectRouteProvider());
             config.Formatters.JsonFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("text/html"));
+
+            Core.Settings.Current.Log.Add("WebApi REST       : Routes registered.", Message.EContentType.StartupSequence);
         }
     }
 }
