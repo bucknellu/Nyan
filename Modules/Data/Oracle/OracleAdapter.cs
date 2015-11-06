@@ -169,8 +169,7 @@ namespace Nyan.Modules.Data.Oracle
                     }
 
                     //Primary Key
-                    var pkStat = "ALTER TABLE " + tn + " ADD (CONSTRAINT " + tn + "_PK PRIMARY KEY (" +
-                                 MicroEntity<T>.TableData.IdentifierColumnName + "))";
+                    var pkStat = "ALTER TABLE " + tn + " ADD (CONSTRAINT " + tn + "_PK PRIMARY KEY (" + MicroEntity<T>.Statements.IdColumn + "))";
 
                     try
                     {
@@ -206,7 +205,7 @@ namespace Nyan.Modules.Data.Oracle
                     Core.Settings.Current.Log.Add(typeof(T).FullName + ": Adding BEFORE INSERT Trigger");
                     MicroEntity<T>.Execute(string.Format(trigStat,
                         MicroEntity<T>.Statements.SchemaElements["BeforeInsertTrigger"].Value, tn, seqName,
-                        MicroEntity<T>.TableData.IdentifierColumnName));
+                        MicroEntity<T>.Statements.IdColumn));
                 }
                 catch (Exception e)
                 {
@@ -226,7 +225,7 @@ namespace Nyan.Modules.Data.Oracle
                     Core.Settings.Current.Log.Add(typeof(T).FullName + ": Adding BEFORE UPDATE Trigger");
                     MicroEntity<T>.Execute(string.Format(trigStat,
                         MicroEntity<T>.Statements.SchemaElements["BeforeUpdateTrigger"].Value, tn, seqName,
-                        MicroEntity<T>.TableData.IdentifierColumnName));
+                        MicroEntity<T>.Statements.IdColumn));
                 }
                 catch (Exception e)
                 {

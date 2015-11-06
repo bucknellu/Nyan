@@ -153,14 +153,11 @@ namespace Nyan.Core.Modules.Data
                     Statements.Status.ToString(), Statements.StatusDescription));
 
             var body = predicate.Body as BinaryExpression;
-            object leftSideValue = null;
-            object rightSideValue = null;
 
-            if (body != null)
-            {
-                leftSideValue = ResolveExpression(body.Left);
-                rightSideValue = ResolveExpression(body.Right);
-            }
+            if (body == null) return null;
+
+            var leftSideValue = ResolveExpression(body.Left);
+            var rightSideValue = ResolveExpression(body.Right);
 
             var queryParm = GetNewDynamicParameterBag();
             // ReSharper disable once PossibleNullReferenceException
