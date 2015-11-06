@@ -40,7 +40,7 @@ namespace Nyan.Modules.Data.Oracle
 
                 if (tableCount != 0) return;
 
-                Core.Settings.Current.Log.Add(typeof(T).FullName + ": Initializing schema");
+                Core.Settings.Current.Log.Add(typeof(T).FullName + " : Initializing schema");
 
                 //Create sequence.
                 var seqName = MicroEntity<T>.Statements.SchemaElements["Sequence"].Value;
@@ -140,7 +140,7 @@ namespace Nyan.Modules.Data.Oracle
 
                 try
                 {
-                    Core.Settings.Current.Log.Add(typeof(T).FullName + ": Applying schema");
+                    Core.Settings.Current.Log.Add(typeof(T).FullName + " : Creating table " + tn);
                     MicroEntity<T>.Execute(tableRender.ToString());
                 }
                 catch (Exception e)
@@ -160,7 +160,7 @@ namespace Nyan.Modules.Data.Oracle
 
                     try
                     {
-                        Core.Settings.Current.Log.Add(typeof(T).FullName + ": Creating Sequence " + seqName);
+                        Core.Settings.Current.Log.Add(typeof(T).FullName + " : Creating Sequence " + seqName);
                         MicroEntity<T>.Execute("CREATE SEQUENCE " + seqName);
                     }
                     catch (Exception e)
@@ -169,11 +169,12 @@ namespace Nyan.Modules.Data.Oracle
                     }
 
                     //Primary Key
-                    var pkStat = "ALTER TABLE " + tn + " ADD (CONSTRAINT " + tn + "_PK PRIMARY KEY (" + MicroEntity<T>.Statements.IdColumn + "))";
+                    var pkName = tn + "_PK";
+                    var pkStat = "ALTER TABLE " + tn + " ADD (CONSTRAINT " + pkName + " PRIMARY KEY (" + MicroEntity<T>.Statements.IdColumn + "))";
 
                     try
                     {
-                        Core.Settings.Current.Log.Add(typeof(T).FullName + ": Adding Primary Key");
+                        Core.Settings.Current.Log.Add(typeof(T).FullName + " : Adding Primary Key constraint " + pkName + " (" + MicroEntity<T>.Statements.IdColumn + ")");
                         MicroEntity<T>.Execute(pkStat);
                     }
                     catch (Exception e)
@@ -202,7 +203,7 @@ namespace Nyan.Modules.Data.Oracle
 
                 try
                 {
-                    Core.Settings.Current.Log.Add(typeof(T).FullName + ": Adding BEFORE INSERT Trigger");
+                    Core.Settings.Current.Log.Add(typeof(T).FullName + " : Adding BI Trigger " + MicroEntity<T>.Statements.SchemaElements["BeforeInsertTrigger"].Value);
                     MicroEntity<T>.Execute(string.Format(trigStat,
                         MicroEntity<T>.Statements.SchemaElements["BeforeInsertTrigger"].Value, tn, seqName,
                         MicroEntity<T>.Statements.IdColumn));
@@ -222,7 +223,7 @@ namespace Nyan.Modules.Data.Oracle
 
                 try
                 {
-                    Core.Settings.Current.Log.Add(typeof(T).FullName + ": Adding BEFORE UPDATE Trigger");
+                    Core.Settings.Current.Log.Add(typeof(T).FullName + " : Adding BU Trigger " + MicroEntity<T>.Statements.SchemaElements["BeforeUpdateTrigger"].Value);
                     MicroEntity<T>.Execute(string.Format(trigStat,
                         MicroEntity<T>.Statements.SchemaElements["BeforeUpdateTrigger"].Value, tn, seqName,
                         MicroEntity<T>.Statements.IdColumn));
@@ -280,7 +281,7 @@ namespace Nyan.Modules.Data.Oracle
 
         public override void RenderSchemaEntityNames<T>()
         {
-            Core.Settings.Current.Log.Add(GetType().FullName + ": Rendering schema element names");
+            Core.Settings.Current.Log.Add(GetType().FullName + " : Rendering schema element names");
 
             var tn = MicroEntity<T>.TableData.TableName;
 
