@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Globalization;
 using System.IO;
@@ -58,7 +59,6 @@ namespace Nyan.Core.Modules.Data
 
         private static void LogLocal(string pMessage, Message.EContentType pType = Message.EContentType.Generic)
         {
-            if (pType == null) pType = Message.EContentType.StartupSequence;
             Current.Log.Add(typeof(T).FullName + " : " + pMessage, pType);
         }
 
@@ -533,7 +533,6 @@ namespace Nyan.Core.Modules.Data
                         .ToList();
 
                 conn.Close();
-                conn.Dispose();
 
                 return o;
             }
@@ -554,7 +553,7 @@ namespace Nyan.Core.Modules.Data
                     cDebug = conn.DataSource;
                     conn.Open();
 
-                    var res = new List<List<Dictionary<string,object>>>();
+                    var res = new List<List<Dictionary<string, object>>>();
                     using (var m = conn.QueryMultiple(sqlStatement, sqlParameters, null, null, pCommandType))
                     {
 
@@ -570,7 +569,6 @@ namespace Nyan.Core.Modules.Data
                     }
 
                     conn.Close();
-                    conn.Dispose();
 
                     return res;
                 }
@@ -608,7 +606,6 @@ namespace Nyan.Core.Modules.Data
                             .Select(a => (IDictionary<string, object>)a)
                             .ToList();
                     conn.Close();
-                    conn.Dispose();
 
                     var ret = o.Select(refObj => refObj.GetObject<T>(Statements.PropertyFieldMap)).ToList();
 
@@ -638,7 +635,6 @@ namespace Nyan.Core.Modules.Data
                     conn.Open();
                     conn.Execute(sqlStatement, sqlParameters, null, null, pCommandType);
                     conn.Close();
-                    conn.Dispose();
                 }
             }
             catch (Exception e)
@@ -697,7 +693,7 @@ namespace Nyan.Core.Modules.Data
                         ? conn.Query<TU>(sqlStatement, sqlParameters, null, true, null, pCommandType).ToList()
                         : conn.Query<TU>(sqlStatement, sqlParameters, null, true, null, pCommandType).ToList<TU>();
                     conn.Close();
-                    conn.Dispose();
+
                     return ret;
                 }
             }
@@ -722,7 +718,6 @@ namespace Nyan.Core.Modules.Data
                     conn.Open();
                     conn.Execute(sqlStatement, p, commandType: CommandType.StoredProcedure);
                     conn.Close();
-                    conn.Dispose();
 
                     Current.Log.Add(p.ParameterNames == null);
 
@@ -792,25 +787,15 @@ namespace Nyan.Core.Modules.Data
                         }
 
                     }
-                    else
-                    {
-                        if (Statements.Adapter.UseOutputParameterForInsertedKeyExtraction)
-                        {
-                            p.Add("newid", dbType: DynamicParametersPrimitive.DbGenericType.String, direction: ParameterDirection.Output, size: 38);
-
-                            conn.Query<string>(sqlStatement, p, null, true, null, pCommandType);
-                            var ret = p.Get<object>("newid").ToString();
-                            return ret;
-                        }
-                        else
-                        {
-                            return conn.ExecuteScalar<string>(sqlStatement, p);
-                        }
 
 
-                    }
+                    if (!Statements.Adapter.UseOutputParameterForInsertedKeyExtraction)
+                        return conn.ExecuteScalar<string>(sqlStatement, p);
 
-                    return conn.Query<string>(sqlStatement, p).First();
+                    p.Add("newid", dbType: DynamicParametersPrimitive.DbGenericType.String, direction: ParameterDirection.Output, size: 38);
+
+                    conn.Query<string>(sqlStatement, p, null, true, null, pCommandType);
+                    return p.Get<object>("newid").ToString();
                 }
             }
             catch (Exception e)
@@ -888,11 +873,25 @@ namespace Nyan.Core.Modules.Data
                             identifierColumnName = props[0].Name;
                     }
 
-                    var mapEntry = Statements.PropertyFieldMap.FirstOrDefault(p => p.Value.ToLower().Equals(identifierColumnName.ToLower()));
+                    if (identifierColumnName != null)
+                    {
+                        var mapEntry =
+                            Statements.PropertyFieldMap.FirstOrDefault(
+                                p => p.Value.ToLower().Equals(identifierColumnName.ToLower()));
 
-                    Statements.IdProperty = Statements.Adapter.ParameterIdentifier + mapEntry.Key;
-                    Statements.IdPropertyRaw = mapEntry.Key;
-                    Statements.IdColumn = mapEntry.Value;
+                        Statements.IdProperty = Statements.Adapter.ParameterIdentifier + mapEntry.Key;
+                        Statements.IdPropertyRaw = mapEntry.Key;
+                        Statements.IdColumn = mapEntry.Value;
+                    }
+                    else
+                    {
+                        if (TableData.TableName != null)
+                        {
+                            LogLocal("Missing [Key] definition", Message.EContentType.Warning);
+                            throw new ConfigurationErrorsException("Entity is missing a [Key] definition.");
+                        }
+
+                    }
 
                     Statements.StatusStep = "Preparing Schema entities";
                     Statements.Adapter.RenderSchemaEntityNames<T>();
@@ -915,10 +914,7 @@ namespace Nyan.Core.Modules.Data
 
                             if (prePrb.IndexOf("SERVICE_NAME", StringComparison.Ordinal) > -1)
                             {
-                                prePrb =
-                                    prePrb.Substring(prePrb.IndexOf("SERVICE_NAME", StringComparison.Ordinal))
-                                        .Split('=')[1]
-                                        .Split(')')[0];
+                                prePrb = prePrb.Substring(prePrb.IndexOf("SERVICE_NAME", StringComparison.Ordinal)).Split('=')[1].Split(')')[0];
                                 prb = prePrb.ToLower();
                             }
 
@@ -930,9 +926,7 @@ namespace Nyan.Core.Modules.Data
 
                             Statements.StatusStep = "Connecting to " + prb;
                         }
-                        catch
-                        {
-                        }
+                        catch { }
 
 
                         //Test Connectivity
@@ -944,13 +938,14 @@ namespace Nyan.Core.Modules.Data
                         LogLocal(prb);
                     }
 
-                    if (TableData.AutoGenerateMissingSchema)
-                    {
-                        Statements.StatusStep = "Checking database entities";
-                        LogLocal(Statements.Adapter.GetType().Name + " is checking database entities");
+                    if (!TableData.IsReadOnly)
+                        if (TableData.AutoGenerateMissingSchema)
+                        {
+                            Statements.StatusStep = "Checking database entities";
+                            LogLocal(Statements.Adapter.GetType().Name + " is checking database entities");
 
-                        Statements.Adapter.CheckDatabaseEntities<T>();
-                    }
+                            Statements.Adapter.CheckDatabaseEntities<T>();
+                        }
 
                     Statements.StatusStep = "Calling initialization hooks";
                     OnEntityInitializationHook();
@@ -964,8 +959,7 @@ namespace Nyan.Core.Modules.Data
                 catch (Exception e)
                 {
                     Statements.Status = MicroEntityCompiledStatements.EStatus.CriticalFailure;
-                    Statements.StatusDescription = typeof(T).FullName + " : Error while " + Statements.StatusStep +
-                                                   " - " + e.Message;
+                    Statements.StatusDescription = typeof(T).FullName + " : Error while " + Statements.StatusStep + " - " + e.Message;
 
                     var refEx = e;
                     while (refEx.InnerException != null)
