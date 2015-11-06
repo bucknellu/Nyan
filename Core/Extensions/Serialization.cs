@@ -294,24 +294,24 @@ namespace Nyan.Core.Extensions
 
                 if (k.PropertyType.IsPrimitiveType())
                 {
-                    if (val is decimal) val = Convert.ToInt64(val);
-                    if (val is short && kt == typeof(bool)) val = (Convert.ToInt16(val) == 1);
-                    if (val is long && kt == typeof(string)) val = val.ToString();
-                    if (kt == typeof(decimal)) val = Convert.ToDecimal(val);
-                    if (kt == typeof(short)) val = Convert.ToInt16(val);
-                    if (kt == typeof(int)) val = Convert.ToInt32(val);
-                    if (kt == typeof(long)) val = Convert.ToInt64(val);
-                    if (kt == typeof(Guid)) val = new Guid(val.ToString());
-                    if (kt.IsEnum) val = Enum.Parse(k.PropertyType, val.ToString());
-
                     try
                     {
+                        if (val is decimal) val = Convert.ToInt64(val);
+                        if (val is short && kt == typeof(bool)) val = (Convert.ToInt16(val) == 1);
+                        if (val is long && kt == typeof(string)) val = val.ToString();
+                        if (kt == typeof(decimal)) val = Convert.ToDecimal(val);
+                        if (kt == typeof(short)) val = Convert.ToInt16(val);
+                        if (kt == typeof(int)) val = Convert.ToInt32(val);
+                        if (kt == typeof(long)) val = Convert.ToInt64(val);
+                        if (kt == typeof(Guid)) if (val != null) val = new Guid(val.ToString());
+                        if (kt.IsEnum) val = Enum.Parse(k.PropertyType, val.ToString());
+
                         k.SetValue(obj, val);
 
                     }
                     catch (Exception e)
                     {
-                        
+                        Settings.Current.Log.Add(e);
                         throw;
                     }
 
