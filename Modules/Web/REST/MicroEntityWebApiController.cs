@@ -96,15 +96,14 @@ namespace Nyan.Modules.Web.REST
                 if (MicroEntity<T>.TableData.AuditAccess)
                     AuditRequest("ACCESS", typeof(T).FullName + ":ALL");
 
-                Current.Log.Add("  GET " + typeof(T).FullName + " OK (" + sw.ElapsedMilliseconds + " ms)");
+                Current.Log.Add("GET " + typeof(T).FullName + " OK (" + sw.ElapsedMilliseconds + " ms)");
 
                 return RenderJsonResult(preRet);
             }
             catch (Exception e)
             {
                 sw.Stop();
-                Current.Log.Add(
-                    "  GET " + typeof(T).FullName + " ERR (" + sw.ElapsedMilliseconds + " ms): " + e.Message, e);
+                Current.Log.Add("GET " + typeof(T).FullName + " ERR (" + sw.ElapsedMilliseconds + " ms): " + e.Message, e);
                 throw;
             }
         }
@@ -120,15 +119,14 @@ namespace Nyan.Modules.Web.REST
             {
                 var preRet = (T)Activator.CreateInstance(typeof(T), new object[] { });
                 sw.Stop();
-                Current.Log.Add("  NEW " + typeof(T).FullName + " OK (" + sw.ElapsedMilliseconds + " ms)");
+                Current.Log.Add("NEW " + typeof(T).FullName + " OK (" + sw.ElapsedMilliseconds + " ms)");
 
                 return RenderJsonResult(preRet);
             }
             catch (Exception e)
             {
                 sw.Stop();
-                Current.Log.Add(
-                    "  NEW " + typeof(T).FullName + " ERR (" + sw.ElapsedMilliseconds + " ms): " + e.Message,
+                Current.Log.Add("NEW " + typeof(T).FullName + " ERR (" + sw.ElapsedMilliseconds + " ms): " + e.Message,
                     e);
                 throw;
             }
@@ -154,7 +152,7 @@ namespace Nyan.Modules.Web.REST
                 if (MicroEntity<T>.TableData.AuditAccess)
                     AuditRequest("ACCESS", typeof(T).FullName + ":" + id);
 
-                Current.Log.Add("  GET " + typeof(T).FullName + ":" + id + " OK (" + sw.ElapsedMilliseconds + " ms)");
+                Current.Log.Add("GET " + typeof(T).FullName + ":" + id + " OK (" + sw.ElapsedMilliseconds + " ms)");
 
                 return RenderJsonResult(preRet);
             }
@@ -162,7 +160,7 @@ namespace Nyan.Modules.Web.REST
             {
                 sw.Stop();
                 Current.Log.Add(
-                    "  GET " + id + " " + typeof(T).FullName + ":" + id + " ERR (" + sw.ElapsedMilliseconds + " ms): " +
+                    "GET " + id + " " + typeof(T).FullName + ":" + id + " ERR (" + sw.ElapsedMilliseconds + " ms): " +
                     e.Message, e);
                 throw;
             }
@@ -193,7 +191,7 @@ namespace Nyan.Modules.Web.REST
                     AuditRequest("CHANGE", typeof(T).FullName + ":" + item.GetEntityIdentifier(), item.ToJson());
 
 
-                Current.Log.Add("  POST " + typeof(T).FullName + " OK (" + sw.ElapsedMilliseconds + " ms)");
+                Current.Log.Add("POST " + typeof(T).FullName + " OK (" + sw.ElapsedMilliseconds + " ms)");
 
                 return RenderJsonResult(preRet);
             }
@@ -201,7 +199,7 @@ namespace Nyan.Modules.Web.REST
             {
                 sw.Stop();
                 Current.Log.Add(
-                    "  POST " + typeof(T).FullName + " ERR (" + sw.ElapsedMilliseconds + " ms): " + e.Message, e);
+                    "POST " + typeof(T).FullName + " ERR (" + sw.ElapsedMilliseconds + " ms): " + e.Message, e);
                 throw;
             }
         }
