@@ -9,8 +9,6 @@ namespace Nyan.Modules.Data.PgSql
 {
     public class PgSqlDynamicParameters : DynamicParametersPrimitive, SqlMapper.IDynamicParameters
     {
-        private List<object> _templates;
-
         public PgSqlDynamicParameters() { }
         public PgSqlDynamicParameters(object template)
         {
@@ -21,7 +19,7 @@ namespace Nyan.Modules.Data.PgSql
         /// 
         /// </summary>
         /// <param name="template"></param>
-        private void AddDynamicParams(object template)
+        public override void AddDynamicParams(object template)
         {
             if (template == null) return;
 
