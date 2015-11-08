@@ -125,6 +125,10 @@
       <Project>{6abc14a3-5fd6-4400-824d-14420e9848b0}</Project>
       <Name>Nyan.Modules.Data.SQLCompact</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Modules\Log\ZeroMQ\Nyan.Modules.Log.ZeroMQ.csproj">
+      <Project>{27fed84f-dcf8-4c86-912b-0cf99bac620b}</Project>
+      <Name>Nyan.Modules.Log.ZeroMQ</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Modules\Web\REST\Nyan.Modules.Web.REST.csproj">
       <Project>{4b7081c2-21fc-4934-80ae-e4f91ea5e193}</Project>
       <Name>Nyan.Modules.Web.REST</Name>
