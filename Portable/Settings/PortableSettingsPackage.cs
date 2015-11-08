@@ -5,6 +5,7 @@ using Nyan.Core.Modules.Cache;
 using Nyan.Core.Modules.Encryption;
 using Nyan.Core.Modules.Scope;
 using Nyan.Core.Modules.Log;
+using Nyan.Modules.Log.ZeroMQ;
 
 namespace Nyan.Portable.Settings
 {
@@ -13,7 +14,7 @@ namespace Nyan.Portable.Settings
     {
         public PortableSettingsPackage()
         {
-            Log = new NullLogProvider();
+            Log = new ZeroMqLogProvider();
             Cache = new Modules.Cache.Memory.MemoryCacheProvider();
             Encryption = new NullEncryptionProvider();
             Scope = new DefaultScopeProvider();
