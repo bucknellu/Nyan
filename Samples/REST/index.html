@@ -1,0 +1,270 @@
+﻿<!DOCTYPE html>
+<html ng-app="NyanNG">
+<head>
+    <meta name="viewport" content="initial-scale=1" />
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.0.0-rc1/angular-material.min.css">
+    <title>Nyan AngularJS Sample</title>
+</head>
+<body layout="column" ng-controller="AppController">
+    <md-toolbar layout="row">
+        <div class="md-toolbar-tools">
+            <md-button ng-click="vm.toggleSidenav('left')" hide-gt-sm class="md-icon-button">
+                <md-icon aria-label="Menu" md-svg-icon="https://s3-us-west-2.amazonaws.com/s.cdpn.io/68133/menu.svg">
+                </md-icon>
+            </md-button>
+            <h1>Nyan AngularJS Sample</h1>
+        </div>
+    </md-toolbar>
+    <div layout="row" flex>
+        <md-sidenav layout="column" class="md-sidenav-left md-whiteframe-4dp" md-component-id="left" md-is-locked-open="$mdMedia('gt-sm')">
+            <md-button class="md-accent" ng-click="make(1)">Make 1</md-button>
+            <md-button class="md-accent" ng-click="make(10)">Make 10</md-button>
+            <md-button class="md-accent" ng-click="make(50)">Make 50</md-button>
+            <md-button class="md-accent" ng-click="wipe()">Clear all records</md-button>
+            <md-button class="md-accent" ng-click="new()">New record</md-button>
+        </md-sidenav>
+        <div layout="column" flex id="content">
+            <md-content layout="column" flex class="md-padding">
+                <div layout="row">
+
+
+                    <md-content flex>
+                        <md-list>
+                            <md-list-item class="md-3-line" ng-repeat="i in entries" ng-click="get(i.id)">
+                                <div class="md-list-item-text">
+                                    <h3>{{i.Name}} {{i.Surname}}</h3>
+                                    <h4>{{i.Company}}</h4>
+                                </div>
+                                <md-divider inset></md-divider>
+                            </md-list-item>
+                        </md-list>
+                    </md-content>
+
+                    <div flex>
+
+                        <div ng-if="selected" layout="column" ng-cloak class="md-inline-form">
+
+                            <md-content md-theme="docs-dark" layout-padding layout="row" layout-sm="column">
+                                <md-input-container>
+                                    <label>Title</label>
+                                    <input ng-model="selected.Username">
+                                </md-input-container>
+                                <md-input-container>
+                                    <label>Email</label>
+                                    <input ng-model="selected.Email" type="email">
+                                </md-input-container>
+                            </md-content>
+                            <md-content layout-padding>
+                                <form name="userForm">
+                                    <div layout layout-sm="column">
+                                        <md-input-container flex>
+                                            <label>Company (Disabled)</label>
+                                            <input ng-model="selected.Company" disabled>
+                                        </md-input-container>
+                                        <md-input-container flex>
+                                            <label>Birthdate (Disabled)</label>
+                                            <input ng-model="selected.BirthDate" disabled>
+                                        </md-input-container>
+
+                                    </div>
+                                    <div layout layout-sm="column">
+                                        <md-input-container flex>
+                                            <label>First name</label>
+                                            <input ng-model="selected.Name">
+                                        </md-input-container>
+                                        <md-input-container flex>
+                                            <label>Last Name</label>
+                                            <input ng-model="selected.Surname">
+                                        </md-input-container>
+                                    </div>
+                                    <md-input-container class="md-block">
+                                        <label>Address</label>
+                                        <input ng-model="selected.Address">
+                                    </md-input-container>
+                                    <div layout layout-sm="column">
+                                        <md-input-container flex>
+                                            <label>City</label>
+                                            <input ng-model="selected.City">
+                                        </md-input-container>
+                                        <md-input-container flex>
+                                            <label>State</label>
+                                            <md-select ng-model="selected.State">
+                                                <md-option ng-repeat="state in states" value="{{state.abbrev}}">
+                                                    {{state.abbrev}}
+                                                </md-option>
+                                            </md-select>
+                                        </md-input-container>
+                                        <md-input-container flex>
+                                            <label>Postal Code</label>
+                                            <input name="postalCode" ng-model="selected.ZipCode" placeholder="12345"
+                                                   required ng-pattern="/^[0-9]{5}$/" md-maxlength="5">
+                                            <div ng-messages="userForm.postalCode.$error" role="alert" multiple>
+                                                <div ng-message="required" class="my-message">You must supply a postal code.</div>
+                                                <div ng-message="pattern" class="my-message">
+                                                    That doesn't look like a valid postal
+                                                    code.
+                                                </div>
+                                                <div ng-message="md-maxlength" class="my-message">
+                                                    Don't use the long version silly...we don't need to be that specific...
+                                                </div>
+                                            </div>
+                                        </md-input-container>
+                                    </div>
+                                    <md-input-container class="md-block">
+                                        <label>Biography</label>
+                                        <textarea ng-model="selected.Biography" columns="1" md-maxlength="150"></textarea>
+                                    </md-input-container>
+                                    <md-input-container>
+                                        <md-button ng-click="delete(selected.id)" ng-if="(selected.id != 0)" class="md-raised">Delete</md-button>
+                                        <md-button ng-click="save()" class="md-raised md-primary">Save</md-button>
+                                    </md-input-container>
+                                </form>
+                            </md-content>
+                        </div>
+                    </div>
+                </div>
+            </md-content>
+        </div>
+    </div>
+    <!-- Angular Material Dependencies -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular-resource.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular-messages.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular-route.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular-animate.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular-aria.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.0.0-rc1/angular-material.min.js"></script>
+</body>
+<script>
+      angular.module('NyanNG', ['ngMaterial', 'ngResource', 'ngMessages'])
+
+          .factory('userFactory', function ($resource) {
+              return $resource('api/users/:id');
+          })
+
+        .config(function ($mdThemingProvider) {
+            // Configure a dark theme with primary foreground yellow
+            $mdThemingProvider.theme('docs-dark', 'default')
+              .primaryPalette('yellow')
+              .dark();
+        })
+
+          .controller('AppController', function ($scope, $filter, $http, $mdSidenav, $mdSidenav, $mdToast, userFactory) {
+
+              $scope.states = ('AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS ' +
+              'MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI ' +
+              'WY').split(' ').map(function (state) {
+                  return { abbrev: state };
+              })
+
+              var vm = this;
+
+              vm.toggleSidenav = function (menuId) {
+                  $mdSidenav(menuId).toggle();
+              };
+
+              $scope.editing = false;
+
+              $scope.query = function () {
+
+                  var entries = userFactory.query(function () {
+                      $scope.entries = entries;
+                  });
+              };
+
+              $scope.delete = function (pId) {
+                  userFactory.delete({ id: pId }, function () {
+                      $scope.entries = $filter('filter')($scope.entries, { id: '!' + pId });
+                      delete $scope.selected;
+                      $scope.pop('Record removed.');
+                  });
+              };
+
+              $scope.save = function () {
+                  userFactory.save($scope.selected, function () {
+                      delete $scope.selected;
+                      $scope.query();
+                      $scope.pop('Record saved.');
+                  });
+              };
+
+              $scope.get = function (pId) {
+                  var entry = userFactory.get({ id: pId }, function () {
+                      $scope.selected = entry;
+                      $scope.editing = false;
+                  });
+              };
+
+              $scope.new = function () {
+                  var entry = userFactory.get({ id: 'new' }, function () {
+                      $scope.selected = entry;
+                      $scope.editing = true;
+                  });
+              };
+
+              $scope.make = function (quantity) {
+
+                  $scope.pop('Creating ' + quantity + ' records...');
+
+                  $http.get("api/users/make/" + quantity)
+                      .success(function (response) {
+                          $scope.query();
+                          $scope.pop(quantity + ' records created.');
+                      });
+
+              }
+
+              $scope.wipe = function (quantity) {
+                  $http.get("api/users/wipe")
+                      .success(function (response) {
+                          $scope.query();
+                          $scope.pop('All records removed.');
+                      });
+
+              }
+
+              $scope.cancel = function () {
+                  delete $scope.selected;
+              };
+
+              $scope.edit = function () {
+                  $scope.editing = true;
+              };
+
+              $scope.pop = function (tMessage) {
+                  $mdToast.show(
+                    $mdToast.simple()
+                      .content(tMessage)
+                      .position($scope.getToastPosition())
+                      .hideDelay(3000)
+                  );
+              };
+
+              var last = {
+                  bottom: false,
+                  top: true,
+                  left: false,
+                  right: true
+              };
+              $scope.toastPosition = angular.extend({}, last);
+
+              $scope.getToastPosition = function () {
+                  sanitizePosition();
+                  return Object.keys($scope.toastPosition)
+                    .filter(function (pos) { return $scope.toastPosition[pos]; })
+                    .join(' ');
+              };
+              function sanitizePosition() {
+                  var current = $scope.toastPosition;
+                  if (current.bottom && last.top) current.top = false;
+                  if (current.top && last.bottom) current.bottom = false;
+                  if (current.right && last.left) current.left = false;
+                  if (current.left && last.right) current.right = false;
+                  last = angular.extend({}, current);
+              }
+
+              $scope.query();
+          })
+      ;
+</script>
+</html>

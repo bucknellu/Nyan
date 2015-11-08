@@ -13,6 +13,14 @@ namespace Nyan.Samples.REST.Model
         public int id { get; set; }
         public string Name { get; set; }
         public string Surname { get; set; }
+        public string Username { get; set; }
+        public string Email { get; set; }
+        public string Address { get; set; }
+        public string City { get; set; }
+        public string State { get; set; }
+        public string ZipCode { get; set; }
+        public string Biography { get; set; }
+        public string Company { get; set; }
         public bool isAdmin { get; set; }
         public DateTime? BirthDate { get; set; }
 
@@ -24,7 +32,8 @@ namespace Nyan.Samples.REST.Model
 
 
     [RoutePrefix("api/users")]
-    public class UserController : MicroEntityWebApiController<User> {
+    public class UserController : MicroEntityWebApiController<User>
+    {
 
         [Route("wipe")]
         [HttpGet]
@@ -41,15 +50,23 @@ namespace Nyan.Samples.REST.Model
             Core.Settings.Current.Log.Add("Creating " + count + " new records", Message.EContentType.Maintenance);
 
             for (int i = 0; i < count; i++)
+            {
+                new User
                 {
-                    new User
-                    {
-                        Name = Faker.Name.First(),
-                        Surname = Faker.Name.Last(),
-                        isAdmin = (Faker.RandomNumber.Next(0, 2) == 0),
-                        BirthDate = RandomDay()
-                    }.Save();
-                }
+                    Name = Faker.Name.First(),
+                    Surname = Faker.Name.Last(),
+                    Email = Faker.Internet.Email(),
+                    Username = Faker.Internet.UserName(),
+                    Address = Faker.Address.StreetAddress(),
+                    City = Faker.Address.City(),
+                    State = Faker.Address.UsStateAbbr(),
+                    ZipCode = Faker.Address.ZipCode(),
+                    isAdmin = (Faker.RandomNumber.Next(0, 2) == 0),
+                    BirthDate = RandomDay(),
+                    Biography = Faker.Company.BS(),
+                    Company = Faker.Company.Name()
+                }.Save();
+            }
         }
 
         static DateTime RandomDay()
