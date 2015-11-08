@@ -14,7 +14,7 @@ namespace Nyan.Tools.LogMonitor
         private static readonly Dictionary<Message.EContentType, Color> colorDictionary =
             new Dictionary<Message.EContentType, Color>();
 
-        
+
         public frmMain()
         {
             InitializeComponent();
@@ -30,8 +30,9 @@ namespace Nyan.Tools.LogMonitor
         private void PrepareColumns()
         {
             lstMain.Columns.Clear();
-            lstMain.Columns.Add("Origin", "Origin",52);
+            lstMain.Columns.Add("Server", "Server", 52);
             lstMain.Columns.Add("Type", "Type", 102);
+            lstMain.Columns.Add("App", "App", 132);
             lstMain.Columns.Add("TimeStamp", "TimeStamp", 132);
             lstMain.Columns.Add("Content", "Content", 800);
 
@@ -78,6 +79,7 @@ namespace Nyan.Tools.LogMonitor
 
 
                     a.SubItems.Add(oMessage.Type.ToString());
+                    a.SubItems.Add(oMessage.TraceInfo.BaseAssembly);
                     a.SubItems.Add(oMessage.CreationTime.ToString());
                     a.SubItems.Add(oMessage.Content);
 
@@ -111,7 +113,7 @@ namespace Nyan.Tools.LogMonitor
             if (!mustUpdate) return;
 
             mustUpdate = false;
-            lstMain.Items[lstMain.Items.Count-1].EnsureVisible();
+            lstMain.Items[lstMain.Items.Count - 1].EnsureVisible();
 
         }
 

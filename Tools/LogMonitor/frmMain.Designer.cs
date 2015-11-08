@@ -52,7 +52,7 @@
             this.colType,
             this.colTS,
             this.colDescr});
-            this.lstMain.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel, ((byte)(0)));
+            this.lstMain.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel, ((byte)(0)));
             this.lstMain.ForeColor = System.Drawing.Color.Lime;
             this.lstMain.FullRowSelect = true;
             this.lstMain.Location = new System.Drawing.Point(0, 28);
