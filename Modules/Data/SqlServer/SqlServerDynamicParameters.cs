@@ -1,5 +1,4 @@
 ﻿using System.Data;
-using Dapper;
 using Nyan.Core.Modules.Data.Adapter;
 using System.Data.SqlClient;
 
