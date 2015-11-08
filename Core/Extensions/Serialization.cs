@@ -80,7 +80,14 @@ namespace Nyan.Core.Extensions
 
         public static T CreateInstance<T>(this Type typeRef)
         {
-            return (T)Activator.CreateInstance(typeRef);
+            try
+            {
+                return (T)Activator.CreateInstance(typeRef);
+            }
+            catch (Exception e)
+            {
+                throw (e.InnerException.InnerException);
+            }
         }
 
         public static string GetJsonNode(this string obj, string nodeName)
