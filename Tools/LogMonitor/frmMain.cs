@@ -130,7 +130,6 @@ namespace Nyan.Tools.LogMonitor
         private void btnClear_Click(object sender, EventArgs e)
         {
             this.lstMain.Items.Clear();
-            Nyan.Core.Settings.Current.Log.Add("T");
         }
     }
 }
