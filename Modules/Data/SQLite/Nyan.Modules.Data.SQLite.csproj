@@ -71,7 +71,6 @@
     <Compile Include="SQLiteBundle.cs" />
     <Compile Include="SQLiteDataAdapter.cs" />
     <Compile Include="SqLiteDynamicParameters.cs" />
-    <Compile Include="SQLiteSettingsPackage.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\Nyan.Core.csproj">

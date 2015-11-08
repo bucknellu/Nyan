@@ -52,7 +52,6 @@
     <Compile Include="MySqlBundle.cs" />
     <Compile Include="MySqlDynamicParameters.cs" />
     <Compile Include="MySqlDataAdapter.cs" />
-    <Compile Include="MySqlSettingsPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

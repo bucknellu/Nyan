@@ -53,7 +53,6 @@
     <Compile Include="PgSqlBundle.cs" />
     <Compile Include="PgSqlDataAdapter.cs" />
     <Compile Include="PgSqlDynamicParameters.cs" />
-    <Compile Include="PgSqlSettingsPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
