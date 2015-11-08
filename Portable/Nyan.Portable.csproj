@@ -84,6 +84,10 @@
       <Project>{44c04cf5-d6cf-443e-950d-a5b214b3c0bc}</Project>
       <Name>Nyan.Modules.Data.SQLite</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Modules\Log\ZeroMQ\Nyan.Modules.Log.ZeroMQ.csproj">
+      <Project>{27fed84f-dcf8-4c86-912b-0cf99bac620b}</Project>
+      <Name>Nyan.Modules.Log.ZeroMQ</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
