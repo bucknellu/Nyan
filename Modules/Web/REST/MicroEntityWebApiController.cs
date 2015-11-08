@@ -190,8 +190,7 @@ namespace Nyan.Modules.Web.REST
                 if (MicroEntity<T>.TableData.AuditChange)
                     AuditRequest("CHANGE", typeof(T).FullName + ":" + item.GetEntityIdentifier(), item.ToJson());
 
-
-                Current.Log.Add("POST " + typeof(T).FullName + " OK (" + sw.ElapsedMilliseconds + " ms)");
+                Current.Log.Add("UPD " + typeof(T).FullName + ":" + item.GetEntityIdentifier() + " OK (" + sw.ElapsedMilliseconds + " ms)");
 
                 return RenderJsonResult(preRet);
             }
@@ -280,13 +279,19 @@ namespace Nyan.Modules.Web.REST
 
             HttpResponseMessage ret;
 
+
             var probe = MicroEntity<T>.Get(id);
 
             if (probe == null)
                 ret = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Entity was found for ID " + id);
             else
             {
+                var sw = new Stopwatch();
+                sw.Start();
                 MicroEntity<T>.Remove(id);
+                sw.Stop();
+                Current.Log.Add("DEL " + typeof(T).FullName + ":" + id + " OK (" + sw.ElapsedMilliseconds + " ms)");
+
 
                 if (MicroEntity<T>.TableData.AuditChange)
                     AuditRequest("REMOVAL", typeof(T).FullName + ":" + id, probe.ToJson());

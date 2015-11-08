@@ -29,8 +29,7 @@ namespace Nyan.Core.Modules.Data
     public abstract class MicroEntity<T> where T : MicroEntity<T>
     {
         // ReSharper disable once StaticFieldInGenericType
-        private static readonly ConcurrentDictionary<Type, MicroEntityCompiledStatements> ClassRegistration =
-            new ConcurrentDictionary<Type, MicroEntityCompiledStatements>();
+        private static readonly ConcurrentDictionary<Type, MicroEntityCompiledStatements> ClassRegistration = new ConcurrentDictionary<Type, MicroEntityCompiledStatements>();
 
         // ReSharper disable once StaticFieldInGenericType
         private static readonly object AccessLock = new object();

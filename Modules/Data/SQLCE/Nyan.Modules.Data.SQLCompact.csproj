@@ -56,7 +56,6 @@
     <Compile Include="SqlCompactBundle.cs" />
     <Compile Include="SqlCompactDynamicParameters.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SqlCompactSettingsPackage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

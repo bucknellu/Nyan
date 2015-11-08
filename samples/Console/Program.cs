@@ -12,7 +12,7 @@ namespace Nyan.Samples.Console
     {
         private static void Main(string[] args)
         {
-            const int amountToTest = 32;
+            const int amountToTest = 128;
 
             var s = new Stopwatch();
             Current.Log.Add("Fetching all records...");

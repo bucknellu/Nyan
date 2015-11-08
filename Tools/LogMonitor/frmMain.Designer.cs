@@ -38,6 +38,7 @@
             this.chkIgGen = new System.Windows.Forms.CheckBox();
             this.btnAdjustColumns = new System.Windows.Forms.Button();
             this.chkAutoUpd = new System.Windows.Forms.CheckBox();
+            this.button1 = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -51,7 +52,7 @@
             this.colType,
             this.colTS,
             this.colDescr});
-            this.lstMain.Font = new System.Drawing.Font("ProFontWindows", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel, ((byte)(0)));
+            this.lstMain.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel, ((byte)(0)));
             this.lstMain.ForeColor = System.Drawing.Color.Lime;
             this.lstMain.FullRowSelect = true;
             this.lstMain.Location = new System.Drawing.Point(0, 28);
@@ -84,7 +85,10 @@
             // 
             // panel1
             // 
+            this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.panel1.BackColor = System.Drawing.SystemColors.Info;
+            this.panel1.Controls.Add(this.button1);
             this.panel1.Controls.Add(this.chkIgGen);
             this.panel1.Controls.Add(this.btnAdjustColumns);
             this.panel1.Controls.Add(this.chkAutoUpd);
@@ -96,7 +100,7 @@
             // chkIgGen
             // 
             this.chkIgGen.AutoSize = true;
-            this.chkIgGen.Location = new System.Drawing.Point(248, 7);
+            this.chkIgGen.Location = new System.Drawing.Point(105, 7);
             this.chkIgGen.Name = "chkIgGen";
             this.chkIgGen.Size = new System.Drawing.Size(97, 17);
             this.chkIgGen.TabIndex = 2;
@@ -108,7 +112,7 @@
             // 
             this.btnAdjustColumns.BackColor = System.Drawing.SystemColors.ButtonFace;
             this.btnAdjustColumns.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnAdjustColumns.Location = new System.Drawing.Point(3, 3);
+            this.btnAdjustColumns.Location = new System.Drawing.Point(208, 3);
             this.btnAdjustColumns.Name = "btnAdjustColumns";
             this.btnAdjustColumns.Size = new System.Drawing.Size(120, 23);
             this.btnAdjustColumns.TabIndex = 1;
@@ -119,12 +123,24 @@
             // chkAutoUpd
             // 
             this.chkAutoUpd.AutoSize = true;
-            this.chkAutoUpd.Location = new System.Drawing.Point(155, 7);
+            this.chkAutoUpd.Location = new System.Drawing.Point(12, 7);
             this.chkAutoUpd.Name = "chkAutoUpd";
             this.chkAutoUpd.Size = new System.Drawing.Size(87, 17);
             this.chkAutoUpd.TabIndex = 0;
             this.chkAutoUpd.Text = "Auto Update";
             this.chkAutoUpd.UseVisualStyleBackColor = true;
+            // 
+            // button1
+            // 
+            this.button1.BackColor = System.Drawing.SystemColors.ButtonFace;
+            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.button1.Location = new System.Drawing.Point(334, 3);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(53, 23);
+            this.button1.TabIndex = 3;
+            this.button1.Text = "Clear";
+            this.button1.UseVisualStyleBackColor = false;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // frmMain
             // 
@@ -154,6 +170,7 @@
         private System.Windows.Forms.CheckBox chkAutoUpd;
         private System.Windows.Forms.CheckBox chkIgGen;
         private System.Windows.Forms.Button btnAdjustColumns;
+        private System.Windows.Forms.Button button1;
     }
 }
 

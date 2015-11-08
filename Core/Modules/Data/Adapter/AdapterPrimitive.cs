@@ -141,8 +141,7 @@ namespace Nyan.Core.Modules.Data.Adapter
         public abstract void RenderSchemaEntityNames<T>() where T : MicroEntity<T>;
 
         public virtual void ClearPools()
-        {
-        }
+        { }
 
         public abstract DbConnection Connection(string connectionString);
 
@@ -169,7 +168,8 @@ namespace Nyan.Core.Modules.Data.Adapter
                     if (typeof(IList).IsAssignableFrom(type) && type.IsGenericType) continue;
                     if (typeof(IDictionary<,>).IsAssignableFrom(type)) continue;
                     if (type.BaseType != null &&
-                        (typeof(IList).IsAssignableFrom(type.BaseType) && type.BaseType.IsGenericType)) continue;
+                        (typeof(IList).IsAssignableFrom(type.BaseType) && type.BaseType.IsGenericType))
+                        continue;
 
 
                     var nullProbe = Nullable.GetUnderlyingType(type);
@@ -235,7 +235,8 @@ namespace Nyan.Core.Modules.Data.Adapter
                     if (typeof(IDictionary<,>).IsAssignableFrom(type)) continue;
 
                     if (type.BaseType != null &&
-                        (typeof(IList).IsAssignableFrom(type.BaseType) && type.BaseType.IsGenericType)) continue;
+                        (typeof(IList).IsAssignableFrom(type.BaseType) && type.BaseType.IsGenericType))
+                        continue;
 
                     var nullProbe = Nullable.GetUnderlyingType(type);
                     if (nullProbe != null) type = nullProbe;
