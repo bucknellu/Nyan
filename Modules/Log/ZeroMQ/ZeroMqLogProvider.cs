@@ -17,6 +17,12 @@ namespace Nyan.Modules.Log.ZeroMQ
             Initialize("tcp://127.0.0.1:5002");
         }
 
+        ~ZeroMqLogProvider()
+        {
+            if (_in != null) _in.Dispose();
+            if (_out != null) _out.Dispose();
+        }
+
         public ZeroMqLogProvider(string targetAddress)
         {
             Initialize(targetAddress);
@@ -28,8 +34,6 @@ namespace Nyan.Modules.Log.ZeroMQ
         {
             _targetAddress = targetAddress;
             _out = new Channel("Log_Service", true, false, _targetAddress);
-
-
         }
 
         public override void Dispatch(string content, Message.EContentType type = Message.EContentType.Generic)
@@ -57,14 +61,6 @@ namespace Nyan.Modules.Log.ZeroMQ
         {
             if (MessageArrived == null) return;
             MessageArrived(message);
-        }
-
-
-        public override void Dispose()
-        {
-            if (_in != null) _in.Dispose();
-            if (_out != null) _out.Dispose();
-            base.Dispose();
         }
     }
 }

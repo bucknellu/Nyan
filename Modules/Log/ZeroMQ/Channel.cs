@@ -9,10 +9,12 @@ using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Log;
 using NetMQContext = NetMQ.NetMQContext;
 using NetMQSocketEventArgs = NetMQ.NetMQSocketEventArgs;
+using Microsoft.Win32.SafeHandles;
+using System.Runtime.InteropServices;
 
 namespace Nyan.Modules.Log.ZeroMQ
 {
-    public class Channel : IDisposable
+    public class Channel: IDisposable
     {
         public delegate void MessageArrivedHandler(Message message);
 
@@ -20,21 +22,22 @@ namespace Nyan.Modules.Log.ZeroMQ
         private readonly bool _canReceive;
         private readonly bool _canSend;
 
+        private bool _readyToSend;
+
 
         private readonly PublisherSocket _publisherSocket;
         private readonly Dictionary<string, Message> _replyRequestMessages = new Dictionary<string, Message>();
-        private readonly object _sendLock = new object();
         private readonly CancellationTokenSource _tokenSource = new CancellationTokenSource();
         private readonly string _topic;
 
         public Channel(string topic = "", bool canSend = true, bool canReceive = false, string address = null)
         {
-            var _bound = false;
-
             _topic = topic;
             _canSend = canSend;
             _canReceive = canReceive;
             _address = address;
+
+
 
             if (!(_canSend || _canReceive))
                 throw new InvalidOperationException("Channel was told not to Send or Receive.");
@@ -60,10 +63,9 @@ namespace Nyan.Modules.Log.ZeroMQ
                     _publisherSocket.Options.MulticastRecoveryInterval = TimeSpan.FromMinutes(10);
                     _publisherSocket.Options.SendBuffer = 1024 * 10; // 10 megabyte
                     _publisherSocket.Bind(_address);
-                    _bound = true;
                 }
 
-                _publisherSocket.SendReady += (s, a) => { Console.WriteLine("************SENDREADY"); };
+                _publisherSocket.SendReady += (s, a) => { _readyToSend = true; };
 
                 //do { Thread.Sleep(100); } while (!_SendReady);
             }
@@ -73,11 +75,6 @@ namespace Nyan.Modules.Log.ZeroMQ
 
             Task.Factory.StartNew(MonitorMessages);
             Task.Run(async () => await CleanupAsync());
-        }
-
-        public void Dispose()
-        {
-            _tokenSource.Cancel();
         }
 
         public event MessageArrivedHandler MessageArrived;
@@ -95,13 +92,10 @@ namespace Nyan.Modules.Log.ZeroMQ
                 subscriber.Subscribe(_topic);
                 //subscriber.Connect(_address);
 
-                subscriber.ReceiveReady += subscriber_ReceiveReady;
-
                 while (!_tokenSource.Token.IsCancellationRequested) //Forever loop until Dispose() is called.
                 {
                     var topic = subscriber.ReceiveString();
                     var payload = subscriber.ReceiveString();
-
 
                     Message message = null;
 
@@ -115,42 +109,11 @@ namespace Nyan.Modules.Log.ZeroMQ
                     }
 
                     if (message == null) continue;
-
                     if (MessageArrived == null) continue;
 
-                    if (message.ReplyToId != null)
-                    {
-                        var key = message.ReplyToId.ToString();
-
-                        if (!_replyRequestMessages.ContainsKey(key)) continue;
-                        _replyRequestMessages[key] = message;
-                    }
-                    else
-                    {
-                        if (message.Topic == "Diagnostics")
-                            ProcessLowLevelOperations(message);
-
-                        MessageArrived(message);
-                    }
+                    MessageArrived(message);
                 }
             }
-        }
-
-        private void subscriber_ReceiveReady(object sender, NetMQSocketEventArgs e)
-        {
-        }
-
-        private void ProcessLowLevelOperations(Message message)
-        {
-            if (message.Subject != "Ping?") return;
-
-            var ret = new Message { Subject = "Pong!", ReplyToId = message.Id };
-            Send(ret);
-        }
-
-        public void Send(string message)
-        {
-            Send(new Message(message));
         }
 
         public Message Send(Message message, bool waitReturn = false)
@@ -159,62 +122,17 @@ namespace Nyan.Modules.Log.ZeroMQ
                 throw new InvalidOperationException("Channel was told at construction time it's not allowed to Send.");
 
             Message ret = null;
-            Task<Message> task = null;
 
             var originalMsgId = message.Id.ToString();
 
-            if (waitReturn)
-            {
-                _replyRequestMessages.Add(originalMsgId, null);
-
-                task = new Task<Message>(() => WaitReply(originalMsgId));
-                task.Start();
-            }
-
             var payload = message.ToJson();
 
-            lock (_sendLock)
-            {
-                if (message.Topic != "")
-                    _publisherSocket.SendMore(_topic).Send(payload);
-                else
-                    _publisherSocket.Send(payload);
-            }
-
-            if (waitReturn)
-            {
-                task.Wait();
-                ret = task.Result;
-            }
+            if (message.Topic != "")
+                _publisherSocket.SendMore(_topic).Send(payload);
+            else
+                _publisherSocket.Send(payload);
 
             return ret;
-        }
-
-        private Message WaitReply(string id)
-        {
-            var timeout = new Stopwatch();
-            timeout.Start();
-
-
-            while (timeout.ElapsedMilliseconds < 2000)
-            {
-                if (_replyRequestMessages[id] == null)
-                {
-                    Thread.Sleep(20);
-                    continue;
-                }
-
-
-                var ret = _replyRequestMessages[id];
-                _replyRequestMessages.Remove(id);
-                return ret;
-            }
-
-            timeout.Stop();
-
-            _replyRequestMessages.Remove(id);
-
-            return null;
         }
 
         public async Task CleanupAsync()
@@ -223,6 +141,38 @@ namespace Nyan.Modules.Log.ZeroMQ
             {
                 await Task.Delay(TimeSpan.FromSeconds(5), _tokenSource.Token);
             }
+        }
+
+        bool disposed = false;
+        // Instantiate a SafeHandle instance.
+        SafeHandle handle = new SafeFileHandle(IntPtr.Zero, true);
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        // Protected implementation of Dispose pattern.
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposed)
+                return;
+
+            if (disposing)
+            {
+                handle.Dispose();
+                _tokenSource.Cancel();
+
+                if (_publisherSocket != null)
+                {
+                    _publisherSocket.Dispose();
+                }
+            }
+
+            // Free any unmanaged objects here.
+            //
+            disposed = true;
         }
     }
 }
