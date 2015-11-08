@@ -47,6 +47,5 @@ namespace Nyan.Samples.REST
 
             Nyan.Core.Settings.Current.Log.Add("Shutting down: {0} : {1}".format(shutDownMessage, shutDownStack));
         }
-
     }
 }
