@@ -7,25 +7,29 @@ namespace Nyan.Modules.Log.ZeroMQ
     public class ZeroMqLogProvider : LogProvider
     {
         private Channel _in;
-        private string _multiCastAddress = "";
+        private string _targetAddress = "";
         private Channel _out;
 
         public ZeroMqLogProvider()
         {
-            Initialize("pgm://239.255.42.99:5558");
+            //tcp://127.0.0.1:5002
+            //pgm://239.255.42.99:5558
+            Initialize("tcp://127.0.0.1:5002");
         }
 
-        public ZeroMqLogProvider(string multiCastAddress)
+        public ZeroMqLogProvider(string targetAddress)
         {
-            Initialize(multiCastAddress);
+            Initialize(targetAddress);
         }
 
         public override event Message.MessageArrivedHandler MessageArrived;
 
-        private void Initialize(string multiCastAddress)
+        private void Initialize(string targetAddress)
         {
-            _multiCastAddress = multiCastAddress;
-            _out = new Channel("Log_Service", true, false, _multiCastAddress);
+            _targetAddress = targetAddress;
+            _out = new Channel("Log_Service", true, false, _targetAddress);
+
+
         }
 
         public override void Dispatch(string content, Message.EContentType type = Message.EContentType.Generic)
@@ -45,7 +49,7 @@ namespace Nyan.Modules.Log.ZeroMQ
         {
             if (_in != null) return;
 
-            _in = new Channel("Log_Service", false, true, _multiCastAddress);
+            _in = new Channel("Log_Service", false, true, _targetAddress);
             _in.MessageArrived += _gateway_MessageArrived;
         }
 

@@ -27,8 +27,10 @@ namespace Nyan.Modules.Log.ZeroMQ
         private readonly CancellationTokenSource _tokenSource = new CancellationTokenSource();
         private readonly string _topic;
 
-        public Channel(string topic = "", bool canSend = true, bool canReceive = true, string address = null)
+        public Channel(string topic = "", bool canSend = true, bool canReceive = false, string address = null)
         {
+            var _bound = false;
+
             _topic = topic;
             _canSend = canSend;
             _canReceive = canReceive;
@@ -42,12 +44,24 @@ namespace Nyan.Modules.Log.ZeroMQ
                 var mqContext = NetMQContext.Create();
 
                 _publisherSocket = mqContext.CreatePublisherSocket();
-                _publisherSocket.Options.MulticastHops = 4;
-                _publisherSocket.Options.MulticastRate = 40 * 1024; // 40 megabit
-                _publisherSocket.Options.MulticastRecoveryInterval = TimeSpan.FromMinutes(10);
-                _publisherSocket.Options.SendBuffer = 1024 * 10; // 10 megabyte
 
-                _publisherSocket.Bind(_address);
+                var uri = new Uri(_address);
+
+                if (uri.Scheme == "tcp")
+                {
+                    _publisherSocket.Connect(_address);
+                }
+
+
+                if (uri.Scheme == "pgm")  //Multicast
+                {
+                    _publisherSocket.Options.MulticastHops = 4;
+                    _publisherSocket.Options.MulticastRate = 40 * 1024; // 40 megabit
+                    _publisherSocket.Options.MulticastRecoveryInterval = TimeSpan.FromMinutes(10);
+                    _publisherSocket.Options.SendBuffer = 1024 * 10; // 10 megabyte
+                    _publisherSocket.Bind(_address);
+                    _bound = true;
+                }
 
                 _publisherSocket.SendReady += (s, a) => { Console.WriteLine("************SENDREADY"); };
 
@@ -70,29 +84,33 @@ namespace Nyan.Modules.Log.ZeroMQ
 
         private void MonitorMessages()
         {
+
+            if (!_canReceive) throw new Exception("Channel initialized with CanReceive set to false.");
+
             using (var context = NetMQContext.Create())
             using (var subscriber = context.CreateSubscriberSocket())
             {
                 subscriber.Options.ReceivevBuffer = 1024 * 10;
+                subscriber.Bind(_address);
                 subscriber.Subscribe(_topic);
-                subscriber.Connect(_address);
+                //subscriber.Connect(_address);
 
                 subscriber.ReceiveReady += subscriber_ReceiveReady;
 
                 while (!_tokenSource.Token.IsCancellationRequested) //Forever loop until Dispose() is called.
                 {
-                    var topic = subscriber.Receive();
-                    var payload = subscriber.Receive();
+                    var topic = subscriber.ReceiveString();
+                    var payload = subscriber.ReceiveString();
 
 
                     Message message = null;
 
-                    try { message = payload.FromSerializedBytes<Message>(); }
-                    catch { }
+                    //try { message = payload.FromSerializedBytes<Message>(); }
+                    //catch { }
 
                     if (message == null)
                     {
-                        try { message = payload.GetString().FromJson<Message>(); }
+                        try { message = payload.FromJson<Message>(); }
                         catch { }
                     }
 
@@ -153,7 +171,7 @@ namespace Nyan.Modules.Log.ZeroMQ
                 task.Start();
             }
 
-            var payload = message.ToJson().GetBytes();
+            var payload = message.ToJson();
 
             lock (_sendLock)
             {
