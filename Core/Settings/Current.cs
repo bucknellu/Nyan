@@ -10,12 +10,14 @@ using Nyan.Core.Modules.Cache;
 using Nyan.Core.Modules.Encryption;
 using Nyan.Core.Modules.Scope;
 using Nyan.Core.Modules.Log;
+using Nyan.Core.Modules.Data.Connection;
 
 namespace Nyan.Core.Settings
 {
     public static class Current
     {
         private static string _baseDirectory;
+        private static string _dataDirectory;
 
         static Current()
         {
@@ -28,6 +30,11 @@ namespace Nyan.Core.Settings
             GlobalConnectionBundleType = refObj.GlobalConnectionBundleType;
             Authorization = refObj.Authorization;
 
+            Version = System.Reflection.Assembly.GetCallingAssembly().GetName().Version.ToString();
+            Host = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
+
+
+
             Log.Add(@"  |\_/|", Message.EContentType.Warning);
             Log.Add(@" >(o.O)<    Nyan " + System.Reflection.Assembly.GetCallingAssembly().GetName().Version, Message.EContentType.Warning);
             Log.Add(@"  (___)", Message.EContentType.Warning);
@@ -39,6 +46,8 @@ namespace Nyan.Core.Settings
             Log.Add("Encryption        : " + (Encryption == null ? "(none)" : Encryption.ToString()), Message.EContentType.StartupSequence);
             Log.Add("Authorization     : " + (Authorization == null ? "(none)" : Authorization.ToString()), Message.EContentType.StartupSequence);
             Log.Add("Global BundleType : " + (GlobalConnectionBundleType == null ? "(none)" : GlobalConnectionBundleType.ToString()), Message.EContentType.StartupSequence);
+            Log.Add("App Location      : " + BaseDirectory, Message.EContentType.StartupSequence);
+            Log.Add("App Data          : " + DataDirectory, Message.EContentType.StartupSequence);
 
             //Post-initialization procedures
             if (Cache != null)
@@ -48,9 +57,11 @@ namespace Nyan.Core.Settings
         public static ICacheProvider Cache { get; private set; }
         public static IScopeProvider Scope { get; private set; }
         public static IEncryptionProvider Encryption { get; private set; }
-        public static IAuthorizationProvider Authorization { get; set; }
+        public static IAuthorizationProvider Authorization { get; private set; }
         public static LogProvider Log { get; private set; }
-        public static Type GlobalConnectionBundleType { get; set; }
+        public static Type GlobalConnectionBundleType { get; private set; }
+        public static string Version { get; private set; }
+        public static string Host { get; private set; }
 
         public static string BaseDirectory
         {
@@ -65,6 +76,35 @@ namespace Nyan.Core.Settings
             }
 
             internal set { _baseDirectory = value; }
+        }
+        public static string DataDirectory
+        {
+            get
+            {
+                if (_dataDirectory != null) return _dataDirectory;
+
+                _dataDirectory = HostingEnvironment.MapPath("~/App_Data");
+
+                if (_dataDirectory != null)
+                {
+                    try
+                    {
+                        if (!Directory.Exists(_dataDirectory))
+                            Directory.CreateDirectory(_dataDirectory);
+
+                    }
+                    catch
+                    {
+                        _dataDirectory = null;
+                    }
+                }
+
+                if (_dataDirectory == null) _dataDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
+                return _dataDirectory;
+            }
+
+            internal set { _dataDirectory = value; }
         }
 
         private static IPackage ResolveSettingsPackage()
@@ -88,7 +128,7 @@ namespace Nyan.Core.Settings
             priorityList.Sort((firstPair, nextPair) => (nextPair.Key - firstPair.Key));
 
 
-            if (priorityList.Any()) return (IPackage) Activator.CreateInstance(priorityList[0].Value);
+            if (priorityList.Any()) return (IPackage)Activator.CreateInstance(priorityList[0].Value);
 
             //No package defined? not to worry; let's create one with the provided pieces.
 
@@ -108,10 +148,13 @@ namespace Nyan.Core.Settings
                 var scopeModules = Management.GetClassesByInterface<IScopeProvider>();
                 if (scopeModules.Any()) package.Scope = scopeModules[0].CreateInstance<IScopeProvider>();
 
-                var suthorizationModules = Management.GetClassesByInterface<IAuthorizationProvider>();
-                if (suthorizationModules.Any()) package.Authorization = suthorizationModules[0].CreateInstance<IAuthorizationProvider>();
+                var authorizationModules = Management.GetClassesByInterface<IAuthorizationProvider>();
+                if (authorizationModules.Any()) package.Authorization = authorizationModules[0].CreateInstance<IAuthorizationProvider>();
+
+                var ConnectionBundles = Management.GetClassesByInterface<ConnectionBundlePrimitive>();
+                if (ConnectionBundles.Any()) package.GlobalConnectionBundleType = ConnectionBundles[0];
             }
-            catch
+            catch (Exception e)
             {
                 //It's OK to ignore errors here.
             }
