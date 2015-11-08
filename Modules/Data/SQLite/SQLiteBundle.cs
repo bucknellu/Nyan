@@ -29,9 +29,9 @@ namespace Nyan.Modules.Data.SQLite
 
         public override void ValidateDatabase()
         {
-            if (!File.Exists(Core.Settings.Current.BaseDirectory + "\\" + _dbName))
+            if (!File.Exists(Core.Settings.Current.DataDirectory + "\\" + _dbName))
             {
-                SQLiteConnection.CreateFile(Core.Settings.Current.BaseDirectory + "\\" + _dbName);
+                SQLiteConnection.CreateFile(Core.Settings.Current.DataDirectory + "\\" + _dbName);
             }
         }
     }

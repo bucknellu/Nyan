@@ -27,15 +27,15 @@ namespace Nyan.Modules.Data.SQLCompact
             AdapterType = typeof (SqlCompactDataAdapter);
             ConnectionCypherKeys = new Dictionary<string, string>
             {
-                {"STD", "Data Source='" + Current.BaseDirectory + "\\" + _dbName + "';"}
+                {"STD", "Data Source='" + Current.DataDirectory + "\\" + _dbName + "';"}
             };
         }
 
         public override void ValidateDatabase()
         {
-            if (File.Exists(Current.BaseDirectory + "\\" + _dbName)) return;
+            if (File.Exists(Current.DataDirectory + "\\" + _dbName)) return;
 
-            var connString = "Data Source='" + Current.BaseDirectory + "\\" + _dbName + "';";
+            var connString = "Data Source='" + Current.DataDirectory + "\\" + _dbName + "';";
             var engine = new SqlCeEngine(connString);
             engine.CreateDatabase();
         }
