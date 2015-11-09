@@ -19,6 +19,15 @@ namespace Nyan.Core.Modules.Log
             Add(content.ToString());
         }
 
+        public virtual string Protocol
+        {
+            get { return null; }
+        }
+        public virtual string Uri
+        {
+            get { return null; }
+        }
+
         public virtual void Add(string pattern, params object[] replacementStrings)
         {
             Add(string.Format(pattern, replacementStrings));

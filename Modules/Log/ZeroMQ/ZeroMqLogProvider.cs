@@ -28,6 +28,16 @@ namespace Nyan.Modules.Log.ZeroMQ
             Initialize(targetAddress);
         }
 
+        public override string Protocol
+        {
+            get { return (_out != null ? _out.Protocol : (_in != null ? _in.Protocol : null)); }
+        }
+
+        public override string Uri
+        {
+            get { return (_out != null ? _out.Uri : (_in != null ? _in.Uri : null)); }
+        }
+
         public override event Message.MessageArrivedHandler MessageArrived;
 
         private void Initialize(string targetAddress)

@@ -1,20 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Win32.SafeHandles;
 using NetMQ;
 using NetMQ.Sockets;
 using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Log;
-using NetMQContext = NetMQ.NetMQContext;
-using NetMQSocketEventArgs = NetMQ.NetMQSocketEventArgs;
-using Microsoft.Win32.SafeHandles;
-using System.Runtime.InteropServices;
 
 namespace Nyan.Modules.Log.ZeroMQ
 {
-    public class Channel: IDisposable
+    public class Channel : IDisposable
     {
         public delegate void MessageArrivedHandler(Message message);
 
@@ -22,13 +18,13 @@ namespace Nyan.Modules.Log.ZeroMQ
         private readonly bool _canReceive;
         private readonly bool _canSend;
 
-        private bool _readyToSend;
-
 
         private readonly PublisherSocket _publisherSocket;
-        private readonly Dictionary<string, Message> _replyRequestMessages = new Dictionary<string, Message>();
         private readonly CancellationTokenSource _tokenSource = new CancellationTokenSource();
         private readonly string _topic;
+        private readonly SafeHandle _handle = new SafeFileHandle(IntPtr.Zero, true);
+        private bool _disposed;
+
 
         public Channel(string topic = "", bool canSend = true, bool canReceive = false, string address = null)
         {
@@ -37,7 +33,10 @@ namespace Nyan.Modules.Log.ZeroMQ
             _canReceive = canReceive;
             _address = address;
 
+            var uri = new Uri(_address);
 
+            Protocol = uri.Scheme;
+            Uri = _address;
 
             if (!(_canSend || _canReceive))
                 throw new InvalidOperationException("Channel was told not to Send or Receive.");
@@ -48,15 +47,13 @@ namespace Nyan.Modules.Log.ZeroMQ
 
                 _publisherSocket = mqContext.CreatePublisherSocket();
 
-                var uri = new Uri(_address);
-
-                if (uri.Scheme == "tcp")
+                if (Protocol == "tcp")
                 {
                     _publisherSocket.Connect(_address);
                 }
 
 
-                if (uri.Scheme == "pgm")  //Multicast
+                if (Protocol == "pgm") //Multicast
                 {
                     _publisherSocket.Options.MulticastHops = 4;
                     _publisherSocket.Options.MulticastRate = 40 * 1024; // 40 megabit
@@ -65,7 +62,7 @@ namespace Nyan.Modules.Log.ZeroMQ
                     _publisherSocket.Bind(_address);
                 }
 
-                _publisherSocket.SendReady += (s, a) => { _readyToSend = true; };
+                _publisherSocket.SendReady += (s, a) => { };
 
                 //do { Thread.Sleep(100); } while (!_SendReady);
             }
@@ -77,11 +74,20 @@ namespace Nyan.Modules.Log.ZeroMQ
             Task.Run(async () => await CleanupAsync());
         }
 
+        public string Protocol { get; private set; }
+
+        public string Uri { get; private set; }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
         public event MessageArrivedHandler MessageArrived;
 
         private void MonitorMessages()
         {
-
             if (!_canReceive) throw new Exception("Channel initialized with CanReceive set to false.");
 
             using (var context = NetMQContext.Create())
@@ -90,49 +96,69 @@ namespace Nyan.Modules.Log.ZeroMQ
                 subscriber.Options.ReceivevBuffer = 1024 * 10;
                 subscriber.Bind(_address);
                 subscriber.Subscribe(_topic);
-                //subscriber.Connect(_address);
+
+                if (Protocol == "tcp")
+                {
+                    //_publisherSocket.Connect(_address);
+                }
+
+                if (Protocol == "pgm") //Multicast
+                    subscriber.Connect(_address);
+
+                var prevMsgId = new Guid();
 
                 while (!_tokenSource.Token.IsCancellationRequested) //Forever loop until Dispose() is called.
                 {
                     var topic = subscriber.ReceiveString();
-                    var payload = subscriber.ReceiveString();
+                    var payload = subscriber.Receive();
 
                     Message message = null;
 
-                    //try { message = payload.FromSerializedBytes<Message>(); }
-                    //catch { }
+                    try
+                    {
+                        message = payload.FromSerializedBytes<Message>();
+                    }
+                    catch
+                    {
+                    }
 
                     if (message == null)
                     {
-                        try { message = payload.FromJson<Message>(); }
-                        catch { }
+                        try
+                        {
+                            message = payload.GetString().FromJson<Message>();
+                        }
+                        catch
+                        {
+                        }
                     }
 
                     if (message == null) continue;
+
+                    if (message.Id.Equals(prevMsgId)) continue; // Avoid ZeroMQ duplicates
+
                     if (MessageArrived == null) continue;
+
+
+
+                    prevMsgId = message.Id;
 
                     MessageArrived(message);
                 }
             }
         }
 
-        public Message Send(Message message, bool waitReturn = false)
+        public void Send(Message message)
         {
             if (!_canSend)
                 throw new InvalidOperationException("Channel was told at construction time it's not allowed to Send.");
 
-            Message ret = null;
-
-            var originalMsgId = message.Id.ToString();
-
-            var payload = message.ToJson();
+            var payload = message.ToSerializedBytes();
 
             if (message.Topic != "")
                 _publisherSocket.SendMore(_topic).Send(payload);
             else
                 _publisherSocket.Send(payload);
-
-            return ret;
         }
 
         public async Task CleanupAsync()
@@ -143,25 +169,15 @@ namespace Nyan.Modules.Log.ZeroMQ
             }
         }
 
-        bool disposed = false;
-        // Instantiate a SafeHandle instance.
-        SafeHandle handle = new SafeFileHandle(IntPtr.Zero, true);
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
         // Protected implementation of Dispose pattern.
         protected virtual void Dispose(bool disposing)
         {
-            if (disposed)
+            if (_disposed)
                 return;
 
             if (disposing)
             {
-                handle.Dispose();
+                _handle.Dispose();
                 _tokenSource.Cancel();
 
                 if (_publisherSocket != null)
@@ -172,7 +188,7 @@ namespace Nyan.Modules.Log.ZeroMQ
 
             // Free any unmanaged objects here.
             //
-            disposed = true;
+            _disposed = true;
         }
     }
 }
