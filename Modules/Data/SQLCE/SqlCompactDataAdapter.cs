@@ -12,7 +12,7 @@ using Nyan.Core.Settings;
 
 namespace Nyan.Modules.Data.SQLCompact
 {
-    public class SqlCompactDataAdapter : AdapterPrimitive
+    public class SqlCompactDataAdapter : DataAdapterPrimitive
     {
         public SqlCompactDataAdapter()
         {

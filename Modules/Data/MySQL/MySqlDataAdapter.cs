@@ -12,7 +12,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Nyan.Modules.Data.MySql
 {
-    public class MySqlDataAdapter : AdapterPrimitive
+    public class MySqlDataAdapter : DataAdapterPrimitive
     {
         public MySqlDataAdapter()
         {

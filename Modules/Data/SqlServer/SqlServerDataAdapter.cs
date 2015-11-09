@@ -11,7 +11,7 @@ using System.Text;
 
 namespace Nyan.Modules.Data.SqlServer
 {
-    public class SqlServerDataAdapter : AdapterPrimitive
+    public class SqlServerDataAdapter : DataAdapterPrimitive
     {
         public SqlServerDataAdapter()
         {

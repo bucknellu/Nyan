@@ -11,7 +11,7 @@ using Oracle.ManagedDataAccess.Client;
 
 namespace Nyan.Modules.Data.Oracle
 {
-    public class OracleAdapter : AdapterPrimitive
+    public class OracleAdapter : DataAdapterPrimitive
     {
         public OracleAdapter()
         {

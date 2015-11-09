@@ -12,7 +12,7 @@ using System.Collections.Generic;
 
 namespace Nyan.Modules.Data.PgSql
 {
-    public class PgSqlDataAdapter : AdapterPrimitive
+    public class PgSqlDataAdapter : DataAdapterPrimitive
     {
         public PgSqlDataAdapter()
         {

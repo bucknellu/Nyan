@@ -39,6 +39,7 @@ namespace Nyan.Core.Settings
             Log.Add(@" >(o.O)<    Nyan " + System.Reflection.Assembly.GetCallingAssembly().GetName().Version, Message.EContentType.Warning);
             Log.Add(@"  (___)", Message.EContentType.Warning);
             Log.Add(@"   U", Message.EContentType.Warning);
+
             Log.Add("Settings          : " + refObj.GetType(), Message.EContentType.StartupSequence);
             Log.Add("Cache             : " + (Cache == null ? "(none)" : Cache.ToString()), Message.EContentType.StartupSequence);
             Log.Add("Environment       : " + (Scope == null ? "(none)" : Scope.ToString()), Message.EContentType.StartupSequence);

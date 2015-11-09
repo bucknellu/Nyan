@@ -10,7 +10,7 @@ using Nyan.Core.Settings;
 
 namespace Nyan.Core.Modules.Data.Adapter
 {
-    public abstract class AdapterPrimitive
+    public abstract class DataAdapterPrimitive
     {
 
         // ReSharper disable InconsistentNaming

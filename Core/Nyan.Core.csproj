@@ -61,8 +61,8 @@
     <Compile Include="Modules\Cache\ICacheProvider.cs" />
     <Compile Include="Modules\Cache\NullCache.cs" />
     <Compile Include="Modules\Data\Connection\ConnectionBundlePrimitive.cs" />
-    <Compile Include="Modules\Data\Adapter\AdapterPrimitive.cs" />
-    <Compile Include="Modules\Data\Adapter\DynamicAdapterPrimitive.cs" />
+    <Compile Include="Modules\Data\Adapter\DataAdapterPrimitive.cs" />
+    <Compile Include="Modules\Data\Adapter\DynamicParametersPrimitive.cs" />
     <Compile Include="Modules\Data\CacheEntityAttribute.cs" />
     <Compile Include="Modules\Data\MicroEntitySetupAttribute.cs" />
     <Compile Include="Modules\Data\MicroEntityCompiledStatements.cs" />
@@ -110,7 +110,9 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Modules\Data\Storage\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

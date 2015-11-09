@@ -16,7 +16,7 @@ namespace Nyan.Core.Modules.Data
             CriticalFailure
         }
 
-        protected internal AdapterPrimitive Adapter;
+        protected internal DataAdapterPrimitive Adapter;
         protected internal ConnectionBundlePrimitive Bundle;
         public Dictionary<string, string> ConnectionCypherKeys = new Dictionary<string, string>();
 

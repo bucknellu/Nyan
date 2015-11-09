@@ -11,7 +11,7 @@ using System.Text;
 
 namespace Nyan.Modules.Data.SQLite
 {
-    public class SqLiteDataAdapter : AdapterPrimitive
+    public class SqLiteDataAdapter : DataAdapterPrimitive
     {
         public override void CheckDatabaseEntities<T1>()
         {

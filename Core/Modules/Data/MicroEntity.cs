@@ -849,7 +849,7 @@ namespace Nyan.Core.Modules.Data
 
                         Statements.StatusStep = "Transferring configuration settings from Bundle to Entity Statements";
 
-                        Statements.Adapter = (AdapterPrimitive)Activator.CreateInstance(refType.AdapterType);
+                        Statements.Adapter = (DataAdapterPrimitive)Activator.CreateInstance(refType.AdapterType);
                         Statements.ConnectionCypherKeys = refType.ConnectionCypherKeys;
                     }
                     else
