@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Net.Mail;
 using System.Windows.Forms;
 using Message = Nyan.Core.Modules.Log.Message;
 
@@ -75,8 +74,6 @@ namespace Nyan.Tools.LogMonitor
                         BackColor = colorDictionary[oMessage.Type],
                         UseItemStyleForSubItems = false
                     };
-
-
 
                     a.SubItems.Add(oMessage.Type.ToString());
                     a.SubItems.Add(oMessage.TraceInfo.BaseAssembly);
