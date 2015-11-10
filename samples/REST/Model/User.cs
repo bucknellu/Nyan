@@ -34,6 +34,18 @@ namespace Nyan.Samples.REST.Model
     [RoutePrefix("api/users")]
     public class UserController : MicroEntityWebApiController<User>
     {
+        public override bool AuthorizeAction(RequestType pRequestType, AccessType pAccessType, string pidentifier, User pObject, string pContext)
+        {
+            switch (pAccessType)
+            {
+                case AccessType.Write:
+                    if (!pObject.isAdmin)
+                        throw new Exception("User isn't an Admin");
+                    break;
+            }
+
+            return true;
+        }
 
         [Route("wipe")]
         [HttpGet]
