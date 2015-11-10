@@ -2,6 +2,24 @@
 
 namespace Nyan.Modules.Web.REST
 {
+    public enum RequestType
+    {
+        GetAll,
+        New,
+        Get,
+        Post,
+        Put,
+        Delete,
+        EntityReference
+    }
+
+    public enum AccessType
+    {
+        Read,
+        Write,
+        Remove
+    }
+
     [AttributeUsage(AttributeTargets.Class)]
     public class EndpointSecurityAttribute : Attribute
     {

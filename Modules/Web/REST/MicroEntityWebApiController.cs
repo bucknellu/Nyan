@@ -10,6 +10,7 @@ using System.Web.Http;
 using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Data;
 using Nyan.Core.Modules.Data.Adapter;
+using Nyan.Core.Modules.Log;
 using Nyan.Core.Settings;
 
 namespace Nyan.Modules.Web.REST
@@ -55,17 +56,59 @@ namespace Nyan.Modules.Web.REST
             }
         }
 
+        public virtual bool AuthorizeAction(RequestType pRequestType, AccessType pAccessType, string pidentifier, T pObject, string pContext)
+        {
+            return true;
+        }
+
+        private void EvaluateAuthorization(EndpointSecurityAttribute attr, RequestType requestType, AccessType accessType, string parm = null, T parm2 = null, string parm3 = null)
+        {
+            var ret = false;
+            var iden = parm ?? (parm2 != null ? parm2.GetEntityIdentifier() : ""); ;
+
+            if (attr != null)
+            {
+                var targetPermSet = "";
+
+                switch (accessType)
+                {
+                    case AccessType.Read:
+                        targetPermSet = attr.ReadPermission;
+                        break;
+                    case AccessType.Write:
+                        targetPermSet = attr.WritePermission;
+                        break;
+                    case AccessType.Remove:
+                        targetPermSet = attr.RemovePermission;
+                        break;
+                }
+
+                if (targetPermSet != null)
+                    ret = Current.Authorization.CheckPermission(targetPermSet);
+            }
+
+            if (!ret)
+                try
+                {
+                    ret = AuthorizeAction(requestType, accessType, parm, parm2, parm3);
+                }
+                catch (Exception e) // User may throw a custom error, and that's fine: let's just log it.
+                {
+                    Current.Log.Add("AUTH " + typeof(T).FullName + " DENIED " + requestType + "(" + accessType + ") [" + iden + "]. Reason: " + e.Message, Message.EContentType.Warning);
+                    throw new UnauthorizedAccessException("Insufficient permissions.");
+                }
+
+            if (ret) return;
+
+            Current.Log.Add("Auth " + typeof(T).FullName + " DENIED " + requestType + "(" + accessType + ") [" + iden + "]", Message.EContentType.Warning);
+            throw new UnauthorizedAccessException("Insufficient permissions.");
+        }
+
         [Route("")]
         [HttpGet]
         public virtual object WebApiGetAll()
         {
-            if (ClassSecurity != null &&
-                ClassSecurity.ReadPermission != null &&
-                !Current.Authorization.CheckPermission(ClassSecurity.ReadPermission))
-            {
-                Current.Log.Add("ClassSecurity.ReadPermission: " + ClassSecurity.ReadPermission + ". Environment.Current: " + Current.Scope.CurrentCode);
-                throw new UnauthorizedAccessException("Insufficient permissions.");
-            }
+            EvaluateAuthorization(ClassSecurity, RequestType.GetAll, AccessType.Read, null);
 
             var sw = new Stopwatch();
             sw.Start();
@@ -112,6 +155,8 @@ namespace Nyan.Modules.Web.REST
         [HttpGet]
         public virtual HttpResponseMessage WebApiGetNew()
         {
+            EvaluateAuthorization(ClassSecurity, RequestType.New, AccessType.Read, null);
+
             var sw = new Stopwatch();
             sw.Start();
 
@@ -136,10 +181,7 @@ namespace Nyan.Modules.Web.REST
         [HttpGet]
         public virtual HttpResponseMessage WebApiGet(string id)
         {
-            if (ClassSecurity != null &&
-                ClassSecurity.ReadPermission != null &&
-                !Current.Authorization.CheckPermission(ClassSecurity.ReadPermission))
-                throw new UnauthorizedAccessException("Insufficient permissions.");
+            EvaluateAuthorization(ClassSecurity, RequestType.Get, AccessType.Read, id);
 
             var sw = new Stopwatch();
             sw.Start();
@@ -170,10 +212,7 @@ namespace Nyan.Modules.Web.REST
         [HttpPost]
         public virtual HttpResponseMessage WebApiPost(T item)
         {
-            if (ClassSecurity != null &&
-                ClassSecurity.WritePermission != null &&
-                !Current.Authorization.CheckPermission(ClassSecurity.WritePermission))
-                throw new UnauthorizedAccessException("Insufficient permissions.");
+            EvaluateAuthorization(ClassSecurity, RequestType.Post, AccessType.Write, null, item);
 
             var sw = new Stopwatch();
             sw.Start();
@@ -230,19 +269,15 @@ namespace Nyan.Modules.Web.REST
         [HttpPut]
         public virtual HttpResponseMessage WebApiPut(string id, T item)
         {
+
             TryAgentImprinting(ref item);
 
             if (MicroEntity<T>.TableData.IsReadOnly)
             {
-                return Request.CreateErrorResponse(HttpStatusCode.MethodNotAllowed,
-                    "This entity is market as read-only.");
+                return Request.CreateErrorResponse(HttpStatusCode.MethodNotAllowed, "This entity is market as read-only.");
             }
 
-            if (ClassSecurity != null &&
-                ClassSecurity.WritePermission != null &&
-                !Current.Authorization.CheckPermission(ClassSecurity.WritePermission))
-                throw new UnauthorizedAccessException("Insufficient permissions.");
-
+            EvaluateAuthorization(ClassSecurity, RequestType.Put, AccessType.Write, id, item);
 
             HttpResponseMessage ret;
 
@@ -272,15 +307,11 @@ namespace Nyan.Modules.Web.REST
                     "This entity is market as read-only.");
             }
 
-            if (ClassSecurity != null &&
-                ClassSecurity.RemovePermission != null &&
-                !Current.Authorization.CheckPermission(ClassSecurity.RemovePermission))
-                throw new UnauthorizedAccessException("Insufficient permissions.");
-
             HttpResponseMessage ret;
 
-
             var probe = MicroEntity<T>.Get(id);
+
+            EvaluateAuthorization(ClassSecurity, RequestType.Delete, AccessType.Remove, id, probe);
 
             if (probe == null)
                 ret = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Entity was found for ID " + id);
@@ -306,6 +337,8 @@ namespace Nyan.Modules.Web.REST
         [HttpGet]
         public virtual HttpResponseMessage GetReference(string id, string entityReference)
         {
+            EvaluateAuthorization(ClassSecurity, RequestType.EntityReference, AccessType.Read, id, null, entityReference);
+
             HttpResponseMessage ret;
 
             Current.Log.Add("Reference request: {0} for {1}".format(entityReference, id));
