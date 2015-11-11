@@ -95,26 +95,27 @@ namespace Nyan.Modules.Web.REST
                 catch (Exception e) // User may throw a custom error, and that's fine: let's just log it.
                 {
                     Current.Log.Add("AUTH " + typeof(T).FullName + " DENIED " + requestType + "(" + accessType + ") [" + iden + "]. Reason: " + e.Message, Message.EContentType.Warning);
-                    throw new UnauthorizedAccessException("Insufficient permissions.");
+                    throw new UnauthorizedAccessException("Not authorized: " + e.Message);
                 }
 
             if (ret) return;
 
             Current.Log.Add("Auth " + typeof(T).FullName + " DENIED " + requestType + "(" + accessType + ") [" + iden + "]", Message.EContentType.Warning);
-            throw new UnauthorizedAccessException("Insufficient permissions.");
+            throw new UnauthorizedAccessException("Not authorized.");
         }
 
         [Route("")]
         [HttpGet]
         public virtual object WebApiGetAll()
         {
-            EvaluateAuthorization(ClassSecurity, RequestType.GetAll, AccessType.Read, null);
-
             var sw = new Stopwatch();
-            sw.Start();
 
             try
             {
+                EvaluateAuthorization(ClassSecurity, RequestType.GetAll, AccessType.Read, null);
+
+                sw.Start();
+
                 object preRet;
                 if (RESTHeaderQuery == null)
                 {
@@ -147,7 +148,7 @@ namespace Nyan.Modules.Web.REST
             {
                 sw.Stop();
                 Current.Log.Add("GET " + typeof(T).FullName + " ERR (" + sw.ElapsedMilliseconds + " ms): " + e.Message, e);
-                throw;
+                return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e);
             }
         }
 
@@ -155,13 +156,15 @@ namespace Nyan.Modules.Web.REST
         [HttpGet]
         public virtual HttpResponseMessage WebApiGetNew()
         {
-            EvaluateAuthorization(ClassSecurity, RequestType.New, AccessType.Read, null);
 
             var sw = new Stopwatch();
-            sw.Start();
 
             try
             {
+                sw.Start();
+
+                EvaluateAuthorization(ClassSecurity, RequestType.New, AccessType.Read, null);
+
                 var preRet = (T)Activator.CreateInstance(typeof(T), new object[] { });
                 sw.Stop();
                 Current.Log.Add("NEW " + typeof(T).FullName + " OK (" + sw.ElapsedMilliseconds + " ms)");
@@ -171,9 +174,8 @@ namespace Nyan.Modules.Web.REST
             catch (Exception e)
             {
                 sw.Stop();
-                Current.Log.Add("NEW " + typeof(T).FullName + " ERR (" + sw.ElapsedMilliseconds + " ms): " + e.Message,
-                    e);
-                throw;
+                Current.Log.Add("NEW " + typeof(T).FullName + " ERR (" + sw.ElapsedMilliseconds + " ms): " + e.Message, e);
+                return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e);
             }
         }
 
@@ -181,13 +183,15 @@ namespace Nyan.Modules.Web.REST
         [HttpGet]
         public virtual HttpResponseMessage WebApiGet(string id)
         {
-            EvaluateAuthorization(ClassSecurity, RequestType.Get, AccessType.Read, id);
 
             var sw = new Stopwatch();
-            sw.Start();
 
             try
             {
+                sw.Start();
+
+                EvaluateAuthorization(ClassSecurity, RequestType.Get, AccessType.Read, id);
+
                 var preRet = MicroEntity<T>.Get(id);
                 if (preRet == null) throw new HttpResponseException(HttpStatusCode.NotFound);
 
@@ -201,10 +205,8 @@ namespace Nyan.Modules.Web.REST
             catch (Exception e)
             {
                 sw.Stop();
-                Current.Log.Add(
-                    "GET " + id + " " + typeof(T).FullName + ":" + id + " ERR (" + sw.ElapsedMilliseconds + " ms): " +
-                    e.Message, e);
-                throw;
+                Current.Log.Add("GET " + id + " " + typeof(T).FullName + ":" + id + " ERR (" + sw.ElapsedMilliseconds + " ms): " + e.Message, e);
+                return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e);
             }
         }
 
@@ -212,15 +214,17 @@ namespace Nyan.Modules.Web.REST
         [HttpPost]
         public virtual HttpResponseMessage WebApiPost(T item)
         {
-            EvaluateAuthorization(ClassSecurity, RequestType.Post, AccessType.Write, null, item);
 
             var sw = new Stopwatch();
-            sw.Start();
 
-            TryAgentImprinting(ref item);
 
             try
             {
+                sw.Start();
+
+                EvaluateAuthorization(ClassSecurity, RequestType.Post, AccessType.Write, null, item);
+                TryAgentImprinting(ref item);
+
                 if (MicroEntity<T>.TableData.IsReadOnly)
                     throw new HttpResponseException(HttpStatusCode.MethodNotAllowed);
 
@@ -236,9 +240,8 @@ namespace Nyan.Modules.Web.REST
             catch (Exception e)
             {
                 sw.Stop();
-                Current.Log.Add(
-                    "POST " + typeof(T).FullName + " ERR (" + sw.ElapsedMilliseconds + " ms): " + e.Message, e);
-                throw;
+                Current.Log.Add("POST " + typeof(T).FullName + " ERR (" + sw.ElapsedMilliseconds + " ms): " + e.Message, e);
+                return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e);
             }
         }
 
@@ -269,68 +272,77 @@ namespace Nyan.Modules.Web.REST
         [HttpPut]
         public virtual HttpResponseMessage WebApiPut(string id, T item)
         {
-
-            TryAgentImprinting(ref item);
+            var sw = new Stopwatch();
 
             if (MicroEntity<T>.TableData.IsReadOnly)
-            {
                 return Request.CreateErrorResponse(HttpStatusCode.MethodNotAllowed, "This entity is market as read-only.");
-            }
-
-            EvaluateAuthorization(ClassSecurity, RequestType.Put, AccessType.Write, id, item);
-
-            HttpResponseMessage ret;
 
             try
             {
+                sw.Start();
+
+                EvaluateAuthorization(ClassSecurity, RequestType.Put, AccessType.Write, id, item);
+
+                TryAgentImprinting(ref item);
+
                 var isNew = (item.GetEntityIdentifier() == null);
-                ret = Request.CreateResponse(isNew ? HttpStatusCode.Created : HttpStatusCode.OK);
 
                 if (MicroEntity<T>.TableData.AuditChange)
                     AuditRequest("CHANGE", typeof(T).FullName + ":" + item.GetEntityIdentifier(), item.ToJson());
-            }
-            catch (Exception ex)
-            {
-                ret = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, ex);
-            }
 
-            return ret;
+                return Request.CreateResponse(isNew ? HttpStatusCode.Created : HttpStatusCode.OK);
+
+            }
+            catch (Exception e)
+            {
+                Current.Log.Add("PUT " + typeof(T).FullName + ":" + item.GetEntityIdentifier() + " ERR (" + sw.ElapsedMilliseconds + " ms): " + e.Message, e);
+                return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e);
+            }
         }
 
         [HttpDelete]
         [Route("{id}")]
         public virtual HttpResponseMessage WebApiDelete(string id)
         {
+            var sw = new Stopwatch();
+
             if (MicroEntity<T>.TableData.IsReadOnly)
+                return Request.CreateErrorResponse(HttpStatusCode.MethodNotAllowed, "This entity is market as read-only.");
+
+            T probe = null;
+
+            try
             {
-                return Request.CreateErrorResponse(HttpStatusCode.MethodNotAllowed,
-                    "This entity is market as read-only.");
-            }
-
-            HttpResponseMessage ret;
-
-            var probe = MicroEntity<T>.Get(id);
-
-            EvaluateAuthorization(ClassSecurity, RequestType.Delete, AccessType.Remove, id, probe);
-
-            if (probe == null)
-                ret = Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Entity was found for ID " + id);
-            else
-            {
-                var sw = new Stopwatch();
                 sw.Start();
-                MicroEntity<T>.Remove(id);
-                sw.Stop();
-                Current.Log.Add("DEL " + typeof(T).FullName + ":" + id + " OK (" + sw.ElapsedMilliseconds + " ms)");
 
+                probe = MicroEntity<T>.Get(id);
 
-                if (MicroEntity<T>.TableData.AuditChange)
-                    AuditRequest("REMOVAL", typeof(T).FullName + ":" + id, probe.ToJson());
+                EvaluateAuthorization(ClassSecurity, RequestType.Delete, AccessType.Remove, id, probe);
 
-                ret = Request.CreateResponse(HttpStatusCode.NoContent, "Entity removed successfully.");
+                if (probe == null)
+                {
+                    sw.Stop();
+                    return Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Entity was found for ID " + id);
+                }
+                else
+                {
+                    sw.Start();
+                    MicroEntity<T>.Remove(id);
+                    sw.Stop();
+                    Current.Log.Add("DEL " + typeof(T).FullName + ":" + id + " OK (" + sw.ElapsedMilliseconds + " ms)");
+
+                    if (MicroEntity<T>.TableData.AuditChange)
+                        AuditRequest("REMOVAL", typeof(T).FullName + ":" + id, probe.ToJson());
+
+                    return Request.CreateResponse(HttpStatusCode.NoContent, "Entity removed successfully.");
+                }
+
             }
-
-            return ret;
+            catch (Exception e)
+            {
+                Current.Log.Add("DEL " + typeof(T).FullName + ":" + probe.GetEntityIdentifier() + " ERR (" + sw.ElapsedMilliseconds + " ms): " + e.Message, e);
+                return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e);
+            }
         }
 
         [Route("{id}/{entityReference:alpha}")]
