@@ -77,7 +77,7 @@ namespace Nyan.Tools.LogMonitor
 
                     a.SubItems.Add(oMessage.Type.ToString());
                     a.SubItems.Add(oMessage.TraceInfo.BaseAssembly);
-                    a.SubItems.Add(oMessage.CreationTime.ToString());
+                    a.SubItems.Add(oMessage.CreationTime.ToString("yyyyMMdd:HHmmss.fff"));
                     a.SubItems.Add(oMessage.Content);
 
                     for (var i = 0; i < a.SubItems.Count; i++)
