@@ -11,7 +11,12 @@ namespace Nyan.Samples.REST
         protected void Application_Start(object sender, EventArgs e)
         {
             GlobalConfiguration.Configure(Nyan.Modules.Web.REST.Initialization.Register);
-            Nyan.Core.Settings.Current.Log.Add("Start!");
+
+            foreach (var item in Nyan.Modules.Web.REST.CustomDirectRouteProvider.Routes)
+            {
+                Core.Settings.Current.Log.Add("           " + item.ToString(), Core.Modules.Log.Message.EContentType.StartupSequence);
+            }
+
         }
 
         public void Application_End()
