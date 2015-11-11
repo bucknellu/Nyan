@@ -1,56 +1,57 @@
-﻿using Nyan.Core.Extensions;
-using System;
+﻿using System;
 using System.Reflection;
 using System.Web;
 using System.Web.Http;
+using Nyan.Core.Extensions;
+using Nyan.Core.Modules.Log;
+using Nyan.Core.Settings;
+using Nyan.Modules.Web.REST;
 
 namespace Nyan.Samples.REST
 {
-    public class Global : System.Web.HttpApplication
+    public class Global : HttpApplication
     {
         protected void Application_Start(object sender, EventArgs e)
         {
-            GlobalConfiguration.Configure(Nyan.Modules.Web.REST.Initialization.Register);
+            GlobalConfiguration.Configure(Initialization.Register);
 
-            foreach (var item in Nyan.Modules.Web.REST.CustomDirectRouteProvider.Routes)
+            foreach (var item in CustomDirectRouteProvider.Routes)
             {
-                Core.Settings.Current.Log.Add("           " + item.ToString(), Core.Modules.Log.Message.EContentType.StartupSequence);
+                Current.Log.Add("           " + item, Message.EContentType.Info);
             }
-
         }
 
         public void Application_End()
         {
-
-            HttpRuntime runtime = (HttpRuntime)typeof(System.Web.HttpRuntime).InvokeMember("_theRuntime",
-                                                                                            BindingFlags.NonPublic
-                                                                                            | BindingFlags.Static
-                                                                                            | BindingFlags.GetField,
-                                                                                            null,
-                                                                                            null,
-                                                                                            null);
+            var runtime = (HttpRuntime) typeof (HttpRuntime).InvokeMember("_theRuntime",
+                BindingFlags.NonPublic
+                | BindingFlags.Static
+                | BindingFlags.GetField,
+                null,
+                null,
+                null);
 
             if (runtime == null)
                 return;
 
-            string shutDownMessage = (string)runtime.GetType().InvokeMember("_shutDownMessage",
-                                                                             BindingFlags.NonPublic
-                                                                             | BindingFlags.Instance
-                                                                             | BindingFlags.GetField,
-                                                                             null,
-                                                                             runtime,
-                                                                             null);
+            var shutDownMessage = (string) runtime.GetType().InvokeMember("_shutDownMessage",
+                BindingFlags.NonPublic
+                | BindingFlags.Instance
+                | BindingFlags.GetField,
+                null,
+                runtime,
+                null);
 
-            string shutDownStack = (string)runtime.GetType().InvokeMember("_shutDownStack",
-                                                                           BindingFlags.NonPublic
-                                                                           | BindingFlags.Instance
-                                                                           | BindingFlags.GetField,
-                                                                           null,
-                                                                           runtime,
-                                                                           null);
+            var shutDownStack = (string) runtime.GetType().InvokeMember("_shutDownStack",
+                BindingFlags.NonPublic
+                | BindingFlags.Instance
+                | BindingFlags.GetField,
+                null,
+                runtime,
+                null);
 
 
-            Nyan.Core.Settings.Current.Log.Add("Shutting down: {0} : {1}".format(shutDownMessage, shutDownStack));
+            Current.Log.Add("Shutting down: {0} : {1}".format(shutDownMessage, shutDownStack));
         }
     }
 }
