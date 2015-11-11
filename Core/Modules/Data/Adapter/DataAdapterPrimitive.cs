@@ -55,12 +55,12 @@ namespace Nyan.Core.Modules.Data.Adapter
             var refTableName = tableData.TablePrefix + tableData.TableName;
 
             statements.SqlGetAll = sqlTemplateGetAll.format(refTableName);
-            statements.SqlGetSingle = sqlTemplateGetSingle.format(refTableName, statements.IdPropertyRaw, ParameterIdentifier);
-            statements.SqlRemoveSingleParametrized = sqlTemplateRemoveSingleParametrized.format(refTableName, statements.IdPropertyRaw, ParameterIdentifier);
+            statements.SqlGetSingle = sqlTemplateGetSingle.format(refTableName, statements.IdColumn, ParameterIdentifier);
+            statements.SqlRemoveSingleParametrized = sqlTemplateRemoveSingleParametrized.format(refTableName, statements.IdColumn, ParameterIdentifier);
             statements.SqlAllFieldsQueryTemplate = sqlTemplateAllFieldsQuery.format(refTableName, "{0}");
             statements.SqlCustomSelectQueryTemplate = sqlTemplateCustomSelectQuery.format("{0}", "{1}", refTableName);
             statements.SqlInsertSingle = sqlTemplateInsertSingle.format(refTableName, "{0}", "{1}");
-            statements.SqlInsertSingleWithReturn = sqlTemplateInsertSingleWithReturn.format(refTableName, "{0}", "{1}", statements.IdPropertyRaw);
+            statements.SqlInsertSingleWithReturn = sqlTemplateInsertSingleWithReturn.format(refTableName, "{0}", "{1}", statements.IdColumn);
             statements.SqlUpdateSingle = sqlTemplateUpdateSingle.format(refTableName, "{0}", "{1}", "{2}");
             statements.SqlRemoveSingleParametrized = sqlTemplateRemoveSingleParametrized.format(refTableName, "{0}", "{1}");
             statements.SqlTruncateTable = sqlTemplateTableTruncate.format(refTableName);
