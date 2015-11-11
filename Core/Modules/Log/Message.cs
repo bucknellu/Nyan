@@ -20,7 +20,9 @@ namespace Nyan.Core.Modules.Log
             Warning,
             Exception,
             Maintenance,
-            StartupSequence
+            StartupSequence,
+            Info,
+            MoreInfo
         }
 
         #endregion
