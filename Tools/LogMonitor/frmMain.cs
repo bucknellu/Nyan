@@ -48,6 +48,8 @@ namespace Nyan.Tools.LogMonitor
             colorDictionary.Add(Message.EContentType.Exception, Color.Red);
             colorDictionary.Add(Message.EContentType.Maintenance, Color.DeepSkyBlue);
             colorDictionary.Add(Message.EContentType.StartupSequence, Color.Yellow);
+            colorDictionary.Add(Message.EContentType.Info, Color.MediumSlateBlue);
+            colorDictionary.Add(Message.EContentType.MoreInfo, Color.DarkSlateBlue);
         }
 
         private delegate void AddItemCallback(object o);
