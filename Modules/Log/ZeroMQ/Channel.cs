@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Win32.SafeHandles;
@@ -20,11 +21,18 @@ namespace Nyan.Modules.Log.ZeroMQ
 
 
         private readonly PublisherSocket _publisherSocket;
+        private readonly NetMQContext _mqContext;
         private readonly CancellationTokenSource _tokenSource = new CancellationTokenSource();
         private readonly string _topic;
         private readonly SafeHandle _handle = new SafeFileHandle(IntPtr.Zero, true);
         private bool _disposed;
 
+        public void Terminate()
+        {
+            _publisherSocket.Close();
+            _publisherSocket.Dispose();
+            _mqContext.Terminate();
+        }
 
         public Channel(string topic = "", bool canSend = true, bool canReceive = false, string address = null)
         {
@@ -43,15 +51,14 @@ namespace Nyan.Modules.Log.ZeroMQ
 
             if (_canSend)
             {
-                var mqContext = NetMQContext.Create();
+                _mqContext = NetMQContext.Create();
+                _publisherSocket = _mqContext.CreatePublisherSocket();
 
-                _publisherSocket = mqContext.CreatePublisherSocket();
 
                 if (Protocol == "tcp")
                 {
                     _publisherSocket.Connect(_address);
                 }
-
 
                 if (Protocol == "pgm") //Multicast
                 {
