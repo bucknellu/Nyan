@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Headers;
+﻿using System;
+using System.Net.Http.Headers;
 using System.Web.Http;
 using Nyan.Core.Modules.Log;
 using Nyan.Core.Settings;
@@ -24,5 +25,6 @@ namespace Nyan.Modules.Web.REST
 
             Current.Log.Add("WebApi REST       : Routes registered.", Message.EContentType.StartupSequence);
         }
+
     }
 }
