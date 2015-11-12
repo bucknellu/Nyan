@@ -10,7 +10,8 @@ namespace Nyan.Tools.LogMonitor
     {
         private static frmMain _frmMain;
 
-        private static readonly ZeroMqLogProvider MultiCastLog = new ZeroMqLogProvider("pgm://239.255.42.99:5558");
+        //Multicast test
+        //private static readonly ZeroMqLogProvider MultiCastLog = new ZeroMqLogProvider("pgm://239.255.42.99:5558");
 
         /// <summary>
         /// The main entry point for the application.
@@ -23,8 +24,8 @@ namespace Nyan.Tools.LogMonitor
 
             _frmMain = new frmMain();
 
-            MultiCastLog.MessageArrived += Log_MessageArrived;
-            MultiCastLog.StartListening();
+            //MultiCastLog.MessageArrived += Log_MessageArrived;
+            //MultiCastLog.StartListening();
 
             Current.Log.MessageArrived += Log_MessageArrived;
             Current.Log.StartListening();
