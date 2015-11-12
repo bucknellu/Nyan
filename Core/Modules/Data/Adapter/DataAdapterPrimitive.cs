@@ -12,8 +12,9 @@ namespace Nyan.Core.Modules.Data.Adapter
 {
     public abstract class DataAdapterPrimitive
     {
-
         // ReSharper disable InconsistentNaming
+        protected internal DynamicParametersPrimitive ParameterSourceType;
+        protected internal Type dynamicParameterType = null;
         protected internal string parameterIdentifier = "#";
         protected internal string sqlTemplateAllFieldsQuery = "SELECT * FROM {0} WHERE ({1})";
         protected internal string sqlTemplateCustomSelectQuery = "SELECT {0} FROM {2} WHERE ({1})";
@@ -21,17 +22,14 @@ namespace Nyan.Core.Modules.Data.Adapter
         protected internal string sqlTemplateGetSingle = "SELECT * FROM {0} WHERE {1} = {2}Id";
         protected internal string sqlTemplateInsertSingle = "INSERT INTO {0} ({1}) VALUES ({2})";
         protected internal string sqlTemplateInsertSingleWithReturn = "INSERT INTO {0} ({1}) VALUES ({2}); select last_insert_rowid() as newid";
-        protected internal string sqlTemplateReturnNewIdentifier = "select last_insert_rowid() as newid";
         protected internal string sqlTemplateRemoveSingleParametrized = "DELETE FROM {0} WHERE {1} = {2}Id";
+        protected internal string sqlTemplateReturnNewIdentifier = "select last_insert_rowid() as newid";
         protected internal string sqlTemplateTableTruncate = "TRUNCATE TABLE {0}";
         protected internal string sqlTemplateUpdateSingle = "UPDATE {0} SET {1} WHERE {2} = {3}";
 
-        protected internal Type dynamicParameterType = null;
-        protected internal DynamicParametersPrimitive ParameterSourceType;
-
-        protected internal bool useOutputParameterForInsertedKeyExtraction = false;
         protected internal bool useIndependentStatementsForKeyExtraction = false;
         protected internal bool useNumericPrimaryKeyOnly = false;
+        protected internal bool useOutputParameterForInsertedKeyExtraction = false;
 
         // ReSharper restore InconsistentNaming
 
@@ -128,20 +126,31 @@ namespace Nyan.Core.Modules.Data.Adapter
 
             try
             {
-                var tmpConn = Current.Encryption.Decrypt(statements.ConnectionString);
-                statements.ConnectionString = tmpConn;
+                // If it fails to decrypt, no biggie; It may be plain-text. ignore and continue.
+                statements.ConnectionString = Current.Encryption.Decrypt(statements.ConnectionString);
             }
             catch { }
 
             if (statements.ConnectionString == "")
-                throw new ArgumentNullException(@"Connection Cypher Key not set for " + typeof(T).FullName +
-                                                ". Check class definition/configuration files.");
+                throw new ArgumentNullException(@"Connection Cypher Key not set for " + typeof(T).FullName + ". Check class definition/configuration files.");
+
+            if (!statements.CredentialCypherKeys.ContainsKey(envCode)) return;
+
+            var creds = statements.CredentialCypherKeys[envCode];
+
+            try
+            {
+                // If it fails to decrypt, no biggie; It may be plain-text. ignore and continue.
+                creds = Current.Encryption.Decrypt(creds);
+            }
+            catch { }
+
+            statements.ConnectionString = statements.ConnectionString.format(creds);
         }
 
         public abstract void RenderSchemaEntityNames<T>() where T : MicroEntity<T>;
 
-        public virtual void ClearPools()
-        { }
+        public virtual void ClearPools() { }
 
         public abstract DbConnection Connection(string connectionString);
 

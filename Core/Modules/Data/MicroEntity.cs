@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Dapper;
 using Nyan.Core.Extensions;
+using Nyan.Core.Factories;
 using Nyan.Core.Modules.Cache;
 using Nyan.Core.Modules.Data.Adapter;
 using Nyan.Core.Modules.Data.Connection;
@@ -43,10 +44,7 @@ namespace Nyan.Core.Modules.Data
         // ReSharper disable once StaticFieldInGenericType
         private static string _typeName;
 
-        public static T Get(long identifier)
-        {
-            return Get(identifier.ToString(CultureInfo.InvariantCulture));
-        }
+        public static T Get(long identifier) { return Get(identifier.ToString(CultureInfo.InvariantCulture)); }
 
         public static string GetTypeName()
         {
@@ -56,10 +54,7 @@ namespace Nyan.Core.Modules.Data
             return _typeName;
         }
 
-        private static void LogLocal(string pMessage, Message.EContentType pType = Message.EContentType.Generic)
-        {
-            Current.Log.Add(typeof(T).FullName + " : " + pMessage, pType);
-        }
+        private static void LogLocal(string pMessage, Message.EContentType pType = Message.EContentType.Generic) { Current.Log.Add(typeof(T).FullName + " : " + pMessage, pType); }
 
         /// <summary>
         ///     Gets an object instance of T, using the identifier to search the Primary Key.
@@ -229,14 +224,8 @@ namespace Nyan.Core.Modules.Data
             switch (nodeType)
             {
                 case ExpressionType.AndAlso:
-                    foreach (var leftSide in (IEnumerable<IOperator>)leftValue)
-                    {
-                        yield return leftSide;
-                    }
-                    foreach (var rightSide in (IEnumerable<IOperator>)rightValue)
-                    {
-                        yield return rightSide;
-                    }
+                    foreach (var leftSide in (IEnumerable<IOperator>)leftValue) { yield return leftSide; }
+                    foreach (var rightSide in (IEnumerable<IOperator>)rightValue) { yield return rightSide; }
                     break;
                 case ExpressionType.GreaterThan:
                     yield return new SqlGreaterThan { FieldName = leftValue.ToString(), FieldValue = rightValue };
@@ -252,27 +241,15 @@ namespace Nyan.Core.Modules.Data
                     break;
                 // TODO: Discuss later.
                 /* case ExpressionType.OrElse:
-                yield return new Or { OperadoresInternos = new List<IOperator> { ((IEnumerable<IOperator>)leftValue).First(), ((IEnumerable<IOperator>)rightValue).First() } };
-                break; */
+yield return new Or { OperadoresInternos = new List<IOperator> { ((IEnumerable<IOperator>)leftValue).First(), ((IEnumerable<IOperator>)rightValue).First() } };
+break; */
                 case ExpressionType.NotEqual:
-                    if (rightValue != null)
-                    {
-                        yield return new SqlNotEqual { FieldName = leftValue.ToString(), FieldValue = rightValue };
-                    }
-                    else
-                    {
-                        yield return new SqlNotNull { FieldName = leftValue.ToString() };
-                    }
+                    if (rightValue != null) { yield return new SqlNotEqual { FieldName = leftValue.ToString(), FieldValue = rightValue }; }
+                    else { yield return new SqlNotNull { FieldName = leftValue.ToString() }; }
                     break;
                 default:
-                    if (rightValue != null)
-                    {
-                        yield return new SqlEqual { FieldName = leftValue.ToString(), FieldValue = rightValue };
-                    }
-                    else
-                    {
-                        yield return new SqlNull { FieldName = leftValue.ToString() };
-                    }
+                    if (rightValue != null) { yield return new SqlEqual { FieldName = leftValue.ToString(), FieldValue = rightValue }; }
+                    else { yield return new SqlNull { FieldName = leftValue.ToString() }; }
                     break;
             }
         }
@@ -284,8 +261,7 @@ namespace Nyan.Core.Modules.Data
         public static IEnumerable<T> Get()
         {
             if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
-                throw new InvalidDataException("Class is not operational: {0}, {1}".format(
-                    Statements.Status.ToString(), Statements.StatusDescription));
+                throw new InvalidDataException("Class is not operational: {0}, {1}".format(Statements.Status.ToString(), Statements.StatusDescription));
 
             //GetAll should never use cache, always hitting the DB.
             var ret = Query(Statements.SqlGetAll);
@@ -299,10 +275,7 @@ namespace Nyan.Core.Modules.Data
             return ret;
         }
 
-        public static void Remove(long identifier)
-        {
-            Remove(identifier.ToString(CultureInfo.InvariantCulture));
-        }
+        public static void Remove(long identifier) { Remove(identifier.ToString(CultureInfo.InvariantCulture)); }
 
         public static void RemoveAll()
         {
@@ -334,10 +307,7 @@ namespace Nyan.Core.Modules.Data
                 obj.Insert();
         }
 
-        public static void Update(List<T> objs)
-        {
-            Save(objs);
-        }
+        public static void Update(List<T> objs) { Save(objs); }
 
         public static void Save(List<T> objs)
         {
@@ -382,20 +352,11 @@ namespace Nyan.Core.Modules.Data
             return set;
         }
 
-        public static DynamicParametersPrimitive GetNewDynamicParameterBag()
-        {
-            return Statements.Adapter.Parameters<T>(null);
-        }
+        public static DynamicParametersPrimitive GetNewDynamicParameterBag() { return Statements.Adapter.Parameters<T>(null); }
 
-        public static bool IsCached(long identifier)
-        {
-            return IsCached(identifier.ToString(CultureInfo.InvariantCulture));
-        }
+        public static bool IsCached(long identifier) { return IsCached(identifier.ToString(CultureInfo.InvariantCulture)); }
 
-        public static bool IsCached(string identifier)
-        {
-            return TableData.UseCaching && Current.Cache.Contains(CacheKey(identifier));
-        }
+        public static bool IsCached(string identifier) { return TableData.UseCaching && Current.Cache.Contains(CacheKey(identifier)); }
 
         #endregion
 
@@ -469,10 +430,7 @@ namespace Nyan.Core.Modules.Data
             return ret;
         }
 
-        public string SaveAndGetId()
-        {
-            return SaveAndGetId(this);
-        }
+        public string SaveAndGetId() { return SaveAndGetId(this); }
 
         public string SaveAndGetId(object obj)
         {
@@ -516,8 +474,7 @@ namespace Nyan.Core.Modules.Data
         public static List<IDictionary<string, object>> QueryObject(string sqlStatement)
         {
             if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
-                throw new InvalidOperationException(typeof(T).FullName + " - state is not operational: " +
-                                                    Statements.StatusDescription);
+                throw new InvalidOperationException(typeof(T).FullName + " - state is not operational: " + Statements.StatusDescription);
 
             using (var conn = Statements.Adapter.Connection(Statements.ConnectionString))
             {
@@ -537,8 +494,7 @@ namespace Nyan.Core.Modules.Data
         public static List<List<Dictionary<string, object>>> QueryMultiple(string sqlStatement, object sqlParameters = null, CommandType pCommandType = CommandType.Text)
         {
             if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
-                throw new InvalidOperationException(typeof(T).FullName + " - state is not operational: " +
-                                                    Statements.StatusDescription);
+                throw new InvalidOperationException(typeof(T).FullName + " - state is not operational: " + Statements.StatusDescription);
 
             var cDebug = "";
 
@@ -552,7 +508,6 @@ namespace Nyan.Core.Modules.Data
                     var res = new List<List<Dictionary<string, object>>>();
                     using (var m = conn.QueryMultiple(sqlStatement, sqlParameters, null, null, pCommandType))
                     {
-
                         while (!m.IsConsumed)
                         {
                             var probe = m.Read<object>();
@@ -571,30 +526,25 @@ namespace Nyan.Core.Modules.Data
             }
             catch (Exception e)
             {
-                Current.Log.Add(e,
-                    GetTypeName() +
-                    ": Entity/Dapper Query: Error while issuing statements to the database. Statement: [" + sqlStatement +
-                    "]. Database: " + cDebug);
+                Current.Log.Add(e, GetTypeName() + ": Entity/Dapper Query: Error while issuing statements to the database. Statement: [" + sqlStatement + "]. Database: " + cDebug);
                 throw new DataException(
                     GetTypeName() +
-                    "Entity/Dapper Query: Error while issuing statements to the database. Error:  [" + e.Message + "].",
-                    e);
+                    "Entity/Dapper Query: Error while issuing statements to the database. Error:  [" + e.Message + "].", e);
             }
         }
 
         public static List<T> Query(string sqlStatement, object sqlParameters = null, CommandType pCommandType = CommandType.Text)
         {
             if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
-                throw new InvalidOperationException(typeof(T).FullName + " - state is not operational: " +
-                                                    Statements.StatusDescription);
+                throw new InvalidOperationException(typeof(T).FullName + " - state is not operational: " + Statements.StatusDescription);
 
-            var cDebug = "";
+            var dbConn = "";
 
             try
             {
                 using (var conn = Statements.Adapter.Connection(Statements.ConnectionString))
                 {
-                    cDebug = conn.DataSource;
+                    dbConn = conn.DataSource;
                     conn.Open();
 
                     var o =
@@ -610,14 +560,19 @@ namespace Nyan.Core.Modules.Data
             }
             catch (Exception e)
             {
-                Current.Log.Add(e,
-                    GetTypeName() +
-                    ": Entity/Dapper Query: Error while issuing statements to the database. Statement: [" + sqlStatement +
-                    "]. Database: " + cDebug);
-                throw new DataException(
-                    GetTypeName() +
-                    "Entity/Dapper Query: Error while issuing statements to the database. Error:  [" + e.Message + "].",
-                    e);
+                var sguid = Identifier.ShortGuid();
+
+                sqlStatement = sqlStatement.Replace(Environment.NewLine, " ").Replace("\t", " ").Trim();
+
+                while (sqlStatement.IndexOf("  ", StringComparison.Ordinal) != -1)
+                {
+                    sqlStatement = sqlStatement.Replace("  ", " ");
+                }
+
+                Current.Log.Add(sguid + " Qy [" + sqlStatement + "]", Message.EContentType.Warning);
+                Current.Log.Add(sguid + " DB [" + dbConn + "]", Message.EContentType.Warning);
+                Current.Log.Add(sguid + " EX [" + e.Message + "]", Message.EContentType.Warning);
+                throw new DataException(GetTypeName() + "Entity/Dapper Query: Error while issuing statements to the database. Error:  [" + e.Message + "].", e);
             }
         }
 
@@ -635,11 +590,9 @@ namespace Nyan.Core.Modules.Data
             }
             catch (Exception e)
             {
-                throw new DataException(
-                    "Entity/Dapper Execute: Error while issuing statements to the database. " +
-                    "Error: [" + e.Message + "]." +
-                    "Statement: [" + sqlStatement + "]. "
-                    , e);
+                throw new DataException("Entity/Dapper Execute: Error while issuing statements to the database. " +
+                                        "Error: [" + e.Message + "]." +
+                                        "Statement: [" + sqlStatement + "]. ", e);
             }
         }
 
@@ -669,16 +622,12 @@ namespace Nyan.Core.Modules.Data
             }
         }
 
-        public static List<TU> Query<TU>(string sqlStatement)
-        {
-            return Query<TU>(sqlStatement, null);
-        }
+        public static List<TU> Query<TU>(string sqlStatement) { return Query<TU>(sqlStatement, null); }
 
         public static List<TU> Query<TU>(string sqlStatement, object sqlParameters = null, CommandType pCommandType = CommandType.Text)
         {
             if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
-                throw new InvalidOperationException(typeof(T).FullName + " - state is not operational: " +
-                                                    Statements.StatusDescription);
+                throw new InvalidOperationException(typeof(T).FullName + " - state is not operational: " + Statements.StatusDescription);
 
             try
             {
@@ -721,10 +670,7 @@ namespace Nyan.Core.Modules.Data
 
                     foreach (var name in a)
                     {
-                        try
-                        {
-                            result[name] = p.Get<dynamic>(name);
-                        }
+                        try { result[name] = p.Get<dynamic>(name); }
                         catch
                         {
                             result[name] = null;
@@ -781,7 +727,6 @@ namespace Nyan.Core.Modules.Data
 
                             return ret;
                         }
-
                     }
 
 
@@ -836,6 +781,7 @@ namespace Nyan.Core.Modules.Data
                          select new KeyValuePair<string, string>(pInfo.Name, fieldName))
                             .ToDictionary(x => x.Key, x => x.Value);
 
+                    Statements.CredentialCypherKeys = TableData.CredentialCypherKeys;
 
                     //First, probe for a valid Connection bundle
                     if (refBundle != null)
@@ -851,6 +797,11 @@ namespace Nyan.Core.Modules.Data
 
                         Statements.Adapter = (DataAdapterPrimitive)Activator.CreateInstance(refType.AdapterType);
                         Statements.ConnectionCypherKeys = refType.ConnectionCypherKeys;
+
+                        if (Statements.CredentialCypherKeys.Count == 0)
+                            if (refType.ConnectionCypherKeys != null)
+                                Statements.CredentialCypherKeys = refType.ConnectionCypherKeys;
+
                     }
                     else
                     {
@@ -871,9 +822,7 @@ namespace Nyan.Core.Modules.Data
 
                     if (identifierColumnName != null)
                     {
-                        var mapEntry =
-                            Statements.PropertyFieldMap.FirstOrDefault(
-                                p => p.Value.ToLower().Equals(identifierColumnName.ToLower()));
+                        var mapEntry = Statements.PropertyFieldMap.FirstOrDefault(p => p.Value.ToLower().Equals(identifierColumnName.ToLower()));
 
                         Statements.IdProperty = Statements.Adapter.ParameterIdentifier + mapEntry.Key;
                         Statements.IdPropertyRaw = mapEntry.Key;
@@ -886,7 +835,6 @@ namespace Nyan.Core.Modules.Data
                             LogLocal("Missing [Key] definition", Message.EContentType.Warning);
                             throw new ConfigurationErrorsException("Entity is missing a [Key] definition.");
                         }
-
                     }
 
                     Statements.StatusStep = "Preparing Schema entities";
@@ -922,8 +870,9 @@ namespace Nyan.Core.Modules.Data
 
                             Statements.StatusStep = "Connecting to " + prb;
                         }
-                        catch { }
-
+                        catch
+                        {
+                        }
 
                         //Test Connectivity
 
@@ -1001,7 +950,9 @@ namespace Nyan.Core.Modules.Data
                     .Invoke(null, null);
             }
             // ReSharper disable once EmptyGeneralCatchClause
-            catch { }
+            catch
+            {
+            }
         }
 
         #endregion
@@ -1040,31 +991,18 @@ namespace Nyan.Core.Modules.Data
 
         #region Events
 
-        public virtual void OnSave(string newIdentifier)
-        {
-        }
+        public virtual void OnSave(string newIdentifier) { }
 
-        public virtual void OnRemove()
-        {
-        }
+        public virtual void OnRemove() { }
 
-        public virtual void OnInsert()
-        {
-        }
+        public virtual void OnInsert() { }
 
-        public static void OnSchemaInitialization()
-        {
-        }
+        public static void OnSchemaInitialization() { }
 
-        public static void OnEntityInitialization()
-        {
-        }
+        public static void OnEntityInitialization() { }
 
         #endregion
 
-        public bool IsReadOnly()
-        {
-            return TableData.IsReadOnly;
-        }
+        public bool IsReadOnly() { return TableData.IsReadOnly; }
     }
 }

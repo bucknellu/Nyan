@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Nyan.Core.Modules.Data
 {
@@ -31,6 +32,10 @@ namespace Nyan.Core.Modules.Data
         /// </summary>
         public Type ConnectionBundleType { get; set; }
 
+        /// <summary>
+        /// When set, specifies distinct encrypted username/passwords per environment.
+        /// </summary>
+        public Dictionary<string, string> CredentialCypherKeys = new Dictionary<string, string>();
         /// <summary>
         /// Force columns to be remapped to oracle dynamic parameters each time the record is saved. 
         /// This is useful for columns that are likely to be lengthy varchars (> 2000 characters long).
