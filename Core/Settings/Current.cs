@@ -33,12 +33,10 @@ namespace Nyan.Core.Settings
             Version = System.Reflection.Assembly.GetCallingAssembly().GetName().Version.ToString();
             Host = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
 
-
-
-            Log.Add(@"  |\_/|", Message.EContentType.Warning);
-            Log.Add(@" >(o.O)<    Nyan " + System.Reflection.Assembly.GetCallingAssembly().GetName().Version, Message.EContentType.Warning);
-            Log.Add(@"  (___)", Message.EContentType.Warning);
-            Log.Add(@"   U", Message.EContentType.Warning);
+            Log.Add(@"  |\_/|", Message.EContentType.Info);
+            Log.Add(@" >(o.O)<    Nyan " + System.Reflection.Assembly.GetCallingAssembly().GetName().Version, Message.EContentType.Info);
+            Log.Add(@"  (___)", Message.EContentType.Info);
+            Log.Add(@"   U", Message.EContentType.Info);
 
             Log.Add("Settings          : " + refObj.GetType(), Message.EContentType.StartupSequence);
             Log.Add("Cache             : " + (Cache == null ? "(none)" : Cache.ToString()), Message.EContentType.StartupSequence);
