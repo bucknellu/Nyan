@@ -52,6 +52,7 @@
     <Compile Include="Assembly\Management.cs" />
     <Compile Include="Diagnostics\TraceInfoContainer.cs" />
     <Compile Include="Extensions\Serialization.cs" />
+    <Compile Include="Factories\Identifier.cs" />
     <Compile Include="Modules\Identity\IIdentityProvider.cs" />
     <Compile Include="Modules\Identity\IAuthenticationProvider.cs" />
     <Compile Include="Modules\Identity\IAuthorizationProvider.cs" />
