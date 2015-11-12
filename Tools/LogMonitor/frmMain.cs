@@ -50,6 +50,7 @@ namespace Nyan.Tools.LogMonitor
             colorDictionary.Add(Message.EContentType.StartupSequence, Color.Yellow);
             colorDictionary.Add(Message.EContentType.Info, Color.MediumSlateBlue);
             colorDictionary.Add(Message.EContentType.MoreInfo, Color.DarkSlateBlue);
+            colorDictionary.Add(Message.EContentType.ShutdownSequence, Color.YellowGreen);
         }
 
         private delegate void AddItemCallback(object o);

@@ -22,7 +22,8 @@ namespace Nyan.Core.Modules.Log
             Maintenance,
             StartupSequence,
             Info,
-            MoreInfo
+            MoreInfo,
+            ShutdownSequence
         }
 
         #endregion
