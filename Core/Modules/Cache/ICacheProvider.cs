@@ -29,5 +29,6 @@ namespace Nyan.Core.Modules.Cache
         T GetSingleton<T>(string fullName = null);
 
         void Initialize();
+        void Shutdown();
     }
 }

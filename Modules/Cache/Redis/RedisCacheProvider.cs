@@ -41,6 +41,8 @@ namespace Nyan.Modules.Cache.Redis
             Connect();
         }
 
+        public void Shutdown() { }
+
         public void Connect()
         {
             try

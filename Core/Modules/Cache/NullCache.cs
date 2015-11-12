@@ -53,6 +53,8 @@ namespace Nyan.Core.Modules.Cache
             //Not necessary.
         }
 
+        public void Shutdown() {  }
+
         public void RemoveAll(string oSet = null)
         {
             throw new NotImplementedException();

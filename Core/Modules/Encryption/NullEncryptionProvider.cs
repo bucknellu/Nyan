@@ -17,5 +17,7 @@
             //Pass-through
             return pContent;
         }
+
+        public void Shutdown() {  }
     }
 }

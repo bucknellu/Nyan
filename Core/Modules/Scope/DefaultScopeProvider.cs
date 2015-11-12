@@ -22,6 +22,8 @@ namespace Nyan.Core.Modules.Scope
             throw new NotImplementedException();
         }
 
+        public void Shutdown() {  }
+
         public IScopeDescriptor Get(string serverName)
         {
             throw new NotImplementedException();

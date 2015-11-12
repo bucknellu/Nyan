@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Diagnostics;
 using Nyan.Core.Modules.Log;
+using Nyan.Core.Settings;
 
 namespace Nyan.Modules.Log.ZeroMQ
 {
     public class ZeroMqLogProvider : LogProvider
     {
         private Channel _in;
-        private string _targetAddress = "";
         private Channel _out;
+        private string _targetAddress = "";
 
         public ZeroMqLogProvider()
         {
@@ -17,16 +18,7 @@ namespace Nyan.Modules.Log.ZeroMQ
             Initialize("tcp://127.0.0.1:5002");
         }
 
-        ~ZeroMqLogProvider()
-        {
-            if (_in != null) _in.Dispose();
-            if (_out != null) _out.Dispose();
-        }
-
-        public ZeroMqLogProvider(string targetAddress)
-        {
-            Initialize(targetAddress);
-        }
+        public ZeroMqLogProvider(string targetAddress) { Initialize(targetAddress); }
 
         public override string Protocol
         {
@@ -36,6 +28,12 @@ namespace Nyan.Modules.Log.ZeroMQ
         public override string Uri
         {
             get { return (_out != null ? _out.Uri : (_in != null ? _in.Uri : null)); }
+        }
+
+        public override void Shutdown()
+        {
+            if (_in != null) _in.Terminate();
+            if (_out != null) _out.Terminate();
         }
 
         public override event Message.MessageArrivedHandler MessageArrived;
@@ -54,7 +52,7 @@ namespace Nyan.Modules.Log.ZeroMQ
                 Debug.WriteLine(content);
             }
 
-            var payload = new Message { Content = content, Subject = type.ToString(), Type = type };
+            var payload = new Message {Content = content, Subject = type.ToString(), Type = type};
 
             _out.Send(payload);
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Net.Sockets;
 using Nyan.Core.Extensions;
 
 namespace Nyan.Core.Modules.Log
@@ -7,6 +8,8 @@ namespace Nyan.Core.Modules.Log
     public abstract class LogProvider
     {
         public virtual event Message.MessageArrivedHandler MessageArrived;
+
+        public virtual void Shutdown() { }
 
         protected virtual void OnMessageArrived(Message message)
         {

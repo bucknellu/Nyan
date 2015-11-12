@@ -65,6 +65,8 @@ namespace Nyan.Modules.Cache.Memory
             //Not really necessary for memory cache.
         }
 
+        public void Shutdown() { }
+
         public void Remove(string key, string oSet = null)
         {
             lock (OLock) { _cache.Remove(key); }

@@ -8,6 +8,7 @@ namespace Nyan.Core.Modules.Scope
         string CurrentCode { get; }
         string Probe { get; }
         void ResetToDefault();
+        void Shutdown();
         IScopeDescriptor Get(string serverName);
         event EventHandler EnvironmentChanged;
     }

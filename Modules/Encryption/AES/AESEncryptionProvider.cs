@@ -22,8 +22,8 @@ namespace Nyan.Modules.Encryption.AES
         public AesEncryptionProvider()
         {
             _rjkey = "NyAn1DaTa2SeRvIcE3StAcK*#^$&%^#@";
-                // I know. Default key and vector for encryption, right? This is just a demo, though.
-            _rjiv = "NyAn-nYaN-NyAn-!"; 
+            // I know. Default key and vector for encryption, right? This is just a demo, though.
+            _rjiv = "NyAn-nYaN-NyAn-!";
             //This class should be properly instanced via the constructor below:
         }
 
@@ -86,6 +86,8 @@ namespace Nyan.Modules.Encryption.AES
                 return ret;
             }
         }
+
+        public void Shutdown() { }
 
         private void InitSettings()
         {
