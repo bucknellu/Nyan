@@ -8,7 +8,7 @@ namespace Nyan.Modules.Web.REST
 {
     public class CustomDirectRouteProvider : DefaultDirectRouteProvider
     {
-        public static readonly List<RouteInfo> Routes = new List<RouteInfo>();
+        public static readonly Dictionary<string , RouteInfo> Routes = new Dictionary<string, RouteInfo>();
 
         protected override IReadOnlyList<IDirectRouteFactory> GetActionRouteFactories(
             HttpActionDescriptor actionDescriptor)
@@ -34,12 +34,20 @@ namespace Nyan.Modules.Web.REST
                 foreach (var attrib in attribs.Where(attrib => attrib.AttributeType == typeof(RoutePrefixAttribute)))
                     routeprefix = attrib.ConstructorArguments[0].Value.ToString();
 
-                Routes.Add(new RouteInfo
+                var key = routeprefix + "/" + subRoute;
+
+                if (!Routes.ContainsKey(key))
                 {
-                    Class = actionDescriptor.ControllerDescriptor.ControllerType.FullName,
-                    Route = routeprefix + "/" + subRoute,
-                    Method = method
-                });
+                    Routes.Add(key, new RouteInfo
+                    {
+                        Class = actionDescriptor.ControllerDescriptor.ControllerType.FullName,
+                        Method = method
+                    });
+                }
+                else
+                {
+                    Routes[key].Method += " " + method;
+                }
             }
 
             return ret;
@@ -49,12 +57,6 @@ namespace Nyan.Modules.Web.REST
         {
             public string Class;
             public string Method;
-            public string Route;
-
-            public override string ToString()
-            {
-                return Method.PadLeft(6) + " : " + Route;
-            }
         }
     }
 }
