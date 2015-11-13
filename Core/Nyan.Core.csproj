@@ -42,19 +42,28 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Net.Http.Formatting, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\..\bucknell-es\codebase\trunk\dotnet\4.5\Apps\packages\Microsoft.AspNet.WebApi.Client.5.2.3\lib\net45\System.Net.Http.Formatting.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Web" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Web.Http, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\..\bucknell-es\codebase\trunk\dotnet\4.5\Apps\packages\Microsoft.AspNet.WebApi.Core.5.2.3\lib\net45\System.Web.Http.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assembly\Management.cs" />
     <Compile Include="Diagnostics\TraceInfoContainer.cs" />
+    <Compile Include="Extensions\Reflections.cs" />
     <Compile Include="Extensions\Serialization.cs" />
+    <Compile Include="Extensions\Transformation.cs" />
     <Compile Include="Factories\Identifier.cs" />
-    <Compile Include="Modules\Identity\IIdentityProvider.cs" />
-    <Compile Include="Modules\Identity\IAuthenticationProvider.cs" />
     <Compile Include="Modules\Identity\IAuthorizationProvider.cs" />
     <Compile Include="Modules\Identity\NullAuthorizationProvider.cs" />
     <Compile Include="Modules\Cache\ICacheConfiguration.cs" />
@@ -109,6 +118,7 @@
     <Compile Include="Settings\PackagePriorityAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

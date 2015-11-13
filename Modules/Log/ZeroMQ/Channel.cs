@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Win32.SafeHandles;
@@ -18,21 +17,14 @@ namespace Nyan.Modules.Log.ZeroMQ
         private readonly string _address;
         private readonly bool _canReceive;
         private readonly bool _canSend;
+        private readonly SafeHandle _handle = new SafeFileHandle(IntPtr.Zero, true);
 
 
-        private readonly PublisherSocket _publisherSocket;
         private readonly NetMQContext _mqContext;
+        private readonly PublisherSocket _publisherSocket;
         private readonly CancellationTokenSource _tokenSource = new CancellationTokenSource();
         private readonly string _topic;
-        private readonly SafeHandle _handle = new SafeFileHandle(IntPtr.Zero, true);
         private bool _disposed;
-
-        public void Terminate()
-        {
-            _publisherSocket.Close();
-            _publisherSocket.Dispose();
-            _mqContext.Terminate();
-        }
 
         public Channel(string topic = "", bool canSend = true, bool canReceive = false, string address = null)
         {
@@ -63,9 +55,9 @@ namespace Nyan.Modules.Log.ZeroMQ
                 if (Protocol == "pgm") //Multicast
                 {
                     _publisherSocket.Options.MulticastHops = 4;
-                    _publisherSocket.Options.MulticastRate = 40 * 1024; // 40 megabit
+                    _publisherSocket.Options.MulticastRate = 40*1024; // 40 megabit
                     _publisherSocket.Options.MulticastRecoveryInterval = TimeSpan.FromMinutes(10);
-                    _publisherSocket.Options.SendBuffer = 1024 * 10; // 10 megabyte
+                    _publisherSocket.Options.SendBuffer = 1024*10; // 10 megabyte
                     _publisherSocket.Bind(_address);
                 }
 
@@ -91,6 +83,13 @@ namespace Nyan.Modules.Log.ZeroMQ
             GC.SuppressFinalize(this);
         }
 
+        public void Terminate()
+        {
+            _publisherSocket.Close();
+            _publisherSocket.Dispose();
+            _mqContext.Terminate();
+        }
+
         public event MessageArrivedHandler MessageArrived;
 
         private void MonitorMessages()
@@ -100,7 +99,7 @@ namespace Nyan.Modules.Log.ZeroMQ
             using (var context = NetMQContext.Create())
             using (var subscriber = context.CreateSubscriberSocket())
             {
-                subscriber.Options.ReceivevBuffer = 1024 * 10;
+                subscriber.Options.ReceiveBuffer = 1024*10;
                 subscriber.Bind(_address);
                 subscriber.Subscribe(_topic);
 
@@ -116,25 +115,19 @@ namespace Nyan.Modules.Log.ZeroMQ
 
                 while (!_tokenSource.Token.IsCancellationRequested) //Forever loop until Dispose() is called.
                 {
-                    var topic = subscriber.ReceiveString();
-                    var payload = subscriber.Receive();
+                    var topic = subscriber.ReceiveFrameString();
+                    var payload = subscriber.ReceiveFrameBytes();
 
                     Message message = null;
 
-                    try
-                    {
-                        message = payload.FromSerializedBytes<Message>();
-                    }
+                    try { message = payload.FromSerializedBytes<Message>(); }
                     catch
                     {
                     }
 
                     if (message == null)
                     {
-                        try
-                        {
-                            message = payload.GetString().FromJson<Message>();
-                        }
+                        try { message = payload.GetString().FromJson<Message>(); }
                         catch
                         {
                         }
@@ -145,7 +138,6 @@ namespace Nyan.Modules.Log.ZeroMQ
                     if (message.Id.Equals(prevMsgId)) continue; // Avoid ZeroMQ duplicates
 
                     if (MessageArrived == null) continue;
-
 
 
                     prevMsgId = message.Id;
@@ -163,9 +155,9 @@ namespace Nyan.Modules.Log.ZeroMQ
             var payload = message.ToSerializedBytes();
 
             if (message.Topic != "")
-                _publisherSocket.SendMore(_topic).Send(payload);
+                _publisherSocket.SendMoreFrame(_topic).SendFrame(payload);
             else
-                _publisherSocket.Send(payload);
+                _publisherSocket.SendFrame(payload);
         }
 
         public async Task CleanupAsync()

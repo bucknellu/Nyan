@@ -61,7 +61,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="HttpAppHook.cs" />
+    <Compile Include="auth\AddChallengeOnUnauthorizedResult.cs" />
+    <Compile Include="auth\AuthenticationFailureResult.cs" />
+    <Compile Include="auth\NyanAuthenticationFilter.cs" />
+    <Compile Include="Sequences.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Initialization.cs" />
     <Compile Include="WebApiInitializationHookAttribute.cs" />

@@ -143,8 +143,7 @@ namespace Nyan.Core.Modules.Data
         public static IEnumerable<T> Where(Expression<Func<T, bool>> predicate)
         {
             if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
-                throw new InvalidDataException("Class is not operational: {0}, {1}".format(
-                    Statements.Status.ToString(), Statements.StatusDescription));
+                throw new InvalidDataException("Class is not operational: {0}, {1}".format(Statements.Status.ToString(), Statements.StatusDescription));
 
             var body = predicate.Body as BinaryExpression;
 

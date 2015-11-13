@@ -1,4 +1,9 @@
-﻿namespace Nyan.Core.Modules.Identity
+﻿using System.Net.Http.Headers;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Web.Http.Filters;
+
+namespace Nyan.Core.Modules.Identity
 {
     public class NullAuthorizationProvider : IAuthorizationProvider
     {
@@ -7,6 +12,6 @@
             return true;
         }
 
-        public void Shutdown() {  }
+        public void Shutdown() { }
     }
 }
