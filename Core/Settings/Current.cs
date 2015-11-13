@@ -150,10 +150,10 @@ namespace Nyan.Core.Settings
                 var authorizationModules = Management.GetClassesByInterface<IAuthorizationProvider>();
                 if (authorizationModules.Any()) package.Authorization = authorizationModules[0].CreateInstance<IAuthorizationProvider>();
 
-                var ConnectionBundles = Management.GetClassesByInterface<ConnectionBundlePrimitive>();
-                if (ConnectionBundles.Any()) package.GlobalConnectionBundleType = ConnectionBundles[0];
+                var connectionBundles = Management.GetClassesByInterface<ConnectionBundlePrimitive>();
+                if (connectionBundles.Any()) package.GlobalConnectionBundleType = connectionBundles[0];
             }
-            catch (Exception e)
+            catch
             {
                 //It's OK to ignore errors here.
             }
