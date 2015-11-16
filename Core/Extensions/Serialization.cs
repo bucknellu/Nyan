@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Diagnostics;
-using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Xml;
@@ -24,7 +20,7 @@ namespace Nyan.Core.Extensions
             var serializer = new XmlSerializer(obj.GetType());
 
             using (var writer = new Utf8StringWriter())
-            using (var xmlWriter = XmlWriter.Create(writer, new XmlWriterSettings { Indent = false }))
+            using (var xmlWriter = XmlWriter.Create(writer, new XmlWriterSettings {Indent = false}))
             {
                 var ns = new XmlSerializerNamespaces();
 
@@ -37,14 +33,14 @@ namespace Nyan.Core.Extensions
 
         public static byte[] GetBytes(this string str)
         {
-            var bytes = new byte[str.Length * sizeof(char)];
+            var bytes = new byte[str.Length*sizeof (char)];
             Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, bytes.Length);
             return bytes;
         }
 
         public static string GetString(this byte[] bytes)
         {
-            var chars = new char[bytes.Length / sizeof(char)];
+            var chars = new char[bytes.Length/sizeof (char)];
             Buffer.BlockCopy(bytes, 0, chars, 0, bytes.Length);
             return new string(chars);
         }
@@ -60,8 +56,8 @@ namespace Nyan.Core.Extensions
         {
             var jo = JObject.Parse(obj);
             var myTest = jo.Descendants()
-                .Where(t => t.Type == JTokenType.Property && ((JProperty)t).Name == nodeName)
-                .Select(p => ((JProperty)p).Value)
+                .Where(t => t.Type == JTokenType.Property && ((JProperty) t).Name == nodeName)
+                .Select(p => ((JProperty) p).Value)
                 .FirstOrDefault();
             return myTest.ToString();
         }
@@ -86,7 +82,7 @@ namespace Nyan.Core.Extensions
 
                     if (obj[colpos].GetType().Name == "DateTime")
                     {
-                        sb.Append("\"" + ((DateTime)obj[colpos]).ToString("o") + "\"");
+                        sb.Append("\"" + ((DateTime) obj[colpos]).ToString("o") + "\"");
                     }
                     else
                     {
@@ -135,13 +131,11 @@ namespace Nyan.Core.Extensions
                 if (!isFirstRow)
                     sb.Append(",");
 
-
                 sb.Append("{");
                 for (var i = 0; i < obj.FieldCount; i++)
                 {
                     if (obj.GetValue(i) == null) continue;
                     if (obj.GetValue(i) is DBNull) continue;
-
 
                     if (i > 0) sb.Append(", ");
 
@@ -168,8 +162,7 @@ namespace Nyan.Core.Extensions
             try
             {
                 return JsonConvert.SerializeObject(obj);
-            }
-            catch
+            } catch
             {
                 return null;
             }
@@ -197,7 +190,7 @@ namespace Nyan.Core.Extensions
             using (var stream = new MemoryStream(obj))
             {
                 var ser = new BinaryFormatter();
-                return (T)ser.Deserialize(stream);
+                return (T) ser.Deserialize(stream);
             }
         }
 
@@ -221,8 +214,7 @@ namespace Nyan.Core.Extensions
             try
             {
                 return streamReader.ReadToEnd();
-            }
-            finally
+            } finally
             {
                 streamReader.Close();
             }
@@ -230,7 +222,7 @@ namespace Nyan.Core.Extensions
 
         public static bool IsSubclassOfRawGeneric(this Type toCheck, Type generic)
         {
-            while (toCheck != null && toCheck != typeof(object))
+            while (toCheck != null && toCheck != typeof (object))
             {
                 var cur = toCheck.IsGenericType ? toCheck.GetGenericTypeDefinition() : toCheck;
                 if (generic == cur)

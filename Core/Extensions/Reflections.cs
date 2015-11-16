@@ -24,7 +24,7 @@ namespace Nyan.Core.Extensions
 
         public static T GetObject<T>(this IDictionary<string, object> dict, Dictionary<string, string> translationDictionary = null)
         {
-            var type = typeof(T);
+            var type = typeof (T);
 
             var obj = Activator.CreateInstance(type);
 
@@ -43,24 +43,22 @@ namespace Nyan.Core.Extensions
 
                 var kt = k.PropertyType;
 
-
                 if (k.PropertyType.IsPrimitiveType())
                 {
                     try
                     {
                         if (val is decimal) val = Convert.ToInt64(val);
-                        if (val is short && kt == typeof(bool)) val = (Convert.ToInt16(val) == 1);
-                        if (val is long && kt == typeof(string)) val = val.ToString();
-                        if (kt == typeof(decimal)) val = Convert.ToDecimal(val);
-                        if (kt == typeof(short)) val = Convert.ToInt16(val);
-                        if (kt == typeof(int)) val = Convert.ToInt32(val);
-                        if (kt == typeof(long)) val = Convert.ToInt64(val);
-                        if (kt == typeof(Guid)) if (val != null) val = new Guid(val.ToString());
+                        if (val is short && kt == typeof (bool)) val = (Convert.ToInt16(val) == 1);
+                        if (val is long && kt == typeof (string)) val = val.ToString();
+                        if (kt == typeof (decimal)) val = Convert.ToDecimal(val);
+                        if (kt == typeof (short)) val = Convert.ToInt16(val);
+                        if (kt == typeof (int)) val = Convert.ToInt32(val);
+                        if (kt == typeof (long)) val = Convert.ToInt64(val);
+                        if (kt == typeof (Guid)) if (val != null) val = new Guid(val.ToString());
                         if (kt.IsEnum) val = Enum.Parse(k.PropertyType, val.ToString());
 
                         k.SetValue(obj, val);
-                    }
-                    catch (Exception e)
+                    } catch (Exception e)
                     {
                         Current.Log.Add(e);
                         throw;
@@ -72,7 +70,7 @@ namespace Nyan.Core.Extensions
                 }
             }
 
-            return (T)obj;
+            return (T) obj;
         }
 
         public static MethodInfo GetMethodExt(this Type thisType, string name, params Type[] parameterTypes)
@@ -115,7 +113,7 @@ namespace Nyan.Core.Extensions
                 MemberTypes.Method,
                 bindingFlags))
             {
-                var methodInfo = (MethodInfo)memberInfo;
+                var methodInfo = (MethodInfo) memberInfo;
                 // Check that the parameter counts and types match, 
                 // with 'loose' matching on generic parameters
                 var parameterInfos = methodInfo.GetParameters();
@@ -154,8 +152,8 @@ namespace Nyan.Core.Extensions
 
             // If the types are identical, or they're both generic parameters 
             // or the special 'T' type, treat as a match
-            if (thisType == type || ((thisType.IsGenericParameter || thisType == typeof(GetMethodExtT))
-                                     && (type.IsGenericParameter || type == typeof(GetMethodExtT))))
+            if (thisType == type || ((thisType.IsGenericParameter || thisType == typeof (GetMethodExtT))
+                                     && (type.IsGenericParameter || type == typeof (GetMethodExtT))))
                 return true;
 
             // Handle any generic arguments
@@ -204,9 +202,8 @@ namespace Nyan.Core.Extensions
         {
             try
             {
-                return (T)Activator.CreateInstance(typeRef);
-            }
-            catch (Exception e)
+                return (T) Activator.CreateInstance(typeRef);
+            } catch (Exception e)
             {
                 throw (e.InnerException.InnerException);
             }
@@ -214,11 +211,10 @@ namespace Nyan.Core.Extensions
 
         public static void CopyPropertiesTo<T, TU>(this T source, TU dest)
         {
-            var sourceProps = typeof(T).GetProperties().Where(x => x.CanRead).ToList();
-            var destProps = typeof(TU).GetProperties()
+            var sourceProps = typeof (T).GetProperties().Where(x => x.CanRead).ToList();
+            var destProps = typeof (TU).GetProperties()
                 .Where(x => x.CanWrite)
                 .ToList();
-
 
             if (source == null) return;
 
@@ -231,14 +227,12 @@ namespace Nyan.Core.Extensions
                 try
                 {
                     p.SetValue(dest, sourceProp.GetValue(source, null), null);
-                }
-                catch
+                } catch
                 {
                     try
                     {
                         p.SetValue(dest, sourceProp.GetValue(source, null).ToString(), null);
-                    }
-                    catch
+                    } catch
                     {
                         //Whatever.
                     }
@@ -246,8 +240,6 @@ namespace Nyan.Core.Extensions
             }
         }
 
-        public class GetMethodExtT
-        {
-        }
+        public class GetMethodExtT {}
     }
 }

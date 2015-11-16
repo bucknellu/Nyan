@@ -4,8 +4,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Dynamic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Nyan.Core.Extensions
 {
@@ -103,13 +101,10 @@ namespace Nyan.Core.Extensions
             {
                 if (!String.IsNullOrEmpty(s) && s.Trim().Length > 0)
                 {
-                    var conv = TypeDescriptor.GetConverter(typeof(T));
-                    result = (T)conv.ConvertFrom(s);
+                    var conv = TypeDescriptor.GetConverter(typeof (T));
+                    result = (T) conv.ConvertFrom(s);
                 }
-            }
-            catch
-            {
-            }
+            } catch {}
             return result;
         }
 
@@ -118,12 +113,9 @@ namespace Nyan.Core.Extensions
             var result = new T?();
             try
             {
-                var conv = TypeDescriptor.GetConverter(typeof(T));
-                result = (T)conv.ConvertFrom(s);
-            }
-            catch
-            {
-            }
+                var conv = TypeDescriptor.GetConverter(typeof (T));
+                result = (T) conv.ConvertFrom(s);
+            } catch {}
             return result;
         }
 
@@ -163,13 +155,13 @@ namespace Nyan.Core.Extensions
                 return false;
             }
 
-            t = (T)o;
+            t = (T) o;
             return true;
         }
 
         public static T ConvertTo<T>(ref object input)
         {
-            return (T)Convert.ChangeType(input, typeof(T));
+            return (T) Convert.ChangeType(input, typeof (T));
         }
 
         public static object ToConcrete<T>(this ExpandoObject dynObject)
@@ -203,6 +195,5 @@ namespace Nyan.Core.Extensions
 
             return expando;
         }
-
     }
 }
