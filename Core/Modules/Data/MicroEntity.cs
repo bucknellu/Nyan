@@ -804,7 +804,9 @@ break; */
                     }
                     else
                     {
-                        throw new ArgumentOutOfRangeException("No connection bundle specified.");
+                        Statements.Status = MicroEntityCompiledStatements.EStatus.CriticalFailure;
+                        Statements.StatusDescription = "No connection bundle specified.";
+                        return;
                     }
 
                     var identifierColumnName = TableData.IdentifierColumnName;
