@@ -108,11 +108,9 @@ namespace Nyan.Core.Settings
 
         private static IPackage ResolveSettingsPackage()
         {
-            var priorityList = new List<KeyValuePair<int, Type>>();
-
             var packages = Management.GetClassesByInterface<IPackage>();
 
-            if (priorityList.Any()) return (IPackage)Activator.CreateInstance(priorityList[0].Value);
+            if (packages.Any()) return (IPackage)Activator.CreateInstance(packages[0]);
 
             //No package defined? not to worry; let's create one with the provided pieces.
 
