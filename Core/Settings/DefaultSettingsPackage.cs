@@ -4,10 +4,11 @@ using Nyan.Core.Modules.Cache;
 using Nyan.Core.Modules.Encryption;
 using Nyan.Core.Modules.Scope;
 using Nyan.Core.Modules.Log;
+using Nyan.Core.Shared;
 
 namespace Nyan.Core.Settings
 {
-    [PackagePriority(Level = -3)]
+    [Priority(Level = -3)]
     internal class DefaultSettingsPackage : IPackage
     {
         public DefaultSettingsPackage()

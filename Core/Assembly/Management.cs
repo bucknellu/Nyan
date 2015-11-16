@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Nyan.Core.Settings;
+using Nyan.Core.Shared;
 
 namespace Nyan.Core.Assembly
 {
@@ -41,6 +42,7 @@ namespace Nyan.Core.Assembly
         public static List<Type> GetClassesByInterface<T>(bool excludeCoreNullDefinitions = true)
         {
             var type = typeof(T);
+            var preRet = new List<Type>();
             var ret = new List<Type>();
 
             foreach (var item in _assys.Values)
@@ -67,9 +69,35 @@ namespace Nyan.Core.Assembly
                     if (!type.IsAssignableFrom(item3)) continue;
 
                     if (type != item3)
-                        ret.Add(item3);
+                        preRet.Add(item3);
                 }
             }
+
+
+            var priorityList = new List<KeyValuePair<int, Type>>();
+
+
+            foreach (var item in preRet)
+            {
+                var level = 0;
+
+                var attrs = item.GetCustomAttributes(typeof(PriorityAttribute), true);
+
+                if (attrs.Length > 0)
+                    level = ((PriorityAttribute)attrs[0]).Level;
+
+                priorityList.Add(new KeyValuePair<int, Type>(level, item));
+            }
+
+
+
+            priorityList.Sort((firstPair, nextPair) => (nextPair.Key - firstPair.Key));
+
+            foreach (var item in priorityList)
+            {
+                ret.Add(item.Value);
+            }
+
             return ret;
         }
     }

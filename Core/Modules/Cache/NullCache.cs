@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Nyan.Core.Shared;
+using System;
 using System.Collections.Generic;
 
 namespace Nyan.Core.Modules.Cache
 {
+    [Priority(Level = -2)]
     public class NullCacheProvider : ICacheProvider
     {
         public NullCacheProvider()

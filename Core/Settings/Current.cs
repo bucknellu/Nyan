@@ -11,6 +11,7 @@ using Nyan.Core.Modules.Encryption;
 using Nyan.Core.Modules.Scope;
 using Nyan.Core.Modules.Log;
 using Nyan.Core.Modules.Data.Connection;
+using Nyan.Core.Shared;
 
 namespace Nyan.Core.Settings
 {
@@ -68,8 +69,7 @@ namespace Nyan.Core.Settings
             {
                 if (_baseDirectory != null) return _baseDirectory;
 
-                _baseDirectory = HostingEnvironment.MapPath("~/bin") ??
-                                 Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                _baseDirectory = HostingEnvironment.MapPath("~/bin") ?? Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
 
                 return _baseDirectory;
             }
@@ -111,21 +111,6 @@ namespace Nyan.Core.Settings
             var priorityList = new List<KeyValuePair<int, Type>>();
 
             var packages = Management.GetClassesByInterface<IPackage>();
-
-            foreach (var item in packages)
-            {
-                var level = 0;
-
-                var attrs = item.GetCustomAttributes(typeof(PackagePriorityAttribute), true);
-
-                if (attrs.Length > 0)
-                    level = ((PackagePriorityAttribute)attrs[0]).Level;
-
-                priorityList.Add(new KeyValuePair<int, Type>(level, item));
-            }
-
-            priorityList.Sort((firstPair, nextPair) => (nextPair.Key - firstPair.Key));
-
 
             if (priorityList.Any()) return (IPackage)Activator.CreateInstance(priorityList[0].Value);
 

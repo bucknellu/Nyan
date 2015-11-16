@@ -1,15 +1,16 @@
 ﻿using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Cache;
+using Nyan.Core.Shared;
 using System;
 using System.Collections.Generic;
 using System.Runtime.Caching;
 
 namespace Nyan.Modules.Cache.Memory
 {
+    [Priority(Level = -1)]
     public class MemoryCacheProvider : ICacheProvider
     {
         private MemoryCache _cache;
-
         public MemoryCacheProvider()
         {
             OperationalStatus = EOperationalStatus.Initialized;

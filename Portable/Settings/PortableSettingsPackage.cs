@@ -6,10 +6,11 @@ using Nyan.Core.Modules.Encryption;
 using Nyan.Core.Modules.Scope;
 using Nyan.Core.Modules.Log;
 using Nyan.Modules.Log.ZeroMQ;
+using Nyan.Core.Shared;
 
 namespace Nyan.Portable.Settings
 {
-    [PackagePriority(Level = -1)]
+    [Priority(Level = -1)]
     public class PortableSettingsPackage : IPackage
     {
         public PortableSettingsPackage()

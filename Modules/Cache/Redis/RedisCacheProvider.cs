@@ -5,9 +5,11 @@ using System;
 using System.Collections.Generic;
 using Nyan.Core.Modules.Log;
 using StackExchange.Redis;
+using Nyan.Core.Shared;
 
 namespace Nyan.Modules.Cache.Redis
 {
+    [Priority(Level = -1)]
     public class RedisCacheProvider : ICacheProvider
     {
         public Dictionary<string, ICacheConfiguration> ScopeConfiguration { get; set; }
