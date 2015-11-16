@@ -22,27 +22,23 @@ namespace Nyan.Modules.Web.REST
         public static void End()
         {
             var runtime = (HttpRuntime)typeof(HttpRuntime).InvokeMember("_theRuntime",
-                BindingFlags.NonPublic
-                | BindingFlags.Static
-                | BindingFlags.GetField,
+                BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.GetField,
                 null, null, null);
 
-            if (runtime == null)
-                return;
+            if (runtime != null)
+            {
+                var shutDownMessage = (string)runtime.GetType().InvokeMember("_shutDownMessage",
+                    BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField,
+                    null, runtime, null);
 
-            var shutDownMessage = (string)runtime.GetType().InvokeMember("_shutDownMessage",
-                BindingFlags.NonPublic
-                | BindingFlags.Instance
-                | BindingFlags.GetField,
-                null, runtime, null);
+                var shutDownStack = (string)runtime.GetType().InvokeMember("_shutDownStack",
+                    BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField,
+                    null, runtime, null);
 
-            //var shutDownStack = (string)runtime.GetType().InvokeMember("_shutDownStack",
-            //    BindingFlags.NonPublic
-            //    | BindingFlags.Instance
-            //    | BindingFlags.GetField,
-            //    null, runtime, null);
-
-            Current.Log.Add("Nyan shutdown started: " + shutDownMessage.Replace(Environment.NewLine, ":").Split(':')[0], Message.EContentType.ShutdownSequence);
+                Current.Log.Add("Nyan shutdown started: " + shutDownMessage.Replace(Environment.NewLine, ":").Split(':')[0], Message.EContentType.ShutdownSequence);
+            }
+            else
+                Current.Log.Add("Nyan shutdown started", Message.EContentType.ShutdownSequence);
 
             Current.Authorization.Shutdown();
             Current.Cache.Shutdown();

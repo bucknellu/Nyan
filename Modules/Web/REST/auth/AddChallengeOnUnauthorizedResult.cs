@@ -1,3 +1,4 @@
+using Nyan.Core.Extensions;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -22,6 +23,8 @@ namespace Nyan.Modules.Web.REST.auth
 
         public async Task<HttpResponseMessage> ExecuteAsync(CancellationToken cancellationToken)
         {
+            Nyan.Core.Settings.Current.Log.Add("ExecuteAsync");
+
             var response = await InnerResult.ExecuteAsync(cancellationToken);
 
             if (response.StatusCode != HttpStatusCode.Unauthorized) return response;

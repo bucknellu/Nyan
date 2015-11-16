@@ -21,8 +21,8 @@ namespace Nyan.Modules.Web.REST
         public static void Register(HttpConfiguration config)
         {
             config.SuppressHostPrincipal(); //Isolates WebApi Auth form Host (IIS) Auth
-            // [TODO] First stub
-            // config.Filters.Add(new NyanAuthenticationFilter());
+
+            config.Filters.Add(new NyanAuthenticationFilter());
 
             config.MapHttpAttributeRoutes(new CustomDirectRouteProvider());
             config.Formatters.JsonFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("text/html"));

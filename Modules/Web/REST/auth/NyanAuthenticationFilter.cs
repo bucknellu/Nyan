@@ -11,14 +11,11 @@ namespace Nyan.Modules.Web.REST.auth
     {
         public virtual Task AuthenticateAsync(HttpAuthenticationContext context, CancellationToken cancellationToken)
         {
-            Current.Log.Add("NyanAuthenticationFilter: AuthenticateAsync [{0}]".format(context.Request.RequestUri));
-            return null;
+            return Task.FromResult(0);
         }
 
         public virtual Task ChallengeAsync(HttpAuthenticationChallengeContext context, CancellationToken cancellationToken)
         {
-            Current.Log.Add("NyanAuthenticationFilter: ChallengeAsync [{0}]".format(context.Request.RequestUri));
-
             var challenge = new AuthenticationHeaderValue("Basic");
             context.Result = new AddChallengeOnUnauthorizedResult(challenge, context.Result);
             return Task.FromResult(0);
