@@ -115,7 +115,7 @@
     <Compile Include="Settings\Current.cs" />
     <Compile Include="Settings\DefaultSettingsPackage.cs" />
     <Compile Include="Settings\IPackage.cs" />
-    <Compile Include="Settings\PackagePriorityAttribute.cs" />
+    <Compile Include="Shared\PriorityAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
