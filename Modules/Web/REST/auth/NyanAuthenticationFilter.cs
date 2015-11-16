@@ -2,8 +2,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http.Filters;
-using Nyan.Core.Extensions;
-using Nyan.Core.Settings;
 
 namespace Nyan.Modules.Web.REST.auth
 {
@@ -11,7 +9,8 @@ namespace Nyan.Modules.Web.REST.auth
     {
         public virtual Task AuthenticateAsync(HttpAuthenticationContext context, CancellationToken cancellationToken)
         {
-            return Task.FromResult(0);
+            var identity = Core.Settings.Current.Authorization.Identity;
+            return identity != null ? (Task) Task.FromResult(identity) : Task.FromResult(0);
         }
 
         public virtual Task ChallengeAsync(HttpAuthenticationChallengeContext context, CancellationToken cancellationToken)
@@ -28,6 +27,6 @@ namespace Nyan.Modules.Web.REST.auth
             return true;
         }
 
-        public virtual void Shutdown() {}
+        public virtual void Shutdown() { }
     }
 }
