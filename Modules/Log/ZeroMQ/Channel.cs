@@ -171,6 +171,7 @@ namespace Nyan.Modules.Log.ZeroMQ
         // Protected implementation of Dispose pattern.
         protected virtual void Dispose(bool disposing)
         {
+
             if (_disposed)
                 return;
 
@@ -178,6 +179,7 @@ namespace Nyan.Modules.Log.ZeroMQ
             {
                 _handle.Dispose();
                 _tokenSource.Cancel();
+                _tokenSource.Dispose();
 
                 if (_publisherSocket != null)
                 {
