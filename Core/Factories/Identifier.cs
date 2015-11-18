@@ -8,7 +8,7 @@ namespace Nyan.Core.Factories
         private const string A = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
         private const int MaxSize = 8;
 
-        public static string ShortGuid()
+        public static string MiniGuid()
         {
             var chars = A.ToCharArray();
             var data = new byte[1];
