@@ -170,11 +170,7 @@ namespace Nyan.Modules.Cache.Redis
 
                 db.KeyDelete(key);
             }
-            catch (Exception)
-            {
-                OperationalStatus = EOperationalStatus.Error;
-                throw;
-            }
+            catch{}
         }
 
         public void RemoveAll(string oSet = null)
