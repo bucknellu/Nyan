@@ -65,9 +65,7 @@ namespace Nyan.Core.Extensions
                     }
                 }
                 else
-                {
-                    k.SetValue(obj, JsonConvert.DeserializeObject(kv.Value.ToString(), kt));
-                }
+                    k.SetValue(obj, kv.Value != null ? JsonConvert.DeserializeObject(kv.Value.ToString(), kt) : null);
             }
 
             return (T) obj;
