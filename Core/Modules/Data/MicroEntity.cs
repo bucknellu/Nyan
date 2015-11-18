@@ -63,6 +63,9 @@ namespace Nyan.Core.Modules.Data
         /// <returns>An object instance if the ID exists, or NULL otherwise.</returns>
         public static T Get(string identifier)
         {
+
+            if (identifier == null) return null;
+
             if (Statements.IdPropertyRaw == null)
                 throw new MissingPrimaryKeyException("Identifier not set for " + typeof(T).FullName);
 
