@@ -1,15 +1,24 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Net.Sockets;
 using Nyan.Core.Extensions;
 
 namespace Nyan.Core.Modules.Log
 {
     public abstract class LogProvider
     {
+        public virtual string Protocol
+        {
+            get { return null; }
+        }
+
+        public virtual string Uri
+        {
+            get { return null; }
+        }
+
         public virtual event Message.MessageArrivedHandler MessageArrived;
 
-        public virtual void Shutdown() { }
+        public virtual void Shutdown() {}
 
         protected virtual void OnMessageArrived(Message message)
         {
@@ -20,15 +29,6 @@ namespace Nyan.Core.Modules.Log
         public virtual void Add(bool content)
         {
             Add(content.ToString());
-        }
-
-        public virtual string Protocol
-        {
-            get { return null; }
-        }
-        public virtual string Uri
-        {
-            get { return null; }
         }
 
         public virtual void Add(string pattern, params object[] replacementStrings)
@@ -48,8 +48,7 @@ namespace Nyan.Core.Modules.Log
 
             var msg = message;
 
-            try { msg = message + " " + new StackTrace(e, true).FancyString(); }
-            catch { }
+            try { msg = message + " " + new StackTrace(e, true).FancyString(); } catch {}
 
             Add(msg, Message.EContentType.Exception);
         }
@@ -59,13 +58,11 @@ namespace Nyan.Core.Modules.Log
             Add(e, pMessage);
         }
 
-        public virtual void StartListening()
-        {
-        }
+        public virtual void StartListening() {}
 
         public virtual void Add(string content, Message.EContentType type = Message.EContentType.Generic)
         {
-            Dispatch(content, type);
+            try { Dispatch(content, type); } catch {}
         }
 
         public virtual void Dispatch(string content, Message.EContentType type = Message.EContentType.Generic)
