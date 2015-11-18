@@ -35,8 +35,14 @@ namespace Nyan.Core.Modules.Cache
             if (Current.Cache.OperationalStatus == EOperationalStatus.Operational)
             {
                 var cache = Current.Cache[cacheid].FromJson<T>();
-                if (cache != null) return cache;
+                if (cache != null)
+                {
+                    Current.Log.Add("CACHE HIT " + cacheid);
+                    return cache;
+                }
             }
+
+            Current.Log.Add("CACHE MISS " + cacheid);
 
             var ret = method(key);
 
