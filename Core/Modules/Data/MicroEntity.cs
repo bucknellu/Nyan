@@ -364,7 +364,9 @@ break; */
         public bool IsNew()
         {
             var probe = GetEntityIdentifier();
-            if (probe == "" || probe == "0") return true;
+
+            if (!TableData.IsInsertableIdentifier)
+                if (probe == "" || probe == "0") return true;
 
             var oProbe = Get(probe);
             return oProbe == null;
@@ -404,12 +406,14 @@ break; */
 
             object obj = this;
 
-            if (!IsNew())
+            var isNew = IsNew();
+
+            if (!isNew)
                 obj = Statements.Adapter.Parameters<T>(this);
 
             if (Statements.IdColumn == null)
                 Execute(Statements.SqlInsertSingle, obj);
-            else if (IsNew())
+            else if (isNew)
                 ret = SaveAndGetId(obj);
             else
             {
@@ -546,10 +550,9 @@ break; */
                     dbConn = conn.DataSource;
                     conn.Open();
 
-                    var o =
-                        conn.Query(sqlStatement, sqlParameters, null, false, null, pCommandType)
-                            .Select(a => (IDictionary<string, object>)a)
-                            .ToList();
+                    var o = conn.Query(sqlStatement, sqlParameters, null, false, null, pCommandType)
+                    .Select(a => (IDictionary<string, object>)a)
+                    .ToList();
                     conn.Close();
 
                     var ret = o.Select(refObj => refObj.GetObject<T>(Statements.PropertyFieldMap)).ToList();
@@ -559,7 +562,7 @@ break; */
             }
             catch (Exception e)
             {
-                var sguid = Identifier.ShortGuid();
+                var sguid = Identifier.MiniGuid();
 
                 sqlStatement = sqlStatement.Replace(Environment.NewLine, " ").Replace("\t", " ").Trim();
 
