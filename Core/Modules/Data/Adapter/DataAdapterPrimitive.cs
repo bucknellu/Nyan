@@ -168,7 +168,7 @@ namespace Nyan.Core.Modules.Data.Adapter
                 if (nonInsertableColumnsList.Exists(t => t.ToLower().Equals(prop.Name.ToLower()))) continue;
 
                 var type = prop.PropertyType;
-                var pSourceName = ParameterIdentifier + prop.Name;
+                var pSourceName = prop.Name;
                 var pSourceValue = prop.GetValue(obj, null);
                 var pTargetCustomType = DynamicParametersPrimitive.DbGenericType.String;
 
@@ -204,7 +204,7 @@ namespace Nyan.Core.Modules.Data.Adapter
                 else
                 {
                     pSourceValue = pSourceValue.ToJson();
-                    pTargetCustomType = DynamicParametersPrimitive.DbGenericType.LargeObject;
+                    pTargetCustomType = DynamicParametersPrimitive.DbGenericType.String;
                     ret.Add(pSourceName, pSourceValue, pTargetCustomType, ParameterDirection.Input);
                 }
             }
@@ -272,8 +272,9 @@ namespace Nyan.Core.Modules.Data.Adapter
                 }
                 else
                 {
-                    pSourceValue = pSourceValue.ToJson();
-                    pTargetCustomType = DynamicParametersPrimitive.DbGenericType.LargeObject;
+                    pSourceValue = pSourceValue != null ? pSourceValue.ToJson() : null;
+
+                    pTargetCustomType = DynamicParametersPrimitive.DbGenericType.String;
                     ret.Add(pSourceName, pSourceValue, pTargetCustomType, ParameterDirection.Input);
                 }
             }
