@@ -10,6 +10,7 @@ namespace Nyan.Modules.Data.Oracle
         {
             CommandType = typeof(OracleCommand);
             ParameterType = typeof(OracleParameter);
+            ParameterIdentifier = ":";
         }
 
         public override void Add(string name, object value = null, DbGenericType? dbType = null, ParameterDirection? direction = null, int? size = null)
