@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using Dapper;
 using System.Data.Common;
+using Nyan.Core.Extensions;
 
 namespace Nyan.Core.Modules.Data.Adapter
 {
@@ -26,7 +27,9 @@ namespace Nyan.Core.Modules.Data.Adapter
         protected internal Type CommandType;
         protected internal Type ParameterType;
 
-        public List<object> _templates;
+        protected internal string ParameterIdentifier = "@";
+
+        public List<object> Templates;
 
         private string _sqlInClause;
         private string _sqlWhereClause;
@@ -45,8 +48,8 @@ namespace Nyan.Core.Modules.Data.Adapter
                 var dictionary = obj as IEnumerable<KeyValuePair<string, object>>;
                 if (dictionary == null)
                 {
-                    _templates = _templates ?? new List<object>();
-                    _templates.Add(obj);
+                    Templates = Templates ?? new List<object>();
+                    Templates.Add(obj);
                 }
                 else
                 {
@@ -62,11 +65,11 @@ namespace Nyan.Core.Modules.Data.Adapter
                         Parameters.Add(kvp.Key, kvp.Value);
                 }
 
-                if (subDynamic._templates != null)
+                if (subDynamic.Templates != null)
                 {
-                    _templates = _templates ?? new List<object>();
-                    foreach (var t in subDynamic._templates)
-                        _templates.Add(t);
+                    Templates = Templates ?? new List<object>();
+                    foreach (var t in subDynamic.Templates)
+                        Templates.Add(t);
                 }
             }
         }
@@ -101,7 +104,7 @@ namespace Nyan.Core.Modules.Data.Adapter
                 foreach (var parameter in _internalParameters)
                 {
                     if (_sqlWhereClause != "") _sqlWhereClause += " AND ";
-                    _sqlWhereClause += parameter.Key + " = " + parameter.Value.Name;
+                    _sqlWhereClause += parameter.Key + " = " + ParameterIdentifier + parameter.Value.Name;
                 }
 
                 return _sqlWhereClause;
@@ -141,9 +144,9 @@ namespace Nyan.Core.Modules.Data.Adapter
         {
             ResetCachedWhereClause();
 
-            if (_templates != null)
+            if (Templates != null)
             {
-                foreach (var template in _templates)
+                foreach (var template in Templates)
                 {
                     var newIdent = identity.ForDynamicParameters(template.GetType());
 
@@ -221,6 +224,12 @@ namespace Nyan.Core.Modules.Data.Adapter
         {
             _sqlWhereClause = null; // Always reset WHERE clause.
             _sqlInClause = null; // Always reset IN clause.
+
+            if (dbType == null)
+            {
+                if (value.IsNumeric())
+                    dbType = DbGenericType.Number;
+            }
 
             var ret = CustomizeParameterInformation(new ParameterInformation
             {
