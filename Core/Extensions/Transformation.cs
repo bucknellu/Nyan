@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Dynamic;
 using System.Linq;
+using Nyan.Core.Factories;
 
 namespace Nyan.Core.Extensions
 {
@@ -18,10 +19,25 @@ namespace Nyan.Core.Extensions
             "Dapper.SqlMapper+<QueryImpl>"
         };
 
+        public static bool IsNumeric(this object refObj)
+        {
+            if (refObj == null) return false;
+
+            long n;
+            var isNumeric = long.TryParse(refObj.ToString(), out n);
+            return isNumeric;
+
+        }
+
         public static IEnumerable<string> SplitInChunksUpTo(this string str, int maxChunkSize)
         {
             for (var i = 0; i < str.Length; i += maxChunkSize)
                 yield return str.Substring(i, Math.Min(maxChunkSize, str.Length - i));
+        }
+
+        public static ShortGuid ToShortGuid(this Guid oRef)
+        {
+            return new ShortGuid(oRef);
         }
 
         public static string FancyString(this StackTrace source)
@@ -101,10 +117,11 @@ namespace Nyan.Core.Extensions
             {
                 if (!String.IsNullOrEmpty(s) && s.Trim().Length > 0)
                 {
-                    var conv = TypeDescriptor.GetConverter(typeof (T));
-                    result = (T) conv.ConvertFrom(s);
+                    var conv = TypeDescriptor.GetConverter(typeof(T));
+                    result = (T)conv.ConvertFrom(s);
                 }
-            } catch {}
+            }
+            catch { }
             return result;
         }
 
@@ -113,9 +130,10 @@ namespace Nyan.Core.Extensions
             var result = new T?();
             try
             {
-                var conv = TypeDescriptor.GetConverter(typeof (T));
-                result = (T) conv.ConvertFrom(s);
-            } catch {}
+                var conv = TypeDescriptor.GetConverter(typeof(T));
+                result = (T)conv.ConvertFrom(s);
+            }
+            catch { }
             return result;
         }
 
@@ -155,13 +173,13 @@ namespace Nyan.Core.Extensions
                 return false;
             }
 
-            t = (T) o;
+            t = (T)o;
             return true;
         }
 
         public static T ConvertTo<T>(ref object input)
         {
-            return (T) Convert.ChangeType(input, typeof (T));
+            return (T)Convert.ChangeType(input, typeof(T));
         }
 
         public static object ToConcrete<T>(this ExpandoObject dynObject)
