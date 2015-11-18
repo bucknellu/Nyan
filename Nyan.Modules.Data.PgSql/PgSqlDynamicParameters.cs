@@ -31,8 +31,8 @@ namespace Nyan.Modules.Data.PgSql
                 var dictionary = template as IEnumerable<KeyValuePair<string, object>>;
                 if (dictionary == null)
                 {
-                    _templates = _templates ?? new List<object>();
-                    _templates.Add(template);
+                    Templates = Templates ?? new List<object>();
+                    Templates.Add(template);
                 }
                 else
                 {
@@ -48,11 +48,11 @@ namespace Nyan.Modules.Data.PgSql
                         Parameters.Add(kvp.Key, kvp.Value);
                 }
 
-                if (subDynamic._templates != null)
+                if (subDynamic.Templates != null)
                 {
-                    _templates = _templates ?? new List<object>();
-                    foreach (var t in subDynamic._templates)
-                        _templates.Add(t);
+                    Templates = Templates ?? new List<object>();
+                    foreach (var t in subDynamic.Templates)
+                        Templates.Add(t);
                 }
             }
         }
@@ -129,9 +129,9 @@ namespace Nyan.Modules.Data.PgSql
         {
             ResetCachedWhereClause();
 
-            if (_templates != null)
+            if (Templates != null)
             {
-                foreach (var template in _templates)
+                foreach (var template in Templates)
                 {
                     var newIdent = identity.ForDynamicParameters(template.GetType());
 
