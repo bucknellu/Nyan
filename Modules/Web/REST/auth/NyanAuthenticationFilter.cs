@@ -1,32 +1,86 @@
-﻿using System.Net.Http.Headers;
+﻿using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http.Filters;
+using Nyan.Core.Extensions;
+using Nyan.Core.Modules.Identity;
+using Nyan.Core.Modules.Log;
+using Nyan.Core.Settings;
 
 namespace Nyan.Modules.Web.REST.auth
 {
+    // ReSharper disable once InconsistentNaming
+    public interface IRESTAuthenticationFilter : IAuthenticationFilter, IAuthorizationProvider {}
+
     public class NyanAuthenticationFilter : IAuthenticationFilter
     {
-        public virtual Task AuthenticateAsync(HttpAuthenticationContext context, CancellationToken cancellationToken)
+        private static IRESTAuthenticationFilter CurrentFilter
         {
-            var identity = Core.Settings.Current.Authorization.Identity;
-            return identity != null ? (Task) Task.FromResult(identity) : Task.FromResult(0);
+            get { return Current.Authorization as IRESTAuthenticationFilter; }
         }
 
-        public virtual Task ChallengeAsync(HttpAuthenticationChallengeContext context, CancellationToken cancellationToken)
+        private static readonly NyanPrincipal NyanPrincipalInstance = new NyanPrincipal();
+
+        public IPrincipal Principal
         {
-            var challenge = new AuthenticationHeaderValue("Basic");
-            context.Result = new AddChallengeOnUnauthorizedResult(challenge, context.Result);
-            return Task.FromResult(0);
+            get { return NyanPrincipalInstance; }
         }
 
-        public bool AllowMultiple { get; private set; }
+        public IIdentity Identity
+        {
+            get { return Current.Authorization.Identity; }
+        }
+
+        public Task AuthenticateAsync(HttpAuthenticationContext context, CancellationToken cancellationToken)
+        {
+
+            if (CurrentFilter == null) return Task.FromResult(0);
+
+            context.Principal = Principal;
+
+            Current.Log.Add(CurrentFilter.GetType().Name + ": AuthenticateAsync", Message.EContentType.MoreInfo);
+            return CurrentFilter.AuthenticateAsync(context, cancellationToken);
+        }
+
+        public Task ChallengeAsync(HttpAuthenticationChallengeContext context, CancellationToken cancellationToken)
+        {
+            if (CurrentFilter == null) return Task.FromResult(0);
+
+            Current.Log.Add(CurrentFilter.GetType().Name + ": ChallengeAsync", Message.EContentType.MoreInfo);
+            return CurrentFilter.ChallengeAsync(context, cancellationToken);
+        }
+
+        public bool AllowMultiple
+        {
+            get
+            {
+                if (CurrentFilter == null) return false;
+
+                Current.Log.Add(CurrentFilter.GetType().Name + ": AllowMultiple", Message.EContentType.MoreInfo);
+                return CurrentFilter.AllowMultiple;
+            }
+        }
 
         public virtual bool CheckPermission(string pCode)
         {
-            return true;
+            Current.Log.Add(Current.Authorization.GetType().Name + ": CheckPermission [{0}]".format(pCode), Message.EContentType.MoreInfo);
+            return Current.Authorization.CheckPermission(pCode);
         }
 
-        public virtual void Shutdown() { }
+        public class NyanPrincipal : IPrincipal
+        {
+            public bool IsInRole(string role)
+            {
+                return Current.Authorization.CheckPermission(role);
+            }
+
+            public IIdentity Identity
+            {
+                get
+                {
+                    return CurrentFilter == null ? null : CurrentFilter.Identity;
+                }
+            }
+        }
     }
 }
