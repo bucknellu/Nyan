@@ -110,8 +110,8 @@ namespace Nyan.Core.Modules.Data.Adapter
 
             statements.SqlInsertSingle = string.Format(statements.SqlInsertSingle, preInsFieldList, preInsParamList);
             statements.SqlInsertSingleWithReturn = string.Format(statements.SqlInsertSingleWithReturn, preInsFieldList, preInsParamList, statements.IdPropertyRaw);
-            statements.SqlUpdateSingle = string.Format(statements.SqlUpdateSingle, preUpd, statements.IdPropertyRaw, statements.IdProperty);
-            statements.SqlRemoveSingleParametrized = string.Format(statements.SqlRemoveSingleParametrized, statements.IdPropertyRaw, parameterIdentifier);
+            statements.SqlUpdateSingle = string.Format(statements.SqlUpdateSingle, preUpd, statements.IdColumn, statements.IdProperty);
+            statements.SqlRemoveSingleParametrized = string.Format(statements.SqlRemoveSingleParametrized, statements.IdColumn, parameterIdentifier);
         }
 
         public virtual void SetConnectionString<T>() where T : MicroEntity<T>
