@@ -27,7 +27,8 @@ namespace Nyan.Core.Modules.Data.Adapter
         protected internal Type CommandType;
         protected internal Type ParameterType;
 
-        protected internal string ParameterIdentifier = "@";
+        protected internal string _parameterIdentifier = "@";
+        protected internal string _parameterPrefix = "p_";
 
         public List<object> Templates;
 
@@ -104,7 +105,7 @@ namespace Nyan.Core.Modules.Data.Adapter
                 foreach (var parameter in _internalParameters)
                 {
                     if (_sqlWhereClause != "") _sqlWhereClause += " AND ";
-                    _sqlWhereClause += parameter.Key + " = " + ParameterIdentifier + parameter.Value.Name;
+                    _sqlWhereClause += parameter.Key + " = " + _parameterIdentifier + parameter.Value.Name;
                 }
 
                 return _sqlWhereClause;
@@ -138,6 +139,16 @@ namespace Nyan.Core.Modules.Data.Adapter
         public static Dictionary<SqlMapper.Identity, Action<IDbCommand, object>> ParamReaderCache
         {
             get { return _paramReaderCache; }
+        }
+
+        public string ParameterIdentifier
+        {
+            get { return _parameterIdentifier; }
+        }
+
+        public string ParameterPrefix
+        {
+            get { return _parameterPrefix; }
         }
 
         public virtual void AddParameters(IDbCommand command, SqlMapper.Identity identity)
@@ -256,7 +267,7 @@ namespace Nyan.Core.Modules.Data.Adapter
             if (val != DBNull.Value) return (T)val;
             if (default(T) == null) return default(T);
 
-            throw new ApplicationException("Attempting to cast a DBNull to a non nullable type!");
+            throw new ApplicationException("Attempting to cast a DBNull to a non nullable type");
         }
 
         public override string ToString()

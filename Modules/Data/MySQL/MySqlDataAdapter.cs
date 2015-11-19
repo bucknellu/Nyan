@@ -16,11 +16,9 @@ namespace Nyan.Modules.Data.MySql
     {
         public MySqlDataAdapter()
         {
-            parameterIdentifier = "@";
             useOutputParameterForInsertedKeyExtraction = false; //Some DBs may require an OUT parameter to extract the new ID. Not the case here.
             sqlTemplateInsertSingleWithReturn = "INSERT INTO {0} ({1}) VALUES ({2}); select LAST_INSERT_ID() as newid";
             sqlTemplateTableTruncate = "DELETE FROM {0}"; //No such thing as TRUNCATE on SQLite, but open DELETE works the same way.
-
             dynamicParameterType = typeof(MySqlDynamicParameters);
         }
 

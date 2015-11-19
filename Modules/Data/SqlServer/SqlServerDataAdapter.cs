@@ -15,7 +15,6 @@ namespace Nyan.Modules.Data.SqlServer
     {
         public SqlServerDataAdapter()
         {
-            parameterIdentifier = "@";
             useOutputParameterForInsertedKeyExtraction = false; //Some DBs may require an OUT parameter to extract the new ID. Not the case here.
             sqlTemplateInsertSingleWithReturn = "INSERT INTO {0} ({1}) VALUES ({2}); SELECT IDENT_CURRENT ('{0}') AS as newid";
             sqlTemplateTableTruncate = "DELETE FROM {0}"; //No such thing as TRUNCATE on SQLite, but open DELETE works the same way.

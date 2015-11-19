@@ -1,6 +1,6 @@
-﻿using Nyan.Core.Modules.Data.Adapter;
-using System.Data;
+﻿using System.Data;
 using System.Data.SqlServerCe;
+using Nyan.Core.Modules.Data.Adapter;
 
 namespace Nyan.Modules.Data.SQLCompact
 {
@@ -32,6 +32,7 @@ namespace Nyan.Modules.Data.SQLCompact
                     return DbType.String;
             }
         }
+
         public override ParameterInformation CustomizeParameterInformation(ParameterInformation p)
         {
             p.TargetDatabaseType = ConvertGenericTypeToCustomType(p.Type);

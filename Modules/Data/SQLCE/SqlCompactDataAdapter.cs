@@ -18,14 +18,13 @@ namespace Nyan.Modules.Data.SQLCompact
         {
             //SQLite implements regular ANSI SQL, so we don't to customize the base templates.
 
-            parameterIdentifier = "@";
             useOutputParameterForInsertedKeyExtraction = false;
             //Some DBs may require an OUT parameter to extract the new ID.
             sqlTemplateReturnNewIdentifier = "SELECT @@IDENTITY";
             useIndependentStatementsForKeyExtraction = true;
             sqlTemplateTableTruncate = "DELETE FROM {0}"; //No such thing as TRUNCATE on SQL Compact, but open DELETE works the same way.
 
-            dynamicParameterType = typeof (SqlCompactDynamicParameters);
+            dynamicParameterType = typeof(SqlCompactDynamicParameters);
         }
 
         public override void CheckDatabaseEntities<T>()
@@ -43,7 +42,7 @@ namespace Nyan.Modules.Data.SQLCompact
 
                 if (tableCount != 0) return;
 
-                Current.Log.Add(typeof (T).FullName + " : Table [" + tn + "] not found.");
+                Current.Log.Add(typeof(T).FullName + " : Table [" + tn + "] not found.");
 
                 var tableRender = new StringBuilder();
 
@@ -54,7 +53,7 @@ namespace Nyan.Modules.Data.SQLCompact
                 //bool isRCTSFound = false;
                 //bool isRUTSFound = false;
 
-                foreach (var prop in typeof (T).GetProperties())
+                foreach (var prop in typeof(T).GetProperties())
                 {
                     var pType = prop.PropertyType;
                     var pDestinyType = "NVARCHAR(255)";
@@ -65,13 +64,13 @@ namespace Nyan.Modules.Data.SQLCompact
                     if (pType.IsPrimitiveType())
                     {
                         if (pType.IsArray) continue;
-                        if (!(typeof (string) == pType) && typeof (IEnumerable).IsAssignableFrom(pType)) continue;
-                        if (typeof (ICollection).IsAssignableFrom(pType)) continue;
-                        if (typeof (IList).IsAssignableFrom(pType)) continue;
-                        if (typeof (IDictionary).IsAssignableFrom(pType)) continue;
+                        if (!(typeof(string) == pType) && typeof(IEnumerable).IsAssignableFrom(pType)) continue;
+                        if (typeof(ICollection).IsAssignableFrom(pType)) continue;
+                        if (typeof(IList).IsAssignableFrom(pType)) continue;
+                        if (typeof(IDictionary).IsAssignableFrom(pType)) continue;
 
                         if (pType.BaseType != null &&
-                            (typeof (IList).IsAssignableFrom(pType.BaseType) && pType.BaseType.IsGenericType))
+                            (typeof(IList).IsAssignableFrom(pType.BaseType) && pType.BaseType.IsGenericType))
                             continue;
 
                         var isNullable = false;
@@ -86,14 +85,14 @@ namespace Nyan.Modules.Data.SQLCompact
                             pType = nullProbe;
                         }
 
-                        if (pType == typeof (long)) pDestinyType = "numeric";
-                        if (pType == typeof (int)) pDestinyType = "INTEGER";
-                        if (pType == typeof (DateTime)) pDestinyType = "DATETIME";
-                        if (pType == typeof (bool)) pDestinyType = "bit";
-                        if (pType == typeof (object)) pDestinyType = "image";
+                        if (pType == typeof(long)) pDestinyType = "numeric";
+                        if (pType == typeof(int)) pDestinyType = "INTEGER";
+                        if (pType == typeof(DateTime)) pDestinyType = "DATETIME";
+                        if (pType == typeof(bool)) pDestinyType = "bit";
+                        if (pType == typeof(object)) pDestinyType = "image";
                         if (pType.IsEnum) pDestinyType = "INTEGER";
 
-                        if (pType == typeof (string)) isNullable = true;
+                        if (pType == typeof(string)) isNullable = true;
 
                         if (MicroEntity<T>.Statements.PropertyFieldMap.ContainsKey(pSourceName))
                             pSourceName = MicroEntity<T>.Statements.PropertyFieldMap[pSourceName];
@@ -144,7 +143,7 @@ namespace Nyan.Modules.Data.SQLCompact
                 try
                 {
                     MicroEntity<T>.Execute(tableRender.ToString());
-                    Current.Log.Add(typeof (T).FullName + " : Table [" + tn + "] created.");
+                    Current.Log.Add(typeof(T).FullName + " : Table [" + tn + "] created.");
                 }
                 catch (Exception e)
                 {
@@ -154,12 +153,10 @@ namespace Nyan.Modules.Data.SQLCompact
                 //'Event' hook for post-schema initialization procedure:
                 try
                 {
-                    typeof (T).GetMethod("OnSchemaInitialization", BindingFlags.Public | BindingFlags.Static)
+                    typeof(T).GetMethod("OnSchemaInitialization", BindingFlags.Public | BindingFlags.Static)
                         .Invoke(null, null);
                 }
-                catch
-                {
-                }
+                catch { }
             }
             catch (Exception e)
             {
@@ -168,10 +165,7 @@ namespace Nyan.Modules.Data.SQLCompact
             }
         }
 
-        public override DbConnection Connection(string connectionString)
-        {
-            return new SqlCeConnection(connectionString);
-        }
+        public override DbConnection Connection(string connectionString) { return new SqlCeConnection(connectionString); }
 
         public override void RenderSchemaEntityNames<T>()
         {
