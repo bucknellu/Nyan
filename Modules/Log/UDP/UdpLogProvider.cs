@@ -56,19 +56,17 @@ namespace Nyan.Modules.Log.UDP
             client.Connect(ep);
         }
 
-        public override void Dispatch(string content, Message.EContentType type = Message.EContentType.Generic)
+        public override void Dispatch(Message payload)
         {
             if (Environment.UserInteractive)
             {
-                Console.WriteLine(content);
-                Debug.WriteLine(content);
+                Console.WriteLine(payload.Content);
+                Debug.WriteLine(payload.Content);
             }
 
-            var message = new Message { Content = content, Subject = type.ToString(), Type = type };
+            var bytePayload = payload.ToSerializedBytes();
 
-            var payload = message.ToSerializedBytes();
-
-            _sender.Send(payload, payload.Length);
+            _sender.Send(bytePayload, bytePayload.Length);
         }
 
         public override void StartListening()

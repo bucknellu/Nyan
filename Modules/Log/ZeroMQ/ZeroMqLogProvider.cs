@@ -42,17 +42,16 @@ namespace Nyan.Modules.Log.ZeroMQ
         {
             _targetAddress = targetAddress;
             _out = new Channel("Log_Service", true, false, _targetAddress);
+            UseScheduler = true;
         }
 
-        public override void Dispatch(string content, Message.EContentType type = Message.EContentType.Generic)
+        public override void Dispatch(Message payload)
         {
             if (Environment.UserInteractive)
             {
-                Console.WriteLine(content);
-                Debug.WriteLine(content);
+                Console.WriteLine(payload.Content);
+                Debug.WriteLine(payload.Content);
             }
-
-            var payload = new Message {Content = content, Subject = type.ToString(), Type = type};
 
             _out.Send(payload);
         }

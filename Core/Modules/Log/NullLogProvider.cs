@@ -6,10 +6,10 @@ namespace Nyan.Core.Modules.Log
 {
     public class NullLogProvider : LogProvider
     {
-        public new void Dispatch(string content, Message.EContentType type = Message.EContentType.Generic)
+        public new void Dispatch(Message payload)
         {
-            Debug.Write("[{0}] {1}".format(type.ToString(), content));
-            Console.WriteLine("[{0}] {1}".format(type.ToString(), content));
+            Debug.Write("[{0}] {1}".format(payload.Type.ToString(), payload.Content));
+            Console.WriteLine("[{0}] {1}".format(payload.Type.ToString(), payload.Content));
         }
     }
 }
