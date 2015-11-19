@@ -8,7 +8,7 @@ using Nyan.Core.Settings;
 namespace Nyan.Modules.Web.REST.auth
 {
     // ReSharper disable once InconsistentNaming
-    public interface IRESTAuthenticationFilter : IAuthenticationFilter, IAuthorizationProvider {}
+    public interface IRESTAuthenticationFilter : IAuthenticationFilter, IAuthorizationProvider { }
 
     public class NyanAuthenticationFilter : IAuthenticationFilter
     {
