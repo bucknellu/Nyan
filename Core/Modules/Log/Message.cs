@@ -14,16 +14,16 @@ namespace Nyan.Core.Modules.Log
 
         public enum EContentType
         {
-            Audit,
-            Debug,
-            Generic,
-            Warning,
-            Exception,
-            Maintenance,
-            StartupSequence,
-            Info,
-            MoreInfo,
-            ShutdownSequence
+            Audit = 10,
+            Exception = 20,
+            StartupSequence = 30,
+            ShutdownSequence = 40,
+            Warning = 50,
+            Maintenance = 60,
+            Info = 70,
+            MoreInfo = 80,
+            Generic = 90,
+            Debug = 100
         }
 
         #endregion

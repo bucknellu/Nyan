@@ -40,6 +40,12 @@ namespace Nyan.Modules.Web.REST
             else
                 Current.Log.Add("Nyan shutdown started", Message.EContentType.ShutdownSequence);
 
+            if (Current.Log.UseScheduler)
+            {
+                Current.Log.UseScheduler = false;
+                Current.Log.Add("Log Scheduler switched off", Message.EContentType.MoreInfo);
+            }
+
             Current.Authorization.Shutdown();
             Current.Cache.Shutdown();
             Current.Scope.Shutdown();
