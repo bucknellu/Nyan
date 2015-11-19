@@ -1,14 +1,15 @@
-﻿using Nyan.Core.Modules.Data.Adapter;
-using System;
-using System.Text;
-using System.Data.Common;
-using Nyan.Core.Modules.Data;
-using Nyan.Core.Extensions;
+﻿using System;
 using System.Collections;
-using System.ComponentModel.DataAnnotations;
-using System.Reflection;
-using Npgsql;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Data.Common;
+using System.Reflection;
+using System.Text;
+using Npgsql;
+using Nyan.Core.Extensions;
+using Nyan.Core.Modules.Data;
+using Nyan.Core.Modules.Data.Adapter;
+using Nyan.Core.Settings;
 
 namespace Nyan.Modules.Data.PgSql
 {
@@ -16,7 +17,6 @@ namespace Nyan.Modules.Data.PgSql
     {
         public PgSqlDataAdapter()
         {
-            parameterIdentifier = "@";
             useOutputParameterForInsertedKeyExtraction = false; //Some DBs may require an OUT parameter to extract the new ID. Not the case here.
             useNumericPrimaryKeyOnly = true;
             sqlTemplateInsertSingleWithReturn = "INSERT INTO {0} ({1}) VALUES ({2}) RETURNING id";
@@ -34,9 +34,7 @@ namespace Nyan.Modules.Data.PgSql
                 var tn = MicroEntity<T>.Statements.SchemaElements["Table"].Value;
                 var sn = "nyan";
                 if (MicroEntity<T>.Statements.SchemaElements.ContainsKey("Schema"))
-                {
                     sn = MicroEntity<T>.Statements.SchemaElements["Schema"].Value;
-                }
 
                 // First step - ensure schema existance.
 
@@ -57,7 +55,7 @@ namespace Nyan.Modules.Data.PgSql
 
                 if (tableCount != 0) return;
 
-                Core.Settings.Current.Log.Add(typeof(T).FullName + ": Table [" + tn + "] not found.");
+                Current.Log.Add(typeof(T).FullName + ": Table [" + tn + "] not found.");
 
                 var tableRender = new StringBuilder();
 
@@ -144,9 +142,7 @@ namespace Nyan.Modules.Data.PgSql
 
                     var lengthAttribute = prop.GetCustomAttribute<StringLengthAttribute>();
                     if (lengthAttribute != null)
-                    {
                         pLength = "(" + lengthAttribute.MaximumLength + ")";
-                    }
                     else if (pDestinyType == "VARCHAR")
                     {
                         // Default should be 255 on PostgreSQL
@@ -164,11 +160,11 @@ namespace Nyan.Modules.Data.PgSql
                 try
                 {
                     MicroEntity<T>.Execute(tableRender.ToString());
-                    Core.Settings.Current.Log.Add(typeof(T).FullName + ": Table [" + tn + "] created.");
+                    Current.Log.Add(typeof(T).FullName + ": Table [" + tn + "] created.");
                 }
                 catch (Exception e)
                 {
-                    Core.Settings.Current.Log.Add(e);
+                    Current.Log.Add(e);
                 }
 
                 //'Event' hook for post-schema initialization procedure:
@@ -180,12 +176,12 @@ namespace Nyan.Modules.Data.PgSql
                 catch
                 {
                     // Method is simply not defined. Info by log here. 
-                    Core.Settings.Current.Log.Add(typeof(T).FullName + ": There's no specific OnSchemaInitialization defined. Continuing...");
+                    Current.Log.Add(typeof(T).FullName + ": There's no specific OnSchemaInitialization defined. Continuing...");
                 }
             }
             catch (Exception e)
             {
-                Core.Settings.Current.Log.Add("  Schema render Error: " + e.Message);
+                Current.Log.Add("  Schema render Error: " + e.Message);
                 throw;
             }
         }
@@ -195,10 +191,7 @@ namespace Nyan.Modules.Data.PgSql
         /// </summary>
         /// <param name="connectionString"></param>
         /// <returns></returns>
-        public override DbConnection Connection(string connectionString)
-        {
-            return new NpgsqlConnection(connectionString);
-        }
+        public override DbConnection Connection(string connectionString) { return new NpgsqlConnection(connectionString); }
 
         /// <summary>
         /// 
