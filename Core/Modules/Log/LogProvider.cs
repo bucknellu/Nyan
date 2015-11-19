@@ -34,6 +34,7 @@ namespace Nyan.Core.Modules.Log
                     if (_workerThread == null)
                         return;
                     _workerThread = null;
+                    DispatchQueue();
                 }
                 else
                 {
@@ -55,20 +56,26 @@ namespace Nyan.Core.Modules.Log
                 {
                     _hasMessage = false;
 
-                    while (_messageQueue.Count != 0)
-                    {
-                        var a = _messageQueue.Peek();
+                    DispatchQueue();
 
-                        try
-                        {
-                            Dispatch(a);
-                            _messageQueue.Dequeue();
-                        }
-                        catch (Exception e)
-                        {
-                            //Something very wrong happened: Can't send the messages. What to do...
-                        }
-                    }
+                }
+            }
+        }
+
+        private void DispatchQueue()
+        {
+            while (_messageQueue.Count != 0)
+            {
+                var a = _messageQueue.Peek();
+
+                try
+                {
+                    Dispatch(a);
+                    _messageQueue.Dequeue();
+                }
+                catch (Exception e)
+                {
+                    //Something very wrong happened: Can't send the messages. What to do...
                 }
             }
         }

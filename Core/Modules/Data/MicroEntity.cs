@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
+using System.Data.SqlClient;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -50,11 +51,11 @@ namespace Nyan.Core.Modules.Data
         {
             if (_typeName != null) return _typeName;
 
-            _typeName = typeof (T).FullName;
+            _typeName = typeof(T).FullName;
             return _typeName;
         }
 
-        private static void LogLocal(string pMessage, Message.EContentType pType = Message.EContentType.Generic) { Current.Log.Add(typeof (T).FullName + " : " + pMessage, pType); }
+        private static void LogLocal(string pMessage, Message.EContentType pType = Message.EContentType.Generic) { Current.Log.Add(typeof(T).FullName + " : " + pMessage, pType); }
 
         /// <summary>
         ///     Gets an object instance of T, using the identifier to search the Primary Key.
@@ -66,7 +67,7 @@ namespace Nyan.Core.Modules.Data
             if (identifier == null) return null;
 
             if (Statements.IdPropertyRaw == null)
-                throw new MissingPrimaryKeyException("Identifier not set for " + typeof (T).FullName);
+                throw new MissingPrimaryKeyException("Identifier not set for " + typeof(T).FullName);
 
             var ret = TableData.UseCaching
                 ? Helper.FetchCacheableSingleResultByKey(GetFromDatabase, identifier)
@@ -82,7 +83,7 @@ namespace Nyan.Core.Modules.Data
         /// <returns>An object instance if the ID exists, or NULL otherwise.</returns>
         internal static T GetFromDatabase(object identifier)
         {
-            var retCol = Statements.Adapter.useNumericPrimaryKeyOnly ? Query(Statements.SqlGetSingle, new {Id = Convert.ToInt32(identifier)}) : Query(Statements.SqlGetSingle, new {Id = identifier});
+            var retCol = Statements.Adapter.useNumericPrimaryKeyOnly ? Query(Statements.SqlGetSingle, new { Id = Convert.ToInt32(identifier) }) : Query(Statements.SqlGetSingle, new { Id = identifier });
 
             var ret = retCol.Count > 0 ? retCol[0] : null;
             return ret;
@@ -112,8 +113,7 @@ namespace Nyan.Core.Modules.Data
 
                 var qryparm = "'" + string.Join("','", innerList) + "'";
 
-                var q = string.Format(Statements.SqlAllFieldsQueryTemplate,
-                    Statements.IdPropertyRaw + " IN (" + qryparm + ")");
+                var q = string.Format(Statements.SqlAllFieldsQueryTemplate, Statements.IdPropertyRaw + " IN (" + qryparm + ")");
 
                 tasks.Add(new Task<List<T>>(() => Query(q)));
             }
@@ -158,8 +158,7 @@ namespace Nyan.Core.Modules.Data
             // ReSharper disable once PossibleNullReferenceException
             queryParm.Add(leftSideValue.ToString(), rightSideValue);
 
-            var querySpec = ResolveNodeType(body.NodeType, leftSideValue,
-                Statements.Adapter.ParameterIdentifier + leftSideValue);
+            var querySpec = ResolveNodeType(body.NodeType, leftSideValue, Statements.Adapter.ParameterDefinition.ToString() + leftSideValue);
 
             var q = string.Format(Statements.SqlAllFieldsQueryTemplate, querySpec.First());
 
@@ -183,7 +182,7 @@ namespace Nyan.Core.Modules.Data
             {
                 case "System.Linq.Expressions.LogicalBinaryExpression":
                 case "System.Linq.Expressions.MethodBinaryExpression":
-                    // TODO: Finish
+                // TODO: Finish
                 case "System.Linq.Expressions.PropertyExpression":
                     // return ResolveMemberExpression(expression as MemberExpression);
 
@@ -205,7 +204,7 @@ namespace Nyan.Core.Modules.Data
         /// <returns></returns>
         private static object ResolveMemberExpression(MemberExpression member)
         {
-            var objectMember = Expression.Convert(member, typeof (object));
+            var objectMember = Expression.Convert(member, typeof(object));
             var getterLambda = Expression.Lambda<Func<object>>(objectMember);
             var getter = getterLambda.Compile();
 
@@ -225,34 +224,34 @@ namespace Nyan.Core.Modules.Data
             switch (nodeType)
             {
                 case ExpressionType.AndAlso:
-                    foreach (var leftSide in (IEnumerable<IOperator>) leftValue) yield return leftSide;
-                    foreach (var rightSide in (IEnumerable<IOperator>) rightValue) yield return rightSide;
+                    foreach (var leftSide in (IEnumerable<IOperator>)leftValue) yield return leftSide;
+                    foreach (var rightSide in (IEnumerable<IOperator>)rightValue) yield return rightSide;
                     break;
                 case ExpressionType.GreaterThan:
-                    yield return new SqlGreaterThan {FieldName = leftValue.ToString(), FieldValue = rightValue};
+                    yield return new SqlGreaterThan { FieldName = leftValue.ToString(), FieldValue = rightValue };
                     break;
                 case ExpressionType.GreaterThanOrEqual:
-                    yield return new SqlGreaterOrEqualThan {FieldName = leftValue.ToString(), FieldValue = rightValue};
+                    yield return new SqlGreaterOrEqualThan { FieldName = leftValue.ToString(), FieldValue = rightValue };
                     break;
                 case ExpressionType.LessThan:
-                    yield return new SqlLessThan {FieldName = leftValue.ToString(), FieldValue = rightValue};
+                    yield return new SqlLessThan { FieldName = leftValue.ToString(), FieldValue = rightValue };
                     break;
                 case ExpressionType.LessThanOrEqual:
-                    yield return new SqlLessOrEqualThan {FieldName = leftValue.ToString(), FieldValue = rightValue};
+                    yield return new SqlLessOrEqualThan { FieldName = leftValue.ToString(), FieldValue = rightValue };
                     break;
-                    // TODO: Discuss later.
-                    /* case ExpressionType.OrElse:
+                // TODO: Discuss later.
+                /* case ExpressionType.OrElse:
 yield return new Or { OperadoresInternos = new List<IOperator> { ((IEnumerable<IOperator>)leftValue).First(), ((IEnumerable<IOperator>)rightValue).First() } };
 break; */
                 case ExpressionType.NotEqual:
-                    if (rightValue != null) yield return new SqlNotEqual {FieldName = leftValue.ToString(), FieldValue = rightValue};
+                    if (rightValue != null) yield return new SqlNotEqual { FieldName = leftValue.ToString(), FieldValue = rightValue };
                     else
-                        yield return new SqlNotNull {FieldName = leftValue.ToString()};
+                        yield return new SqlNotNull { FieldName = leftValue.ToString() };
                     break;
                 default:
-                    if (rightValue != null) yield return new SqlEqual {FieldName = leftValue.ToString(), FieldValue = rightValue};
+                    if (rightValue != null) yield return new SqlEqual { FieldName = leftValue.ToString(), FieldValue = rightValue };
                     else
-                        yield return new SqlNull {FieldName = leftValue.ToString()};
+                        yield return new SqlNull { FieldName = leftValue.ToString() };
                     break;
             }
         }
@@ -297,7 +296,7 @@ break; */
             if (TableData.IsReadOnly)
                 throw new ReadOnlyException("This entity is set as read-only.");
 
-            Execute(Statements.SqlRemoveSingleParametrized, new {Id = identifier});
+            Execute(Statements.SqlRemoveSingleParametrized, new { Id = identifier });
 
             if (!TableData.UseCaching) return;
 
@@ -390,7 +389,7 @@ break; */
 
             Execute(Statements.SqlRemoveSingleParametrized, this);
 
-            var cKey = typeof (T).FullName + ":" + GetEntityIdentifier();
+            var cKey = typeof(T).FullName + ":" + GetEntityIdentifier();
             Current.Cache.Remove(cKey);
 
             //if (Cache.Contains(cKey))
@@ -408,12 +407,16 @@ break; */
             if (_isDeleted) return null;
             var ret = "";
 
-            object obj = this;
+            DynamicParametersPrimitive obj;
 
             var isNew = IsNew();
 
             if (!isNew)
                 obj = Statements.Adapter.Parameters<T>(this);
+            else
+            {
+                obj = Statements.Adapter.InsertableParameters<T>(this);
+            }
 
             if (Statements.IdColumn == null)
                 Execute(Statements.SqlInsertSingle, obj);
@@ -436,22 +439,19 @@ break; */
             return ret;
         }
 
-        public string SaveAndGetId() { return SaveAndGetId(this); }
+        public string SaveAndGetId()
+        {
+            var obj = Statements.Adapter.Parameters<T>(this);
+            return SaveAndGetId(obj);
+        }
 
-        public string SaveAndGetId(object obj)
+        public string SaveAndGetId(DynamicParametersPrimitive obj)
         {
             if (TableData.IsReadOnly)
                 throw new ReadOnlyException("This entity is set as read-only.");
 
             if (_isDeleted) return null;
-
-            var ret = ExecuteAndReturnIdentifier(obj);
-
-            Current.Cache.Remove(CacheKey(ret));
-            Get(ret);
-
-            //Settings.Current.Cache.Remove(CacheKey("A"));
-
+            var ret = InsertAndReturnIdentifier(obj);
             return ret;
         }
 
@@ -463,8 +463,8 @@ break; */
             if (_isDeleted) return;
 
             var parm = TableData.IsInsertableIdentifier
-                ? (object) Statements.Adapter.InsertableParameters<T>(this)
-                : this;
+                ? Statements.Adapter.InsertableParameters<T>(this)
+                : Statements.Adapter.Parameters<T>(this);
 
             Execute(Statements.SqlInsertSingle, parm);
 
@@ -480,7 +480,7 @@ break; */
         public static List<IDictionary<string, object>> QueryObject(string sqlStatement)
         {
             if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
-                throw new InvalidOperationException(typeof (T).FullName + " - state is not operational: " + Statements.StatusDescription);
+                throw new InvalidOperationException(typeof(T).FullName + " - state is not operational: " + Statements.StatusDescription);
 
             using (var conn = Statements.Adapter.Connection(Statements.ConnectionString))
             {
@@ -488,7 +488,7 @@ break; */
 
                 var o =
                     conn.Query(sqlStatement, null, null, false, null, CommandType.Text)
-                        .Select(a => (IDictionary<string, object>) a)
+                        .Select(a => (IDictionary<string, object>)a)
                         .ToList();
 
                 conn.Close();
@@ -500,7 +500,7 @@ break; */
         public static List<List<Dictionary<string, object>>> QueryMultiple(string sqlStatement, object sqlParameters = null, CommandType pCommandType = CommandType.Text)
         {
             if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
-                throw new InvalidOperationException(typeof (T).FullName + " - state is not operational: " + Statements.StatusDescription);
+                throw new InvalidOperationException(typeof(T).FullName + " - state is not operational: " + Statements.StatusDescription);
 
             var cDebug = "";
 
@@ -518,7 +518,7 @@ break; */
                         {
                             var probe = m.Read<object>();
                             var buffer = probe
-                                .Select(a => (IDictionary<string, object>) a)
+                                .Select(a => (IDictionary<string, object>)a)
                                 .Select(v => v.ToDictionary(v2 => v2.Key, v2 => v2.Value))
                                 .ToList();
                             res.Add(buffer);
@@ -529,7 +529,8 @@ break; */
 
                     return res;
                 }
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 Current.Log.Add(e, GetTypeName() + ": Entity/Dapper Query: Error while issuing statements to the database. Statement: [" + sqlStatement + "]. Database: " + cDebug);
                 throw new DataException(
@@ -538,10 +539,18 @@ break; */
             }
         }
 
-        public static List<T> Query(string sqlStatement, object sqlParameters = null, CommandType pCommandType = CommandType.Text)
+        public static List<T> Query(string sqlStatement, object rawObject = null)
+        {
+            var primitive = rawObject as DynamicParametersPrimitive;
+            DynamicParametersPrimitive obj = primitive ?? Statements.Adapter.Parameters<T>(rawObject);
+
+            return Query(sqlStatement, obj, CommandType.Text);
+        }
+
+        public static List<T> Query(string sqlStatement, DynamicParametersPrimitive sqlParameters, CommandType pCommandType)
         {
             if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
-                throw new InvalidOperationException(typeof (T).FullName + " - state is not operational: " + Statements.StatusDescription);
+                throw new InvalidOperationException(typeof(T).FullName + " - state is not operational: " + Statements.StatusDescription);
 
             var dbConn = "";
 
@@ -553,7 +562,7 @@ break; */
                     conn.Open();
 
                     var o = conn.Query(sqlStatement, sqlParameters, null, false, null, pCommandType)
-                        .Select(a => (IDictionary<string, object>) a)
+                        .Select(a => (IDictionary<string, object>)a)
                         .ToList();
                     conn.Close();
 
@@ -561,7 +570,8 @@ break; */
 
                     return ret;
                 }
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 DumpQuery(sqlStatement, dbConn, e.Message);
                 throw new DataException(GetTypeName() + "Entity/Dapper Query: Error while issuing statements to the database. Error:  [" + e.Message + "].", e);
@@ -582,8 +592,12 @@ break; */
             Current.Log.Add(sguid + " EX [" + message + "]", Message.EContentType.Warning);
         }
 
-        public static void Execute(string sqlStatement, object sqlParameters = null,
-            CommandType pCommandType = CommandType.Text)
+        public static void Execute(string sqlStatement, object sourceObj)
+        {
+            Execute(sqlStatement, Statements.Adapter.Parameters<T>(sourceObj));
+        }
+
+        public static void Execute(string sqlStatement, DynamicParametersPrimitive sqlParameters = null, CommandType pCommandType = CommandType.Text)
         {
             var dbConn = "";
 
@@ -596,7 +610,8 @@ break; */
                     conn.Execute(sqlStatement, sqlParameters, null, null, pCommandType);
                     conn.Close();
                 }
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 DumpQuery(sqlStatement, dbConn, e.Message);
 
@@ -614,7 +629,8 @@ break; */
                 {
                     var ret = conn.Query<string>(sqlStatement, null, null, true, null, CommandType.Text).First();
                     return ret;
-                } catch (Exception e)
+                }
+                catch (Exception e)
                 {
                     Current.Log.Add(e);
                     throw;
@@ -636,7 +652,7 @@ break; */
         public static List<TU> Query<TU>(string sqlStatement, object sqlParameters = null, CommandType pCommandType = CommandType.Text)
         {
             if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
-                throw new InvalidOperationException(typeof (T).FullName + " - state is not operational: " + Statements.StatusDescription);
+                throw new InvalidOperationException(typeof(T).FullName + " - state is not operational: " + Statements.StatusDescription);
 
             try
             {
@@ -650,7 +666,8 @@ break; */
 
                     return ret;
                 }
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 throw new DataException(
                     "Entity/Dapper Query: Error while issuing statements to the database. " +
@@ -678,13 +695,15 @@ break; */
 
                     foreach (var name in a)
                     {
-                        try { result[name] = p.Get<dynamic>(name); } catch
+                        try { result[name] = p.Get<dynamic>(name); }
+                        catch
                         {
                             result[name] = null;
                         }
                     }
                 }
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 throw new DataException(
                     "Entity/Dapper Execute: Error while issuing statements to the database. " +
@@ -696,12 +715,9 @@ break; */
             return result;
         }
 
-        public static string ExecuteAndReturnIdentifier(object sqlParameters = null,
-            CommandType pCommandType = CommandType.Text)
+        public static string InsertAndReturnIdentifier(DynamicParametersPrimitive p = null, CommandType pCommandType = CommandType.Text)
         {
             var sqlStatement = Statements.Adapter.useIndependentStatementsForKeyExtraction ? Statements.SqlInsertSingle : Statements.SqlInsertSingleWithReturn;
-
-            var p = Statements.Adapter.InsertableParameters<T>(sqlParameters);
 
             try
             {
@@ -743,7 +759,8 @@ break; */
                     conn.Query<string>(sqlStatement, p, null, true, null, pCommandType);
                     return p.Get<object>("newid").ToString();
                 }
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 throw new DataException("Entity/Dapper Query/Get: Error while issuing statements to the database. "
                                         + "Error:  [" + e.Message + "]."
@@ -762,23 +779,23 @@ break; */
             {
                 try
                 {
-                    ClassRegistration.TryAdd(typeof (T), new MicroEntityCompiledStatements());
+                    ClassRegistration.TryAdd(typeof(T), new MicroEntityCompiledStatements());
                     Statements.Status = MicroEntityCompiledStatements.EStatus.Initializing;
                     Statements.StatusStep = "Instantiating ColumnAttributeTypeMapper";
 
                     var cat = new ColumnAttributeTypeMapper<T>();
-                    SqlMapper.SetTypeMap(typeof (T), cat);
+                    SqlMapper.SetTypeMap(typeof(T), cat);
 
-                    Current.Log.Add("{0} @ {1} - {2} scope : Initializing".format(typeof (T).FullName, Environment.MachineName,
+                    Current.Log.Add("{0} @ {1} - {2} scope : Initializing".format(typeof(T).FullName, Environment.MachineName,
                         Current.Scope.Current));
 
                     var refBundle = TableData.ConnectionBundleType ?? Current.GlobalConnectionBundleType;
 
-                    var probeType = typeof (T);
+                    var probeType = typeof(T);
 
                     Statements.PropertyFieldMap =
                         (from pInfo in
-                            probeType.GetProperties()
+                             probeType.GetProperties()
                          let p1 = pInfo.GetCustomAttributes(false).OfType<ColumnAttribute>().ToList()
                          let fieldName = (p1.Count != 0 ? p1[0].Name : pInfo.Name)
                          select new KeyValuePair<string, string>(pInfo.Name, fieldName))
@@ -789,7 +806,7 @@ break; */
                     //First, probe for a valid Connection bundle
                     if (refBundle != null)
                     {
-                        var refType = (ConnectionBundlePrimitive) Activator.CreateInstance(refBundle);
+                        var refType = (ConnectionBundlePrimitive)Activator.CreateInstance(refBundle);
 
                         Statements.Bundle = refType;
 
@@ -798,7 +815,7 @@ break; */
 
                         Statements.StatusStep = "Transferring configuration settings from Bundle to Entity Statements";
 
-                        Statements.Adapter = (DataAdapterPrimitive) Activator.CreateInstance(refType.AdapterType);
+                        Statements.Adapter = (DataAdapterPrimitive)Activator.CreateInstance(refType.AdapterType);
                         Statements.ConnectionCypherKeys = refType.ConnectionCypherKeys;
 
                         if (Statements.CredentialCypherKeys.Count == 0)
@@ -820,7 +837,7 @@ break; */
                     {
                         var props =
                             probeType.GetProperties()
-                                .Where(prop => Attribute.IsDefined(prop, typeof (KeyAttribute)))
+                                .Where(prop => Attribute.IsDefined(prop, typeof(KeyAttribute)))
                                 .ToList();
                         if (props.Count > 0)
                             identifierColumnName = props[0].Name;
@@ -830,7 +847,7 @@ break; */
                     {
                         var mapEntry = Statements.PropertyFieldMap.FirstOrDefault(p => p.Value.ToLower().Equals(identifierColumnName.ToLower()));
 
-                        Statements.IdProperty = Statements.Adapter.ParameterIdentifier + mapEntry.Key;
+                        Statements.IdProperty = Statements.Adapter.ParameterDefinition + mapEntry.Key;
                         Statements.IdPropertyRaw = mapEntry.Key;
                         Statements.IdColumn = mapEntry.Value;
                     }
@@ -870,12 +887,13 @@ break; */
 
                             if (prePrb.IndexOf("SERVER=", StringComparison.Ordinal) > -1)
                             {
-                                prePrb = prePrb.Split(new[] {"SERVER="}, StringSplitOptions.None)[1].Split(';')[0];
+                                prePrb = prePrb.Split(new[] { "SERVER=" }, StringSplitOptions.None)[1].Split(';')[0];
                                 prb = prePrb.ToLower();
                             }
 
                             Statements.StatusStep = "Connecting to " + prb;
-                        } catch {}
+                        }
+                        catch { }
 
                         //Test Connectivity
 
@@ -905,10 +923,11 @@ break; */
                     LogLocal("Initialized");
 
                     Statements.Status = MicroEntityCompiledStatements.EStatus.Operational;
-                } catch (Exception e)
+                }
+                catch (Exception e)
                 {
                     Statements.Status = MicroEntityCompiledStatements.EStatus.CriticalFailure;
-                    Statements.StatusDescription = typeof (T).FullName + " : Error while " + Statements.StatusStep + " - " + e.Message;
+                    Statements.StatusDescription = typeof(T).FullName + " : Error while " + Statements.StatusStep + " - " + e.Message;
 
                     var refEx = e;
                     while (refEx.InnerException != null)
@@ -923,7 +942,7 @@ break; */
             }
         }
 
-        public static MicroEntityCompiledStatements Statements { get { return ClassRegistration[typeof (T)]; } }
+        public static MicroEntityCompiledStatements Statements { get { return ClassRegistration[typeof(T)]; } }
 
         public static MicroEntitySetupAttribute TableData
         {
@@ -931,7 +950,7 @@ break; */
             {
                 return
                     (MicroEntitySetupAttribute)
-                        Attribute.GetCustomAttribute(typeof (T), typeof (MicroEntitySetupAttribute));
+                        Attribute.GetCustomAttribute(typeof(T), typeof(MicroEntitySetupAttribute));
             }
         }
 
@@ -947,11 +966,11 @@ break; */
             //'Event' hook for post-schema initialization procedure:
             try
             {
-                typeof (T).GetMethod("OnEntityInitialization", BindingFlags.Public | BindingFlags.Static)
+                typeof(T).GetMethod("OnEntityInitialization", BindingFlags.Public | BindingFlags.Static)
                     .Invoke(null, null);
             }
-                // ReSharper disable once EmptyGeneralCatchClause
-            catch {}
+            // ReSharper disable once EmptyGeneralCatchClause
+            catch { }
         }
 
         #endregion
@@ -967,7 +986,8 @@ break; */
             {
                 LogLocal("Configuration changed config changed.", Message.EContentType.Maintenance);
                 Statements.Adapter.SetConnectionString<T>();
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 Current.Log.Add(e);
             }
@@ -980,8 +1000,8 @@ break; */
             if (_cacheKeyBase != null)
                 return _cacheKeyBase + key;
 
-            _cacheKeyBase = typeof (T).FullName + ":";
-            _cacheKeyBase = typeof (T).FullName + ":";
+            _cacheKeyBase = typeof(T).FullName + ":";
+            _cacheKeyBase = typeof(T).FullName + ":";
             return _cacheKeyBase + key;
         }
 

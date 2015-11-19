@@ -35,7 +35,7 @@ namespace Nyan.Modules.Web.REST
                     BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField,
                     null, runtime, null);
 
-                Current.Log.Add("Nyan shutdown started: " + shutDownMessage.Replace(Environment.NewLine, ":").Split(':')[0], Message.EContentType.ShutdownSequence);
+                Current.Log.Add("Nyan shutdown initiated: " + shutDownMessage.Replace(Environment.NewLine, ":").Split(':')[0], Message.EContentType.ShutdownSequence);
             }
             else
                 Current.Log.Add("Nyan shutdown started", Message.EContentType.ShutdownSequence);
@@ -46,9 +46,16 @@ namespace Nyan.Modules.Web.REST
                 Current.Log.Add("Log Scheduler switched off", Message.EContentType.MoreInfo);
             }
 
+            Current.Log.Add("Shutting down " + Current.Authorization.GetType().Name, Message.EContentType.MoreInfo);
             Current.Authorization.Shutdown();
+
+            Current.Log.Add("Shutting down " + Current.Cache.GetType().Name, Message.EContentType.MoreInfo);
             Current.Cache.Shutdown();
+
+            Current.Log.Add("Shutting down " + Current.Scope.GetType().Name, Message.EContentType.MoreInfo);
             Current.Scope.Shutdown();
+
+            Current.Log.Add("Shutting down " + Current.Encryption.GetType().Name, Message.EContentType.MoreInfo);
             Current.Encryption.Shutdown();
 
             Current.Log.Add(@"  _|\_/|  ZZZzzz", Message.EContentType.ShutdownSequence);

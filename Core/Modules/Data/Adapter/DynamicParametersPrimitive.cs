@@ -1,13 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 using Dapper;
-using System.Data.Common;
 using Nyan.Core.Extensions;
 
 namespace Nyan.Core.Modules.Data.Adapter
 {
+    public class ParameterDefinition
+    {
+        public ParameterDefinition(string pIdentifier, string pPrefix)
+        {
+            Identifier = pIdentifier;
+            Prefix = pPrefix;
+        }
+
+        public string Identifier { get; set; }
+        public string Prefix { get; set; }
+
+        public override string ToString() { return Identifier + Prefix; }
+    }
+
     public abstract class DynamicParametersPrimitive : SqlMapper.IDynamicParameters
     {
         public enum DbGenericType
@@ -25,15 +39,62 @@ namespace Nyan.Core.Modules.Data.Adapter
         private readonly Dictionary<string, ParameterInformation> _internalParameters = new Dictionary<string, ParameterInformation>();
 
         protected internal Type CommandType;
-        protected internal Type ParameterType;
 
-        protected internal string _parameterIdentifier = "@";
-        protected internal string _parameterPrefix = "p_";
+        protected internal ParameterDefinition ParameterDefinition = new ParameterDefinition("@", "u_");
+        protected internal Type ParameterType;
 
         public List<object> Templates;
 
         private string _sqlInClause;
         private string _sqlWhereClause;
+
+        public DynamicParametersPrimitive() { }
+        public DynamicParametersPrimitive(object template) { AddDynamicParams(template); }
+
+        public virtual IEnumerable<string> ParameterNames { get { return _internalParameters.Select(p => p.Key); } }
+
+        //Generic WHERE clause render.
+        public virtual string SqlWhereClause
+        {
+            get
+            {
+                if (_sqlWhereClause != null) return _sqlWhereClause;
+
+                _sqlWhereClause = "";
+
+                foreach (var parameter in _internalParameters)
+                {
+                    if (_sqlWhereClause != "") _sqlWhereClause += " AND ";
+                    _sqlWhereClause += parameter.Value.Name + " = " + ParameterDefinition + parameter.Value.Name;
+                }
+
+                return _sqlWhereClause;
+            }
+        }
+
+        //Generic IN clause render.
+        public virtual string SqlInClause
+        {
+            get
+            {
+                if (_sqlInClause != null) return _sqlInClause;
+
+                _sqlInClause = "";
+
+                foreach (var parameter in _internalParameters)
+                {
+                    if (_sqlInClause != "") _sqlInClause += ", ";
+                    _sqlInClause += parameter.Value.Name;
+                }
+
+                return _sqlInClause;
+            }
+        }
+
+        public Dictionary<string, ParameterInformation> Parameters { get { return _internalParameters; } }
+
+        public static Dictionary<SqlMapper.Identity, Action<IDbCommand, object>> ParamReaderCache { get { return _paramReaderCache; } }
+        void SqlMapper.IDynamicParameters.AddParameters(IDbCommand command, SqlMapper.Identity identity) { AddParameters(command, identity); }
 
         public virtual void AddDynamicParams(object param)
         {
@@ -73,82 +134,6 @@ namespace Nyan.Core.Modules.Data.Adapter
                         Templates.Add(t);
                 }
             }
-        }
-
-        public DynamicParametersPrimitive()
-        {
-        }
-        public DynamicParametersPrimitive(object template)
-        {
-            AddDynamicParams(template);
-        }
-        void SqlMapper.IDynamicParameters.AddParameters(IDbCommand command, SqlMapper.Identity identity)
-        {
-            AddParameters(command, identity);
-        }
-
-        public virtual IEnumerable<string> ParameterNames
-        {
-            get { return _internalParameters.Select(p => p.Key); }
-        }
-
-
-        //Generic WHERE clause render.
-        public virtual string SqlWhereClause
-        {
-            get
-            {
-                if (_sqlWhereClause != null) return _sqlWhereClause;
-
-                _sqlWhereClause = "";
-
-                foreach (var parameter in _internalParameters)
-                {
-                    if (_sqlWhereClause != "") _sqlWhereClause += " AND ";
-                    _sqlWhereClause += parameter.Key + " = " + _parameterIdentifier + parameter.Value.Name;
-                }
-
-                return _sqlWhereClause;
-            }
-        }
-
-        //Generic IN clause render.
-        public virtual string SqlInClause
-        {
-            get
-            {
-                if (_sqlInClause != null) return _sqlInClause;
-
-                _sqlInClause = "";
-
-                foreach (var parameter in _internalParameters)
-                {
-                    if (_sqlInClause != "") _sqlInClause += ", ";
-                    _sqlInClause += parameter.Value.Name;
-                }
-
-                return _sqlInClause;
-            }
-        }
-
-        public Dictionary<string, ParameterInformation> Parameters
-        {
-            get { return _internalParameters; }
-        }
-
-        public static Dictionary<SqlMapper.Identity, Action<IDbCommand, object>> ParamReaderCache
-        {
-            get { return _paramReaderCache; }
-        }
-
-        public string ParameterIdentifier
-        {
-            get { return _parameterIdentifier; }
-        }
-
-        public string ParameterPrefix
-        {
-            get { return _parameterPrefix; }
         }
 
         public virtual void AddParameters(IDbCommand command, SqlMapper.Identity identity)
@@ -192,9 +177,7 @@ namespace Nyan.Core.Modules.Data.Adapter
                     p.ParameterName = name;
                 }
                 else
-                {
                     p = dCommand.Parameters[name];
-                }
                 var val = param.Value.Value;
 
                 p.Value = val ?? DBNull.Value;
@@ -208,9 +191,7 @@ namespace Nyan.Core.Modules.Data.Adapter
                         p.Size = 4000;
                 }
                 if (param.Value.Size != null)
-                {
                     p.Size = param.Value.Size.Value;
-                }
 
                 p.DbType = (DbType)param.Value.TargetDatabaseType;
 
@@ -221,15 +202,9 @@ namespace Nyan.Core.Modules.Data.Adapter
             }
         }
 
-        public void ResetCachedWhereClause()
-        {
-            _sqlWhereClause = null;
-        }
+        public void ResetCachedWhereClause() { _sqlWhereClause = null; }
 
-        public void ResetCachedInClause()
-        {
-            _sqlInClause = null;
-        }
+        public void ResetCachedInClause() { _sqlInClause = null; }
 
         public virtual void Add(string name, object value = null, DbGenericType? dbType = DbGenericType.String, ParameterDirection? direction = ParameterDirection.Input, int? size = null)
         {
@@ -252,7 +227,7 @@ namespace Nyan.Core.Modules.Data.Adapter
                 Size = size
             });
 
-            _internalParameters[name] = ret;
+            _internalParameters[ParameterDefinition.Prefix + name] = ret;
         }
 
         public virtual ParameterInformation CustomizeParameterInformation(ParameterInformation parameterInformation)
@@ -263,7 +238,7 @@ namespace Nyan.Core.Modules.Data.Adapter
 
         public virtual T Get<T>(string name)
         {
-            var val = Parameters[name].AttachedParameter.Value;
+            var val = Parameters[ParameterDefinition.Prefix + name].AttachedParameter.Value;
             if (val != DBNull.Value) return (T)val;
             if (default(T) == null) return default(T);
 
@@ -294,6 +269,8 @@ namespace Nyan.Core.Modules.Data.Adapter
             public int? Size { get; set; }
             public virtual object TargetDatabaseType { get; set; }
             public IDbDataParameter AttachedParameter { get; set; }
+
+            public override string ToString() { return "[{0}] : {1} ({2}=>{3})".format(Name, Value, Type, TargetDatabaseType); }
         }
     }
 }

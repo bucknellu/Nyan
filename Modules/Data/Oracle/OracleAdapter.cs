@@ -18,10 +18,10 @@ namespace Nyan.Modules.Data.Oracle
             //SQLite implements regular ANSI SQL, so we don't to customize the base templates.
 
             useOutputParameterForInsertedKeyExtraction = true; //Some DBs may require an OUT parameter to extract the new ID. Not the case here.
-            sqlTemplateInsertSingleWithReturn = "INSERT INTO {0} ({1}) VALUES ({2}) RETURNING CAST({3} AS VARCHAR2(38) ) INTO :newid";
+            sqlTemplateInsertSingleWithReturn = "INSERT INTO {0} ({1}) VALUES ({2}) RETURNING CAST({3} AS VARCHAR2(38) ) INTO {4}newid";
             sqlTemplateTableTruncate = "TRUNCATE TABLE {0}"; //No such thing as TRUNCATE on SQLite, but open DELETE works the same way.
-            
-            dynamicParameterType = typeof (OracleDynamicParameters);
+
+            dynamicParameterType = typeof(OracleDynamicParameters);
         }
 
         public override void CheckDatabaseEntities<T>()
@@ -34,8 +34,7 @@ namespace Nyan.Modules.Data.Oracle
                 var tn = MicroEntity<T>.Statements.SchemaElements["Table"].Value;
 
                 var tableCount =
-                    MicroEntity<T>.QuerySingleValue<int>("SELECT COUNT(*) FROM ALL_TABLES WHERE table_name = '" + tn +
-                                                          "'");
+                    MicroEntity<T>.QuerySingleValue<int>("SELECT COUNT(*) FROM ALL_TABLES WHERE table_name = '" + tn + "'");
 
                 if (tableCount != 0) return;
 

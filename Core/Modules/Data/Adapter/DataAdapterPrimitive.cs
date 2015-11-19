@@ -15,15 +15,13 @@ namespace Nyan.Core.Modules.Data.Adapter
     {
         // ReSharper disable InconsistentNaming
         private DynamicParametersPrimitive ParameterSourceType;
-        private string _ParameterIdentifier;
-        private string _ParemeterPrefix;
         protected internal Type dynamicParameterType = null;
         protected internal string sqlTemplateAllFieldsQuery = "SELECT * FROM {0} WHERE ({1})";
         protected internal string sqlTemplateCustomSelectQuery = "SELECT {0} FROM {2} WHERE ({1})";
         protected internal string sqlTemplateGetAll = "SELECT * FROM {0}";
         protected internal string sqlTemplateGetSingle = "SELECT * FROM {0} WHERE {1} = {2}Id";
         protected internal string sqlTemplateInsertSingle = "INSERT INTO {0} ({1}) VALUES ({2})";
-        protected internal string sqlTemplateInsertSingleWithReturn = "INSERT INTO {0} ({1}) VALUES ({2}); select last_insert_rowid() as newid";
+        protected internal string sqlTemplateInsertSingleWithReturn = "INSERT INTO {0} ({1}) VALUES ({2}); select last_insert_rowid() as {4}newid";
         protected internal string sqlTemplateRemoveSingleParametrized = "DELETE FROM {0} WHERE {1} = {2}Id";
         protected internal string sqlTemplateReturnNewIdentifier = "select last_insert_rowid() as newid";
         protected internal string sqlTemplateTableTruncate = "TRUNCATE TABLE {0}";
@@ -40,24 +38,9 @@ namespace Nyan.Core.Modules.Data.Adapter
             get { return useOutputParameterForInsertedKeyExtraction; }
         }
 
-        public string ParameterIdentifier
+        public ParameterDefinition ParameterDefinition
         {
-            get
-            {
-                if (_ParameterIdentifier != null) return _ParameterIdentifier;
-                _ParameterIdentifier = ParameterSource.ParameterIdentifier;
-                return _ParameterIdentifier;
-            }
-        }
-
-        public string ParameterPrefix
-        {
-            get
-            {
-                if (_ParemeterPrefix != null) return _ParemeterPrefix;
-                _ParemeterPrefix = ParameterSource.ParameterPrefix;
-                return _ParemeterPrefix;
-            }
+            get { return ParameterSource.ParameterDefinition; }
         }
 
         private DynamicParametersPrimitive ParameterSource
@@ -69,7 +52,7 @@ namespace Nyan.Core.Modules.Data.Adapter
                 if (dynamicParameterType == null)
                     throw new ConfigurationErrorsException("Invalid Data Adapter configuration: No Dynamic parameter type specified.");
 
-                ParameterSourceType = (DynamicParametersPrimitive) Activator.CreateInstance(dynamicParameterType);
+                ParameterSourceType = (DynamicParametersPrimitive)Activator.CreateInstance(dynamicParameterType);
 
                 return ParameterSourceType;
             }
@@ -85,12 +68,12 @@ namespace Nyan.Core.Modules.Data.Adapter
             var refTableName = tableData.TablePrefix + tableData.TableName;
 
             statements.SqlGetAll = sqlTemplateGetAll.format(refTableName);
-            statements.SqlGetSingle = sqlTemplateGetSingle.format(refTableName, statements.IdColumn, ParameterIdentifier);
-            statements.SqlRemoveSingleParametrized = sqlTemplateRemoveSingleParametrized.format(refTableName, statements.IdColumn, ParameterIdentifier);
+            statements.SqlGetSingle = sqlTemplateGetSingle.format(refTableName, statements.IdColumn, ParameterDefinition);
+            statements.SqlRemoveSingleParametrized = sqlTemplateRemoveSingleParametrized.format(refTableName, statements.IdColumn, ParameterDefinition);
             statements.SqlAllFieldsQueryTemplate = sqlTemplateAllFieldsQuery.format(refTableName, "{0}");
             statements.SqlCustomSelectQueryTemplate = sqlTemplateCustomSelectQuery.format("{0}", "{1}", refTableName);
             statements.SqlInsertSingle = sqlTemplateInsertSingle.format(refTableName, "{0}", "{1}");
-            statements.SqlInsertSingleWithReturn = sqlTemplateInsertSingleWithReturn.format(refTableName, "{0}", "{1}", statements.IdColumn);
+            statements.SqlInsertSingleWithReturn = sqlTemplateInsertSingleWithReturn.format(refTableName, "{0}", "{1}", statements.IdColumn, ParameterDefinition);
             statements.SqlUpdateSingle = sqlTemplateUpdateSingle.format(refTableName, "{0}", "{1}", "{2}");
             statements.SqlRemoveSingleParametrized = sqlTemplateRemoveSingleParametrized.format(refTableName, "{0}", "{1}");
             statements.SqlTruncateTable = sqlTemplateTableTruncate.format(refTableName);
@@ -100,7 +83,7 @@ namespace Nyan.Core.Modules.Data.Adapter
             var preInsParamList = new StringBuilder();
             var preUpd = new StringBuilder();
 
-            var banList = new List<string> {"ruts", "rcts"};
+            var banList = new List<string> { "ruts", "rcts" };
 
             foreach (var field in statements.PropertyFieldMap)
             {
@@ -126,10 +109,11 @@ namespace Nyan.Core.Modules.Data.Adapter
                         }
 
                         preInsFieldList.Append(field.Value);
-                        preInsParamList.Append(ParameterIdentifier + field.Key);
-                        preUpd.Append(field.Value + " = " + ParameterIdentifier + field.Key);
+                        preInsParamList.Append(ParameterDefinition + field.Key);
+                        preUpd.Append(field.Value + " = " + ParameterDefinition + field.Key);
                     }
-                } catch (Exception e)
+                }
+                catch (Exception e)
                 {
                     Current.Log.Add("SetSqlStatements: Error rendering statements: " + e.Message,
                         Message.EContentType.Warning);
@@ -140,7 +124,7 @@ namespace Nyan.Core.Modules.Data.Adapter
             statements.SqlInsertSingle = string.Format(statements.SqlInsertSingle, preInsFieldList, preInsParamList);
             statements.SqlInsertSingleWithReturn = string.Format(statements.SqlInsertSingleWithReturn, preInsFieldList, preInsParamList, statements.IdPropertyRaw);
             statements.SqlUpdateSingle = string.Format(statements.SqlUpdateSingle, preUpd, statements.IdColumn, statements.IdProperty);
-            statements.SqlRemoveSingleParametrized = string.Format(statements.SqlRemoveSingleParametrized, statements.IdColumn, ParameterIdentifier);
+            statements.SqlRemoveSingleParametrized = string.Format(statements.SqlRemoveSingleParametrized, statements.IdColumn, ParameterDefinition);
         }
 
         public virtual void SetConnectionString<T>() where T : MicroEntity<T>
@@ -157,10 +141,11 @@ namespace Nyan.Core.Modules.Data.Adapter
             {
                 // If it fails to decrypt, no biggie; It may be plain-text. ignore and continue.
                 statements.ConnectionString = Current.Encryption.Decrypt(statements.ConnectionString);
-            } catch {}
+            }
+            catch { }
 
             if (statements.ConnectionString == "")
-                throw new ArgumentNullException(@"Connection Cypher Key not set for " + typeof (T).FullName + ". Check class definition/configuration files.");
+                throw new ArgumentNullException(@"Connection Cypher Key not set for " + typeof(T).FullName + ". Check class definition/configuration files.");
 
             if (!statements.CredentialCypherKeys.ContainsKey(envCode)) return;
 
@@ -170,24 +155,28 @@ namespace Nyan.Core.Modules.Data.Adapter
             {
                 // If it fails to decrypt, no biggie; It may be plain-text. ignore and continue.
                 creds = Current.Encryption.Decrypt(creds);
-            } catch {}
+            }
+            catch { }
 
             statements.ConnectionString = statements.ConnectionString.format(creds);
         }
 
         public abstract void RenderSchemaEntityNames<T>() where T : MicroEntity<T>;
 
-        public virtual void ClearPools() {}
+        public virtual void ClearPools() { }
 
         public abstract DbConnection Connection(string connectionString);
 
         public virtual DynamicParametersPrimitive Parameters<T>(object obj) where T : MicroEntity<T>
         {
-            var ret = (DynamicParametersPrimitive) Activator.CreateInstance(dynamicParameterType);
+
+            if (obj is DynamicParametersPrimitive) return (DynamicParametersPrimitive)obj;
+
+            var ret = (DynamicParametersPrimitive)Activator.CreateInstance(dynamicParameterType);
 
             if (obj == null) return ret;
 
-            var nonInsertableColumnsList = new List<string> {"rcts", "ruts"};
+            var nonInsertableColumnsList = new List<string> { "rcts", "ruts" };
 
             foreach (var prop in obj.GetType().GetProperties())
             {
@@ -201,16 +190,16 @@ namespace Nyan.Core.Modules.Data.Adapter
 
                 if (type.IsPrimitiveType())
                 {
-                    if (typeof (IList).IsAssignableFrom(type) && type.IsGenericType) continue;
-                    if (typeof (IDictionary<,>).IsAssignableFrom(type)) continue;
+                    if (typeof(IList).IsAssignableFrom(type) && type.IsGenericType) continue;
+                    if (typeof(IDictionary<,>).IsAssignableFrom(type)) continue;
                     if (type.BaseType != null &&
-                        (typeof (IList).IsAssignableFrom(type.BaseType) && type.BaseType.IsGenericType))
+                        (typeof(IList).IsAssignableFrom(type.BaseType) && type.BaseType.IsGenericType))
                         continue;
 
                     var nullProbe = Nullable.GetUnderlyingType(type);
                     if (nullProbe != null) type = nullProbe;
 
-                    if (type == typeof (DateTime))
+                    if (type == typeof(DateTime))
                         pTargetCustomType = DynamicParametersPrimitive.DbGenericType.DateTime;
                     else if (type.IsEnum)
                     {
@@ -218,11 +207,11 @@ namespace Nyan.Core.Modules.Data.Adapter
                         var targetType = pSourceValue.GetType();
                         pSourceValue = Convert.ToInt32(Enum.Parse(targetType, Enum.GetName(targetType, pSourceValue)));
                     }
-                    else if (type == typeof (double) || type == typeof (float) || type == typeof (decimal))
+                    else if (type == typeof(double) || type == typeof(float) || type == typeof(decimal))
                         pTargetCustomType = DynamicParametersPrimitive.DbGenericType.Fraction;
-                    else if (type == typeof (int) || type == typeof (long))
+                    else if (type == typeof(int) || type == typeof(long))
                         pTargetCustomType = DynamicParametersPrimitive.DbGenericType.Number;
-                    else if (type == typeof (bool))
+                    else if (type == typeof(bool))
                         pTargetCustomType = DynamicParametersPrimitive.DbGenericType.Bool;
 
                     ret.Add(pSourceName, pSourceValue, pTargetCustomType, ParameterDirection.Input);
@@ -240,12 +229,12 @@ namespace Nyan.Core.Modules.Data.Adapter
 
         public virtual DynamicParametersPrimitive InsertableParameters<T>(object obj) where T : MicroEntity<T>
         {
-            var ret = (DynamicParametersPrimitive) Activator.CreateInstance(dynamicParameterType);
+            var ret = (DynamicParametersPrimitive)Activator.CreateInstance(dynamicParameterType);
 
             var td = MicroEntity<T>.TableData;
             var st = MicroEntity<T>.Statements;
 
-            var nonInsertableColumnsList = new List<string> {"rcts", "ruts"};
+            var nonInsertableColumnsList = new List<string> { "rcts", "ruts" };
 
             //Banlist for insertable content. Automatic timestamps and 
             if (!td.IsInsertableIdentifier)
@@ -266,17 +255,17 @@ namespace Nyan.Core.Modules.Data.Adapter
 
                 if (type.IsPrimitiveType())
                 {
-                    if (typeof (IList).IsAssignableFrom(type) && type.IsGenericType) continue;
-                    if (typeof (IDictionary<,>).IsAssignableFrom(type)) continue;
+                    if (typeof(IList).IsAssignableFrom(type) && type.IsGenericType) continue;
+                    if (typeof(IDictionary<,>).IsAssignableFrom(type)) continue;
 
                     if (type.BaseType != null &&
-                        (typeof (IList).IsAssignableFrom(type.BaseType) && type.BaseType.IsGenericType))
+                        (typeof(IList).IsAssignableFrom(type.BaseType) && type.BaseType.IsGenericType))
                         continue;
 
                     var nullProbe = Nullable.GetUnderlyingType(type);
                     if (nullProbe != null) type = nullProbe;
 
-                    if (type == typeof (DateTime))
+                    if (type == typeof(DateTime))
                         pTargetCustomType = DynamicParametersPrimitive.DbGenericType.DateTime;
 
                     else if (type.IsEnum)
@@ -285,13 +274,13 @@ namespace Nyan.Core.Modules.Data.Adapter
                         var targetType = pSourceValue.GetType();
                         pSourceValue = Convert.ToInt32(Enum.Parse(targetType, Enum.GetName(targetType, pSourceValue)));
                     }
-                    else if (type == typeof (double) || type == typeof (float) || type == typeof (decimal))
+                    else if (type == typeof(double) || type == typeof(float) || type == typeof(decimal))
                         pTargetCustomType = DynamicParametersPrimitive.DbGenericType.Fraction;
-                    else if (type == typeof (int) || type == typeof (long))
+                    else if (type == typeof(int) || type == typeof(long))
                         pTargetCustomType = DynamicParametersPrimitive.DbGenericType.Number;
-                    else if (type == typeof (bool))
+                    else if (type == typeof(bool))
                         pTargetCustomType = DynamicParametersPrimitive.DbGenericType.Bool;
-                    else if (type == typeof (Guid))
+                    else if (type == typeof(Guid))
                         pSourceValue = (pSourceValue == null ? null : pSourceValue.ToString());
 
                     ret.Add(pSourceName, pSourceValue, pTargetCustomType, ParameterDirection.Input);
