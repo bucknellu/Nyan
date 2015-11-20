@@ -34,18 +34,21 @@ namespace Nyan.Core.Settings
             Host = Process.GetCurrentProcess().ProcessName;
 
             Log.Add(@"   |\_/|", Message.EContentType.Info);
-            Log.Add(@"  >(o.O)<    Nyan " + System.Reflection.Assembly.GetCallingAssembly().GetName().Version, Message.EContentType.Info);
+            Log.Add(@"  >(o.O)<           Nyan " + System.Reflection.Assembly.GetCallingAssembly().GetName().Version, Message.EContentType.Info);
             Log.Add(@"  c(___)", Message.EContentType.Info);
 
             Log.Add("Settings          : " + refObj.GetType(), Message.EContentType.StartupSequence);
-            Log.Add("Cache             : " + (Cache == null ? "(none)" : Cache.ToString()), Message.EContentType.StartupSequence);
-            Log.Add("Environment       : " + (Scope == null ? "(none)" : Scope.ToString()), Message.EContentType.StartupSequence);
-            Log.Add("Log               : " + (Log == null ? "(none)" : Log.ToString()), Message.EContentType.StartupSequence);
-            Log.Add("Encryption        : " + (Encryption == null ? "(none)" : Encryption.ToString()), Message.EContentType.StartupSequence);
-            Log.Add("Authorization     : " + (Authorization == null ? "(none)" : Authorization.ToString()), Message.EContentType.StartupSequence);
-            Log.Add("Global BundleType : " + (GlobalConnectionBundleType == null ? "(none)" : GlobalConnectionBundleType.ToString()), Message.EContentType.StartupSequence);
-            Log.Add("App Location      : " + BaseDirectory, Message.EContentType.StartupSequence);
-            Log.Add("App Data          : " + DataDirectory, Message.EContentType.StartupSequence);
+
+            Log.Add("Cache             : " + (Cache == null ? "(none)" : Cache.ToString()), Message.EContentType.MoreInfo);
+            Log.Add("Environment       : " + (Scope == null ? "(none)" : Scope.ToString()), Message.EContentType.MoreInfo);
+            Log.Add("Log               : " + (Log == null ? "(none)" : Log.ToString()), Message.EContentType.MoreInfo);
+            Log.Add("Encryption        : " + (Encryption == null ? "(none)" : Encryption.ToString()), Message.EContentType.MoreInfo);
+            Log.Add("Authorization     : " + (Authorization == null ? "(none)" : Authorization.ToString()), Message.EContentType.MoreInfo);
+            Log.Add("Global BundleType : " + (GlobalConnectionBundleType == null ? "(none)" : GlobalConnectionBundleType.ToString()), Message.EContentType.MoreInfo);
+            Log.Add("App Location      : " + BaseDirectory, Message.EContentType.MoreInfo);
+            Log.Add("App Data          : " + DataDirectory, Message.EContentType.MoreInfo);
+
+            Log.Add("Stack status      : Operational", Message.EContentType.StartupSequence);
 
             //Post-initialization procedures
             if (Cache != null)
@@ -89,7 +92,8 @@ namespace Nyan.Core.Settings
                     {
                         if (!Directory.Exists(_dataDirectory))
                             Directory.CreateDirectory(_dataDirectory);
-                    } catch
+                    }
+                    catch
                     {
                         _dataDirectory = null;
                     }
@@ -107,7 +111,7 @@ namespace Nyan.Core.Settings
         {
             var packages = Management.GetClassesByInterface<IPackage>();
 
-            if (packages.Any()) return (IPackage) Activator.CreateInstance(packages[0]);
+            if (packages.Any()) return (IPackage)Activator.CreateInstance(packages[0]);
 
             //No package defined? not to worry; let's create one with the provided pieces.
 
@@ -132,7 +136,8 @@ namespace Nyan.Core.Settings
 
                 var connectionBundles = Management.GetClassesByInterface<ConnectionBundlePrimitive>();
                 if (connectionBundles.Any()) package.GlobalConnectionBundleType = connectionBundles[0];
-            } catch
+            }
+            catch (Exception e)
             {
                 //It's OK to ignore errors here.
             }

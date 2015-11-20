@@ -27,7 +27,7 @@ namespace Nyan.Modules.Web.REST
             config.MapHttpAttributeRoutes(new CustomDirectRouteProvider());
             config.Formatters.JsonFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("text/html"));
 
-            Current.Log.Add("WebApi REST       : Routes registered.", Message.EContentType.StartupSequence);
+            Current.Log.Add("WebApi REST       : Routes registered.", Message.EContentType.Info);
         }
     }
 }

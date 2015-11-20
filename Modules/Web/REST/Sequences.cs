@@ -35,10 +35,10 @@ namespace Nyan.Modules.Web.REST
                     BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField,
                     null, runtime, null);
 
-                Current.Log.Add("Nyan shutdown initiated: " + shutDownMessage.Replace(Environment.NewLine, ":").Split(':')[0], Message.EContentType.ShutdownSequence);
+                Current.Log.Add("Stack shutdown initiated: " + shutDownMessage.Replace(Environment.NewLine, ":").Split(':')[0], Message.EContentType.ShutdownSequence);
             }
             else
-                Current.Log.Add("Nyan shutdown started", Message.EContentType.ShutdownSequence);
+                Current.Log.Add("Stack shutdown started", Message.EContentType.ShutdownSequence);
 
             if (Current.Log.UseScheduler)
             {
@@ -58,9 +58,10 @@ namespace Nyan.Modules.Web.REST
             Current.Log.Add("Shutting down " + Current.Encryption.GetType().Name, Message.EContentType.MoreInfo);
             Current.Encryption.Shutdown();
 
-            Current.Log.Add(@"  _|\_/|  ZZZzzz", Message.EContentType.ShutdownSequence);
-            Current.Log.Add(@"c(_(-.-)", Message.EContentType.ShutdownSequence);
-            Current.Log.Add(@"Nyan shutdown concluded.", Message.EContentType.ShutdownSequence);
+            Current.Log.Add(@"  _|\_/|  ZZZzzz", Message.EContentType.Info);
+            Current.Log.Add(@"c(_(-.-)", Message.EContentType.Info);
+
+            Current.Log.Add(@"Stack shutdown concluded.", Message.EContentType.ShutdownSequence);
 
             Current.Log.Shutdown();
         }

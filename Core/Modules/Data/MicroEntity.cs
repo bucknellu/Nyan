@@ -786,8 +786,7 @@ break; */
                     var cat = new ColumnAttributeTypeMapper<T>();
                     SqlMapper.SetTypeMap(typeof(T), cat);
 
-                    Current.Log.Add("{0} @ {1} - {2} scope : Initializing".format(typeof(T).FullName, Environment.MachineName,
-                        Current.Scope.Current));
+                    Current.Log.Add("{0} : INIT{2}".format(typeof(T).FullName, Environment.MachineName,Current.Scope.Current.Code != "UND"? " (" + Current.Scope.Current +  ")": ""), Message.EContentType.Info);
 
                     var refBundle = TableData.ConnectionBundleType ?? Current.GlobalConnectionBundleType;
 

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using Nyan.Core.Modules.Log;
-using Nyan.Core.Settings;
 
 namespace Nyan.Modules.Log.ZeroMQ
 {
@@ -20,15 +19,9 @@ namespace Nyan.Modules.Log.ZeroMQ
 
         public ZeroMqLogProvider(string targetAddress) { Initialize(targetAddress); }
 
-        public override string Protocol
-        {
-            get { return (_out != null ? _out.Protocol : (_in != null ? _in.Protocol : null)); }
-        }
+        public override string Protocol { get { return (_out != null ? _out.Protocol : (_in != null ? _in.Protocol : null)); } }
 
-        public override string Uri
-        {
-            get { return (_out != null ? _out.Uri : (_in != null ? _in.Uri : null)); }
-        }
+        public override string Uri { get { return (_out != null ? _out.Uri : (_in != null ? _in.Uri : null)); } }
 
         public override void Shutdown()
         {
