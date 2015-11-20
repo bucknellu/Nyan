@@ -2,12 +2,18 @@
 
 <html>
 <head>
-    <meta name="viewport" content="width=device-width" />
-    <title>Nyan Sample Test</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - Nyan Sample Test</title>
+    @Styles.Render("~/BundledContent/css")
+    @*Scripts.Render("~/bundles/modernizr")*@
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
 </head>
 <body>
     <div>
         @RenderBody()
     </div>
+    @RenderSection("scripts", required: false)
 </body>
 </html>

@@ -1,4 +1,7 @@
-﻿using System.Web.Routing;
+﻿using Nyan.Samples.MVC;
+using System.Web.Mvc;
+using System.Web.Optimization;
+using System.Web.Routing;
 
 namespace Nyan.WebSample
 {
@@ -6,10 +9,10 @@ namespace Nyan.WebSample
     {
         protected void Application_Start()
         {
-            // AreaRegistration.RegisterAllAreas();
+            AreaRegistration.RegisterAllAreas();
             // FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
-            // BundleConfig.RegisterBundles(BundleTable.Bundles);
+            BundleConfig.RegisterBundles(BundleTable.Bundles);
         }
     }
 }
