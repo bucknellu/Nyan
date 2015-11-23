@@ -98,6 +98,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Global.asax" />
+    <Content Include="res\nyan.js" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>
