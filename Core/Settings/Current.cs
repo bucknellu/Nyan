@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Web.Hosting;
+using System.Windows.Forms;
 using Nyan.Core.Assembly;
 using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Cache;
@@ -11,6 +11,8 @@ using Nyan.Core.Modules.Encryption;
 using Nyan.Core.Modules.Identity;
 using Nyan.Core.Modules.Log;
 using Nyan.Core.Modules.Scope;
+using Nyan.Core.Process;
+using Message = Nyan.Core.Modules.Log.Message;
 
 namespace Nyan.Core.Settings
 {
@@ -21,6 +23,14 @@ namespace Nyan.Core.Settings
 
         static Current()
         {
+            try { Application.ApplicationExit += Application_ApplicationExit; } catch {}
+
+            try
+            {
+                AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
+                AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+            } catch {}
+
             var refObj = ResolveSettingsPackage();
 
             Cache = refObj.Cache;
@@ -31,7 +41,7 @@ namespace Nyan.Core.Settings
             Authorization = refObj.Authorization;
 
             Version = System.Reflection.Assembly.GetCallingAssembly().GetName().Version.ToString();
-            Host = Process.GetCurrentProcess().ProcessName;
+            Host = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
 
             Log.Add(@"   |\_/|", Message.EContentType.Info);
             Log.Add(@"  >(o.O)<           Nyan " + System.Reflection.Assembly.GetCallingAssembly().GetName().Version, Message.EContentType.Info);
@@ -92,8 +102,7 @@ namespace Nyan.Core.Settings
                     {
                         if (!Directory.Exists(_dataDirectory))
                             Directory.CreateDirectory(_dataDirectory);
-                    }
-                    catch
+                    } catch
                     {
                         _dataDirectory = null;
                     }
@@ -107,11 +116,21 @@ namespace Nyan.Core.Settings
             internal set { _dataDirectory = value; }
         }
 
+        private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            Log.Add((Exception) e.ExceptionObject);
+            Sequences.End("Unhandled Exception");
+        }
+
+        private static void CurrentDomain_ProcessExit(object sender, EventArgs e) { Sequences.End("Process Exit"); }
+
+        private static void Application_ApplicationExit(object sender, EventArgs e) { Sequences.End("Application Exit"); }
+
         private static IPackage ResolveSettingsPackage()
         {
             var packages = Management.GetClassesByInterface<IPackage>();
 
-            if (packages.Any()) return (IPackage)Activator.CreateInstance(packages[0]);
+            if (packages.Any()) return (IPackage) Activator.CreateInstance(packages[0]);
 
             //No package defined? not to worry; let's create one with the provided pieces.
 
@@ -136,8 +155,7 @@ namespace Nyan.Core.Settings
 
                 var connectionBundles = Management.GetClassesByInterface<ConnectionBundlePrimitive>();
                 if (connectionBundles.Any()) package.GlobalConnectionBundleType = connectionBundles[0];
-            }
-            catch (Exception e)
+            } catch (Exception e)
             {
                 //It's OK to ignore errors here.
             }
