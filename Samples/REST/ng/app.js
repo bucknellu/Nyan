@@ -1,30 +1,35 @@
-﻿var app = angular.module('NyanNG', ['ngMaterial', 'ngResource', 'ngMessages', 'ui.router', 'ngNyanStack']);
+﻿var app = angular.module('NyanNG', ['ui.router', 'ngNyanStack']);
 
 app
-.config(function ($mdThemingProvider) {
-    // Configure a dark theme with primary foreground yellow
-    $mdThemingProvider.theme('docs-dark', 'default')
-    .primaryPalette('yellow')
-    .dark();
-})
-.config(['$locationProvider', '$stateProvider', '$nyanStackProvider',
-function ($locationProvider, $stateProvider, $nyanStackProvider) {
+    .config([
+        '$locationProvider', '$stateProvider', 'nyanStackProvider', '$httpProvider',
+        function ($locationProvider, $stateProvider, nyanStackProvider, $httpProvider) {
 
+            nyanStackProvider
+                .setup({
+                    App: app,
+                    AppName: 'Nyan Angular Sample',
+                    ScopePrefix: 'ng/scopes/'
+                })
+                .module('user', {
+                    RootPrefix: "data",
+                    collectionName: 'User',
+                    useLookupQuery: true,
+                    useLocatorQuery: true,
 
-    //$locationProvider.html5Mode(true);
-}
-]).run(['$nyanStack', function ($nyanStack) {
+                });
 
-    $nyanStack
-        .setup({
-            appName: 'Nyan Angular Sample',
-            RootPrefix: 'my'
-        })
-        .prepare('user', {
-            RootPrefix: "data",
-            collectionName: 'User'
-        })
-        .registerAll()
-    ;
+            $httpProvider.defaults.useXDomain = true;
+            delete $httpProvider.defaults.headers.common['X-Requested-With'];
+        }
+    ]).run([
+        'nyanStack', function (nyanStack) {
+            nyanStack.start();
+        }
+    ]);
+angular.module('ngNyanStack')
+    .controller('SampleController', function ($scope, userGlobalFactory) {
 
-}]);;
+        $scope.data = userGlobalFactory.fetch();
+
+    });
