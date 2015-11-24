@@ -88,6 +88,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="index.html" />
+    <Content Include="ng\app.js" />
+    <Content Include="ng\scopes\user\user-collection.html" />
+    <Content Include="ng\scopes\user\user-item.html" />
     <Content Include="packages.config" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -98,7 +101,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Global.asax" />
-    <Content Include="res\nyan.js" />
+    <Content Include="ng\res\nyan.js" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>

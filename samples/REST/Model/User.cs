@@ -30,7 +30,7 @@ namespace Nyan.Samples.REST.Model
         }
     }
 
-    [RoutePrefix("api/users")]
+    [RoutePrefix("data/users")]
     public class UserController : MicroEntityWebApiController<User>
     {
         public override bool AuthorizeAction(RequestType pRequestType, AccessType pAccessType, string pidentifier, User pObject, string pContext)

@@ -4,13 +4,89 @@
 
     var ngNyanStackReference = angular.module('ngNyanStack', ['ng']);
 
-    ngNyanStackReference.provider('$nyanStack', function ($stateProvider) {
+    ngNyanStackReference.provider(
+            "$nyanStackNg",
+            function ProvideNyan() {
+                var Setup = {
+                    RootPrefix: "framework",
+                    pagePathPrefix: "ng/scopes/{ScopeDescriptor}"
+                };
+                return ({
+                    getGreeting: getGreeting,
+                    setGreeting: setGreeting,
+                    $get: instantiateGreeter
+                });
+
+                function getGreeting() {
+                    return (greeting);
+                }
+                function setGreeting(newGreeting) {
+                    greeting = newGreeting;
+                }
+
+                function instantiateGreeter() {
+                    return ({
+                        greet: greet
+                    });
+                    function greet(name) {
+                        return (
+                            greeting.replace(
+                                /%s/gi,
+                                function interpolateName($0) {
+                                    return (($0 === "%s") ? name : ucase(name));
+                                }
+                            )
+                        );
+                    }
+                    function ucase(name) {
+                        return ((name || "").toUpperCase());
+                    }
+                }
+            }
+        );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    ngNyanStackReference.provider('$nyanStack', function ($stateProvider, $controllerProvider, $provider) {
 
         var provider = this;
 
         this.valueOrDefault = function (pValue, pDefault) {
             return (typeof pValue === 'undefined' ? pDefault : pValue);
         };
+
+        this.registerAll = function () {
+            var queue = ngNyanStackReference._invokeQueue;
+            for (var i = 0; i < queue.length; i++) {
+                var call = queue[i];
+
+                console.log(call);
+
+                if (call[1] == "register") {
+
+                    var controllerName = call[2][0];
+
+                    if (call[0] == "$controllerProvider")
+                        $controllerProvider.register(controllerName, call[2][1]);
+                }
+            }
+        }
 
         provider.setup = function (parms) {
             parms = parms || {};
@@ -53,7 +129,7 @@
             if (initOptions.isItemQuery) {
 
                 if (initOptions.useLookupQuery) {
-                    ngNyanStackReference.factory(initOptions.LookupQueryFactory, function ($resource) {
+                    $provider.factory(initOptions.LookupQueryFactory, function ($resource) {
                         return $resource(initOptions.LookupQueryUrl, {}, {
                             query: { method: 'GET', isArray: false }
                         });
@@ -61,7 +137,7 @@
                 }
 
                 if (initOptions.useLocatorQuery) {
-                    ngNyanStackReference.factory(initOptions.LocatorQueryFactory, function ($resource) {
+                    $provider.factory(initOptions.LocatorQueryFactory, function ($resource) {
                         return $resource(initOptions.LocatorQueryUrl, {}, {
                             query: { method: 'GET', isArray: false }
                         });
@@ -127,12 +203,11 @@
 
                 console.log('Cached Service[' + scopeDescriptor + ']: Factory [' + initOptions.globalFactory + ']');
                 console.log('Cached Service[' + scopeDescriptor + ']: Service [' + initOptions.globalService + ']');
-                ngNyanStackReference
-                    .factory(initOptions.globalFactory, function ($resource) {
-                        return $resource(initOptions.restEndpoint, {}, {
-                            fetch: { method: 'GET', isArray: initOptions.globalFactoryArrayOutput, withCredentials: true }
-                        });
-                    })
+                $provider.factory(initOptions.globalFactory, function ($resource) {
+                    return $resource(initOptions.restEndpoint, {}, {
+                        fetch: { method: 'GET', isArray: initOptions.globalFactoryArrayOutput, withCredentials: true }
+                    });
+                })
                     .service(initOptions.globalService,
                     [
                         initOptions.globalFactory,
@@ -302,9 +377,9 @@
 
                 initOptions.RootPrefix = initOptions.RootPrefix || provider.Parms.RootPrefix;
 
-                initOptions.ItemFactoryName = initOptions.ItemFactoryName || "{ScopeDescriptor}Factory";
+                initOptions.ItemFactoryName = initOptions.ItemFactoryName || "{ScopeDescriptor}ItemFactory";
                 initOptions.ReferenceFactoryName = initOptions.ReferenceFactoryName || "{ScopeDescriptor}RefFactory";
-                initOptions.CollectionFactoryName = initOptions.CollectionFactoryName || "{ScopeDescriptor}ColFactory";
+                initOptions.CollectionFactoryName = initOptions.CollectionFactoryName || "{ScopeDescriptor}CollectionFactory";
 
                 initOptions.listRESTservice = initOptions.listRESTservice || '{RootPrefix}/' + initOptions.pluralDescriptor;
                 initOptions.itemRESTservice = initOptions.itemRESTservice || '{RootPrefix}/' + initOptions.pluralDescriptor;
@@ -400,7 +475,7 @@
 
                 if (initOptions.useListRESTService) {
 
-                    ngNyanStackReference.factory(initOptions.CollectionFactoryName, function ($resource) {
+                    $provider.factory(initOptions.CollectionFactoryName, function ($resource) {
                         return $resource(initOptions.preCompListRESTServiceHandler, {}, {
                             fetch: { method: 'GET', isArray: true },
                             create: { method: 'POST' }
@@ -412,7 +487,7 @@
 
                 if (initOptions.useItemRESTService) {
 
-                    ngNyanStackReference.factory(initOptions.ItemFactoryName, function ($resource) {
+                    $provider.factory(initOptions.ItemFactoryName, function ($resource) {
                         return $resource(initOptions.preCompItemRESTServiceHandler + '/:id', {}, {
                             fetch: { method: 'GET' },
                             update: { method: 'POST', params: { id: '@id' } },
@@ -426,7 +501,7 @@
 
                 if (initOptions.useReferenceRESTService) {
 
-                    ngNyanStackReference.factory(initOptions.ReferenceFactoryName, function ($resource) {
+                    $provider.factory(initOptions.ReferenceFactoryName, function ($resource) {
                         return $resource(initOptions.preCompReferenceRESTServiceHandler + '/:id/:collection', {}, {
                             fetch: { method: 'GET', params: { id: '@id', collection: '@collection' }, isArray: true }
                         });
