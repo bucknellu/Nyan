@@ -2,7 +2,7 @@
 
     'use strict';
 
-    var nyanStackModule = angular.module('ngNyanStack', ['ngResource']);
+    var nyanStackModule = angular.module('ngNyanStack', ['ngResource', 'ui.router']);
 
     nyanStackModule
     .provider(
