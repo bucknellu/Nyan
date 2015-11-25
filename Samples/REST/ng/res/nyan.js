@@ -12,7 +12,7 @@
                 //Setup and primitives
 
                 var settings = {
-                    RESTPrefix: "data",
+                    RestPrefix: "data",
                     ScopePartialsStorageUrl: "ng/scopes/{ScopeDescriptor}",
                     StatePrefix: "module",
 
@@ -22,13 +22,14 @@
                     CollectionController: '{ScopeDescriptor}CollectionCtrl',
                     ItemController: '{ScopeDescriptor}ItemCtrl',
 
-                    RESTEndpoint: '{RESTPrefix}/{ScopeDescriptor}s',
+                    RestEndpoint: '{RestPrefix}/{PluralDescriptor}',
 
                     BaseServiceUrl: './',
 
                     PluralDescriptor: '{ScopeDescriptor}s',
 
-                    AppName: '(none)'
+                    AppName: '(none)',
+                    Authenticate: true
                 };
 
                 var requests = [];
@@ -142,39 +143,39 @@
                         var instanceOptions = {
                             baseServiceUrl: './',
 
-                            RESTEndpoint: settings.RESTEndpoint,
+                            RestEndpoint: settings.RestEndpoint,
+                            isRestReadOnly: false,
 
                             CollectionController: settings.CollectionController,
                             CollectionFactoryName: "{ScopeDescriptor}CollectionFactory",
                             CollectionName: '{ScopeDescriptor}',
-                            CollectionRESTEndpoint: settings.RESTEndpoint,
-                            CollectionRESTHandler: '{BaseServiceUrl}' + settings.RESTEndpoint,
+                            MainRestEndpoint: settings.RestEndpoint,
                             CollectionPartialUrl: settings.ScopePartialsStorageUrl + '{ScopeDescriptor}/' + settings.CollectionPage,
+
+                            ModuleServiceName: "{ScopeDescriptor}DataService",
 
                             customCodeFiles: [],
 
-                            globalFactory: "{ScopeDescriptor}GlobalFactory",
-                            globalService: "{ScopeDescriptor}GlobalService",
-                            globalFactoryArrayOutput: true,
+                            MainRestArrayOutput: true,
 
                             isApplicationScope: true,
                             isGlobalService: false,
                             isItemQuery: false,
 
                             ItemController: settings.ItemController,
-                            ItemFactoryName: "{ScopeDescriptor}ItemFactory",
-                            ItemRESTEndpoint: settings.RESTEndpoint,
-                            ItemRESTHandler: '{BaseServiceUrl}' + settings.RESTEndpoint,
+                            ItemFactoryName: '{ScopeDescriptor}ItemFactory',
+                            SecondaryRestEndpoint: settings.RestEndpoint + '/:id',
                             ItemPartialUrl: settings.ScopePartialsStorageUrl + '{ScopeDescriptor}/' + settings.ItemPage,
 
-                            LocatorQueryFactory: "{ScopeDescriptor}LocatorFactory",
-                            LocatorRESTEndpoint: '{RESTEndpoint}/bylocator/:id',
+                            LocatorQueryFactory: '{ScopeDescriptor}LocatorFactory',
+                            LocatorRestEndpoint: '{RestEndpoint}/bylocator/:id',
                             LocatorServiceName: '{ScopeDescriptor}LocatorService',
 
                             LookupQueryFactory: "{ScopeDescriptor}QueryFactory",
-                            LookupQueryRESTEndpoint: '{RESTEndpoint}/slookup/:term',
+                            LookupQueryRestEndpoint: '{RestEndpoint}/slookup/:term',
 
                             PaginationMode: 'Auto',
+                            PluralDescriptor: settings.PluralDescriptor,
 
                             refreshCycleSeconds: 0,
                             RootPrefix: settings.RootPrefix,
@@ -183,15 +184,15 @@
                             stateRoute: '/' + '{StatePrefix}/' + settings.PluralDescriptor,
                             StatePrefix: settings.StatePrefix,
                             useCollectionController: true,
-                            useCollectionRESTEndpoint: true,
+                            useMainRestEndpoint: true,
                             useController: true,
                             useItemController: true,
-                            useItemRESTEndpoint: true,
+                            useSecondaryRestArrayOutput: true,
                             useItemRoute: true,
                             useListRoute: true,
                             useLocatorQuery: true,
                             useLookupQuery: true,
-                            useReferenceRESTService: false,
+                            useReferenceRestService: false,
                             useResource: true,
                             useState: true
                         };
@@ -210,11 +211,13 @@
                                 if (typeof probe == 'string') {
                                     if (probe.indexOf('{') != -1) {
                                         probe = probe.split("{BaseServiceUrl}").join(settings.BaseServiceUrl);
-                                        probe = probe.split("{RESTEndpoint}").join(settings.RESTEndpoint);
-                                        probe = probe.split("{RESTPrefix}").join(settings.RESTPrefix);
+                                        probe = probe.split("{RestEndpoint}").join(settings.RestEndpoint);
+                                        probe = probe.split("{RestPrefix}").join(settings.RestPrefix);
                                         probe = probe.split("{RootPrefix}").join(initOptions.RootPrefix);
                                         probe = probe.split("{StatePrefix}").join(initOptions.StatePrefix);
+                                        probe = probe.split("{PluralDescriptor}").join(initOptions.PluralDescriptor);
                                         probe = probe.split("{ScopeDescriptor}").join(initOptions.ScopeDescriptor);
+
                                         initOptions[key] = probe;
                                     }
                                 }
@@ -238,34 +241,116 @@
 
                 function prepareFactories(initOptions) {
 
-                    console.log('Registering Factory ' + initOptions.globalFactory);
+                    console.log('Registering Factory ' + initOptions.CollectionFactoryName);
+                    console.log('                 to ' + initOptions.MainRestEndpoint);
 
                     registry
-                        .factory(initOptions.globalFactory, function ($resource) {
-                            return $resource(initOptions.RESTEndpoint, {}, {
-                                fetch: { method: 'GET', isArray: initOptions.globalFactoryArrayOutput, withCredentials: true }
-                            } );
+                        .factory(initOptions.CollectionFactoryName, function ($resource) {
+
+                            var oInterface = {
+                                fetch: { method: 'GET', isArray: initOptions.MainRestArrayOutput, withCredentials: settings.Authenticate }
+                            };
+
+                            if (!initOptions.isRestReadOnly) {
+                                oInterface.create = { method: 'POST', withCredentials: settings.Authenticate }
+                            }
+
+                            return $resource(initOptions.MainRestEndpoint, {}, oInterface);
                         });
+
+                    console.log('Registering Factory ' + initOptions.ItemFactoryName);
+                    console.log('                 to ' + initOptions.SecondaryRestEndpoint);
+
+                    registry
+                        .factory(initOptions.ItemFactoryName, function ($resource) {
+
+                            var oInterface = {
+                                fetch: { method: 'GET', isArray: initOptions.MainRestArrayOutput, withCredentials: settings.Authenticate }
+                            };
+
+                            if (!initOptions.isRestReadOnly) {
+                                oInterface.create = { method: 'PUT', withCredentials: settings.Authenticate }
+                                oInterface.update = { method: 'POST', params: { id: '@id' }, withCredentials: settings.Authenticate },
+                                oInterface.delete = { method: 'DELETE', params: { id: '@id' }, withCredentials: settings.Authenticate }
+                            }
+
+                            return $resource(initOptions.SecondaryRestEndpoint, {}, oInterface);
+                        });
+
+                    console.log('Registering Service ' + initOptions.ModuleServiceName);
+
+                    registry
+                        .service(initOptions.ModuleServiceName, [
+                            initOptions.CollectionFactoryName,
+                            initOptions.ItemFactoryName,
+                            function (collectionFactory, itemFactory) {
+
+                                var observerCallbacks = [];
+
+                                var that = this;
+                                var _init = false;
+
+                                this.data = [];
+
+                                this.register = function (callback) {
+                                    observerCallbacks.push(callback);
+                                    callback();
+                                };
+
+                                var notifyObservers = function () {
+                                    angular.forEach(observerCallbacks, function (callback) {
+                                        callback();
+                                    });
+                                };
+
+                                this.remove = function (id) {
+                                    console.log('itemFactory DELETE');
+
+                                    itemFactory.delete({ id: id },
+                                        function (data) {
+                                            console.log('itemFactory DELETE SUCCESS');
+                                            factoryGet();
+                                        },
+                                        function (data) {
+                                            console.log('itemFactory DELETE FAIL =(.');
+                                        }
+                                        );
+                                }
+
+                                function factoryGet() {
+                                    console.log('collectionFactory GET');
+                                    _init = true;
+                                    that.data = collectionFactory.fetch();
+                                    notifyObservers();
+                                }
+
+                                factoryGet();
+
+                                return this;
+                            }]);
+
 
                     if (initOptions.useLookupQuery) {
 
                         console.log('Registering Factory ' + initOptions.LookupQueryFactory);
+                        console.log('                 to ' + initOptions.LookupQueryRestEndpoint);
 
                         registry.factory(initOptions.LookupQueryFactory, function ($resource) {
-                            return $resource(initOptions.LookupQueryRESTEndpoint, {}, {
+                            return $resource(initOptions.LookupQueryRestEndpoint, {}, {
                                 query: { method: 'GET', isArray: false }
                             });
                         });
                     }
 
-                    if(initOptions.useLocatorQuery) {
-                        console.log ( 'Registering Factory ' + initOptions.LocatorQueryFactory );
+                    if (initOptions.useLocatorQuery) {
+                        console.log('Registering Factory ' + initOptions.LocatorQueryFactory);
+                        console.log('                 to ' + initOptions.LocatorRestEndpoint);
 
-                        registry.factory ( initOptions.LocatorQueryFactory, function($resource) {
-                            return $resource ( initOptions.LocatorRESTEndpoint, {}, {
+                        registry.factory(initOptions.LocatorQueryFactory, function ($resource) {
+                            return $resource(initOptions.LocatorRestEndpoint, {}, {
                                 query: { method: 'GET', isArray: false }
-                            } );
-                        } );
+                            });
+                        });
 
                         console.log('Registering Service ' + initOptions.LocatorServiceName);
 
@@ -274,11 +359,11 @@
                             initOptions.LocatorQueryFactory,
                             '$cacheFactory',
                             '$q',
-                            function(locatorFactory, $cacheFactory, $q) {
+                            function (locatorFactory, $cacheFactory, $q) {
 
-                                console.log ( "Initializing " + initOptions.serviceName + " for " + initOptions.LocatorQueryFactory );
+                                console.log("Initializing " + initOptions.serviceName + " for " + initOptions.LocatorQueryFactory);
 
-                                var cache = $cacheFactory ( 'cache.' + initOptions.serviceName );
+                                var cache = $cacheFactory('cache.' + initOptions.serviceName);
                                 var that = this;
                                 var config = initOptions;
 
@@ -288,29 +373,29 @@
                                     hasOldData: false
                                 };
 
-                                this.getData = function(key) {
+                                this.getData = function (key) {
 
                                     that.state.isLoading = true;
-                                    console.log ( 'fetching ' + key );
-                                    var probe = cache.get ( key );
+                                    console.log('fetching ' + key);
+                                    var probe = cache.get(key);
 
-                                    if(probe) {
+                                    if (probe) {
                                         clearState();
                                         return probe;
                                     }
                                     var deferred = $q.defer();
 
-                                    locatorFactory.query ( { id: key },
-                                        function(data) {
-                                            cache.put ( key, data );
-                                            deferred.resolve ( data );
+                                    locatorFactory.query({ id: key },
+                                        function (data) {
+                                            cache.put(key, data);
+                                            deferred.resolve(data);
                                             clearState();
                                         },
-                                        function(error) {
+                                        function (error) {
                                             that.state.isLoading = false;
                                             that.state.hasFailed = true;
-                                            deferred.reject ( error.statusText );
-                                        } );
+                                            deferred.reject(error.statusText);
+                                        });
 
                                     return deferred.promise;
                                 };
@@ -320,7 +405,7 @@
                                         that.state.hasFailed = false;
                                 }
                             }
-                        ] );
+                        ]);
 
                     }
 
