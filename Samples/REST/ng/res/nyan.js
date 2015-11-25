@@ -13,7 +13,8 @@
 
                 var settings = {
                     RESTPrefix: "data",
-                    ScopePrefix: "ng/scopes/{ScopeDescriptor}",
+                    ScopePartialsStorageUrl: "ng/scopes/{ScopeDescriptor}",
+                    StatePrefix: "module",
 
                     CollectionPage: '{ScopeDescriptor}-collection.html',
                     ItemPage: '{ScopeDescriptor}-item.html',
@@ -139,8 +140,6 @@
                         console.log("Starting!");
 
                         var instanceOptions = {
-                            baseCollectionController: '{ScopeDescriptor}ListBaseCtrl',
-                            baseItemController: '{ScopeDescriptor}ItemBaseCtrl',
                             baseServiceUrl: './',
 
                             RESTEndpoint: settings.RESTEndpoint,
@@ -150,7 +149,7 @@
                             CollectionName: '{ScopeDescriptor}',
                             CollectionRESTEndpoint: settings.RESTEndpoint,
                             CollectionRESTHandler: '{BaseServiceUrl}' + settings.RESTEndpoint,
-                            CollectionPartialUrl: settings.ScopePrefix + '{ScopeDescriptor}/' + settings.CollectionPage,
+                            CollectionPartialUrl: settings.ScopePartialsStorageUrl + '{ScopeDescriptor}/' + settings.CollectionPage,
 
                             customCodeFiles: [],
 
@@ -166,7 +165,7 @@
                             ItemFactoryName: "{ScopeDescriptor}ItemFactory",
                             ItemRESTEndpoint: settings.RESTEndpoint,
                             ItemRESTHandler: '{BaseServiceUrl}' + settings.RESTEndpoint,
-                            ItemPartialUrl: settings.ScopePrefix + '{ScopeDescriptor}/' + settings.ItemPage,
+                            ItemPartialUrl: settings.ScopePartialsStorageUrl + '{ScopeDescriptor}/' + settings.ItemPage,
 
                             LocatorQueryFactory: "{ScopeDescriptor}LocatorFactory",
                             LocatorRESTEndpoint: '{RESTEndpoint}/bylocator/:id',
@@ -180,8 +179,9 @@
                             refreshCycleSeconds: 0,
                             RootPrefix: settings.RootPrefix,
                             serviceName: '{ScopeDescriptor}Service',
-                            state: '{RootPrefix}/' + settings.PluralDescriptor,
-                            stateRoute: '/' + '{RootPrefix}/' + settings.PluralDescriptor,
+                            state: '{StatePrefix}/' + settings.PluralDescriptor,
+                            stateRoute: '/' + '{StatePrefix}/' + settings.PluralDescriptor,
+                            StatePrefix: settings.StatePrefix,
                             useCollectionController: true,
                             useCollectionRESTEndpoint: true,
                             useController: true,
@@ -213,6 +213,7 @@
                                         probe = probe.split("{RESTEndpoint}").join(settings.RESTEndpoint);
                                         probe = probe.split("{RESTPrefix}").join(settings.RESTPrefix);
                                         probe = probe.split("{RootPrefix}").join(initOptions.RootPrefix);
+                                        probe = probe.split("{StatePrefix}").join(initOptions.StatePrefix);
                                         probe = probe.split("{ScopeDescriptor}").join(initOptions.ScopeDescriptor);
                                         initOptions[key] = probe;
                                     }
