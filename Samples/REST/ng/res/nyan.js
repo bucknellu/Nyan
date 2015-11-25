@@ -2,7 +2,7 @@
 
     'use strict';
 
-    var nyanStackModule = angular.module('ngNyanStack', ['ngResource', 'toaster', 'ngTable']);
+    var nyanStackModule = angular.module('ngNyanStack', ['ngResource']);
 
     nyanStackModule
     .provider(
