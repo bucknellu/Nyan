@@ -7,7 +7,6 @@ app
 
             nyanStackProvider
                 .setup({
-                    App: app,
                     AppName: 'Nyan Angular Sample',
                     ScopePrefix: 'ng/scopes/'
                 })
@@ -28,8 +27,14 @@ app
         }
     ]);
 angular.module('ngNyanStack')
-    .controller('SampleController', function ($scope, userGlobalFactory) {
+    .controller('SampleController', function ($scope, userDataService) {
 
-        $scope.data = userGlobalFactory.fetch();
+        $scope.svc = userDataService;
+
+        var localUpdate = function () {
+            $scope.data = userDataService.data;
+        };
+
+        userDataService.register(localUpdate);
 
     });
