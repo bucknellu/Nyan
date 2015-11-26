@@ -1,68 +1,61 @@
-﻿<div class="ibox float-e-margins" ng-form name="itemForm">
-    <div class="ibox-title item-element">
-        <h5 ng-if="Item.Id" class="ellipsable-text">
-            <a ng-if="Item.Locked"><i class="fa fa-lock"></i></a>
-            Item {{Item.Id}}
-            <small ng-if="Item.Locked" class="faded">This item is locked</small>
-        </h5>
-        <h5 ng-if="!Item.Id">New Item</h5>
-        <div class="ibox-tools">
-            <div ng-if="controllerDisplayMode == 'edit'">
-                <a ng-if="itemForm.$valid" ng-click="save()" title="Save">Save <i class="fa fa-check-square-o"></i></a>
-                <a ng-click="cancel()" title="Cancel"> Cancel <i class="fa fa-sign-out"></i></a>
-            </div>
-            <div ng-if="controllerDisplayMode == 'view'">
-                <a ng-click="setMode('edit')" title="Edit this Item">Edit <i class="fa fa-pencil-square-o"></i></a>
-                <a ng-click="setMode('delete')" title="Remove this Item">Remove <i class="fa fa-times"></i></a>
-                <a ng-click="cancel()" title="Close"> Close <i class="fa fa-chevron-left"></i></a>
+﻿<form class="form-horizontal well">
+    <fieldset>
+        <legend>Entry {{item.id}}</legend>
+        <div class="form-group">
+            <label class="col-md-2 control-label">Name</label>
+
+            <div class="col-md-10">
+                <input type="text" class="form-control" placeholder="Name" ng-model="item.Name">
             </div>
         </div>
-    </div>
-    <div class="ibox-content">
-        <div class="alert alert-warning alert-dismissable" ng-if="controllerOperationMode == 'delete'">
-            Are you sure? <br />
-            <ul>
-                <li><a class="alert-link key" ng-click="delete(Item.Id)"><i class="fa fa-check-square-o"></i> Yes</a>, remove this item.</li>
-                <li><a class="alert-link" ng-click="setMode('view')"><i class="fa fa-sign-out"></i> No</a>, cancel this action.</li>
-            </ul>
+        <div class="form-group">
+            <label class="col-md-2 control-label">Surname</label>
+
+            <div class="col-md-10">
+                <input type="text" class="form-control" placeholder="Surname" ng-model="item.Surname">
+            </div>
         </div>
-        <div class="form-horizontal">
-            <div class="form-group" ng-if="Item.Id">
-                <label class="col-sm-4 control-label">ID</label>
-                <div class="col-sm-8">
-                    <p class="form-control-static">{{ Item.Id }}</p>
-                </div>
+        <div class="form-group">
+            <label class="col-md-2 control-label">Username</label>
+
+            <div class="col-md-10">
+                <input type="text" class="form-control" placeholder="Username" ng-model="item.Username">
             </div>
-            <div class="form-group" ng-if="controllerDisplayMode != 'view' || Item.Code">
-                <label class="col-sm-4 control-label">Code</label>
-                <div class="col-sm-8">
-                    <p class="form-control-static" ng-if="controllerDisplayMode == 'view'">{{ Item.Code }}</p>
-                    <input type="text" class="form-control" placeholder="Code" ng-if="controllerDisplayMode == 'edit'" ng-model="Item.Code" required>
-                </div>
+        </div>
+        <div class="form-group">
+            <label class="col-md-2 control-label">Email</label>
+
+            <div class="col-md-10">
+                <input type="email" class="form-control" placeholder="Email" ng-model="item.Email">
             </div>
-            <div class="form-group" ng-if="controllerDisplayMode != 'view' || Item.Name">
-                <label class="col-sm-4 control-label">Name</label>
-                <div class="col-sm-8">
-                    <p class="form-control-static" ng-if="controllerDisplayMode == 'view'">{{ Item.Name }}</p>
-                    <input type="text" class="form-control" placeholder="Name" ng-if="controllerDisplayMode == 'edit'" ng-model="Item.Name" required>
-                </div>
+        </div>
+        <div class="form-group">
+            <label class="col-md-2 control-label">Address</label>
+
+            <div class="col-md-10">
+                <input type="text" class="form-control" placeholder="Address" ng-model="item.Address">
             </div>
-            <div class="form-group" ng-if="controllerDisplayMode != 'view' || Item.ColorCode">
-                <label class="col-sm-1 control-label">
-                    <span class="scope-marker big" ng-style="{'border-color': Item.ColorCode}"></span>
+        </div>
+        <div class="form-group">
+            <label class="col-md-2 control-label">Biography</label>
+
+            <div class="col-md-10">
+                <input type="text" class="form-control" placeholder="Biography" ng-model="item.Biography">
+            </div>
+        </div>
+        <div class="col-md-offset-2 col-md-10">
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" ng-model="item.isAdmin"><span class="checkbox-material"><span class="check"></span></span> Administrator
                 </label>
-                <label class="col-sm-3 control-label">
-                    Color code
-                </label>
-                <div class="col-sm-8">
-                    <p class="form-control-static" ng-if="controllerDisplayMode == 'view'">{{ Item.ColorCode }}</p>
-                    <input type="text" class="form-control" placeholder="Name" ng-if="controllerDisplayMode == 'edit'" ng-model="Item.ColorCode">
-                </div>
-            </div>
-            <div class="form-group" ng-if="(Item.RUTS) && (controllerOperationMode!= 'new')">
-                <span class="col-sm-offset-4 col-sm-8"> Created <span am-time-ago="Item.RCTS"></span> <span class="faded"> · {{Item.RCTS | date:'medium'}}</span></span>
-                <span class="col-sm-offset-4 col-sm-8"> Updated <span am-time-ago="Item.RUTS"></span> <span class="faded"> · {{Item.RUTS | date:'medium'}}</span></span>
             </div>
         </div>
-    </div>
-</div>
+        <div class="form-group">
+            <div class="col-md-10 col-md-offset-2">
+                <button type="button" class="btn btn-default" ng-click="cancel()">Cancel</button>
+                <button type="button" class="btn btn-default" ng-click="delete(item.id)">Delete</button>
+                <button type="submit" class="btn btn-primary" ng-click="save()">Save<div class="ripple-container"></div></button>
+            </div>
+        </div>
+    </fieldset>
+</form>

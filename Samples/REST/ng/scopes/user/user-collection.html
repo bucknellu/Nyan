@@ -1,5 +1,20 @@
-﻿<div class="row wrapper wrapper-content">
-  collection
-
-    <div class="col-lg-6" class="detail" ui-view></div>
+﻿<div class="col-md-6">
+    <table class="table table-striped table-hover ">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="i in data" ng-class="{'info': i.id == selectedId}" ng-click="select(i)">
+                <td>{{i.id}}</td>
+                <td>{{i.Name}}</td>
+                <td>{{i.Email}}</td>
+            </tr>
+        </tbody>
+    </table>
 </div>
+
+<div  class="col-md-6" ui-view></div>

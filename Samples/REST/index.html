@@ -2,13 +2,12 @@
 <html ng-app="NyanNG">
 <head>
     <meta name="viewport" content="initial-scale=1" />
-
-    <meta name="viewport" content="initial-scale=1" />
-    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.0.0-rc1/angular-material.min.css">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha256-7s5uDGW3AHqw6xtJmNNtr+OBRJUlgkNJEo78P4b0yRw= sha512-nNo+yCHEyn0smMxSswnf/OnX6/KwJuZTlNZBjauKhTK0c+zT+q5JOCx0UFhXQ6rJR9jg6Es8gPuD2uZcYDLqSw==" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.5.0/css/bootstrap-material-design.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.5.0/css/ripples.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic">
+
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/ng-table/0.8.3/ng-table.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/angularjs-toaster/0.4.16/toaster.css" rel="stylesheet">
 
     <title>Nyan AngularJS Sample</title>
     <meta http-equiv="cache-control" content="max-age=0" />
@@ -17,31 +16,98 @@
     <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
     <meta http-equiv="pragma" content="no-cache" />
 </head>
-<body layout="column" ng-controller="SampleController">
+<body>
 
-    {{data}}
+    <div class="container">
 
-    <!-- Angular Material Dependencies -->
-    <div ui-view ng-view=""></div>
-    <!-- Angular Material Dependencies -->
+        <!-- Navbar
+        ================================================== -->
+        <div class="bs-docs-section clearfix">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="bs-component">
+                        <div class="navbar navbar-inverse">
+                            <div class="container-fluid">
+                                <div class="navbar-header">
+                                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-inverse-collapse">
+                                        <span class="icon-bar"></span>
+                                        <span class="icon-bar"></span>
+                                        <span class="icon-bar"></span>
+                                    </button>
+                                    <a class="navbar-brand" href="javascript:void(0)">Brand</a>
+                                </div>
+                                <div class="navbar-collapse collapse navbar-inverse-collapse">
+                                    <ul class="nav navbar-nav">
+                                        <li class="active"><a href="javascript:void(0)">Active</a></li>
+                                        <li><a href="javascript:void(0)">Link</a></li>
+                                        <li class="dropdown">
+                                            <a href="bootstrap-elements.html" data-target="#" class="dropdown-toggle" data-toggle="dropdown">
+                                                Dropdown
+                                                <b class="caret"></b>
+                                            </a>
+                                            <ul class="dropdown-menu">
+                                                <li><a href="javascript:void(0)">Action</a></li>
+                                                <li><a href="javascript:void(0)">Another action</a></li>
+                                                <li><a href="javascript:void(0)">Something else here</a></li>
+                                                <li class="divider"></li>
+                                                <li class="dropdown-header">Dropdown header</li>
+                                                <li><a href="javascript:void(0)">Separated link</a></li>
+                                                <li><a href="javascript:void(0)">One more separated link</a></li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                    <form class="navbar-form navbar-left">
+                                        <div class="form-group">
+                                            <input type="text" class="form-control col-md-8" placeholder="Search">
+                                        </div>
+                                    </form>
+                                    <ul class="nav navbar-nav navbar-right">
+                                        <li><a href="javascript:void(0)">Link</a></li>
+                                        <li class="dropdown">
+                                            <a href="bootstrap-elements.html" data-target="#" class="dropdown-toggle" data-toggle="dropdown">
+                                                Dropdown
+                                                <b class="caret"></b>
+                                            </a>
+                                            <ul class="dropdown-menu">
+                                                <li><a href="javascript:void(0)">Action</a></li>
+                                                <li><a href="javascript:void(0)">Another action</a></li>
+                                                <li><a href="javascript:void(0)">Something else here</a></li>
+                                                <li class="divider"></li>
+                                                <li><a href="javascript:void(0)">Separated link</a></li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div><!-- /example -->
+
+                </div>
+            </div>
+            <div class="row">
+                <div ui-view></div>
+            </div>
+        </div>
+
+
+
+        
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-2.1.4.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha256-KXn5puMvxCw+dAYznun+drMdG1IFl3agK0p/pqT9KAo= sha512-2e8qq0ETcfWRI4HJBzQiA3UoyFk6tbNyG+qSaIBZLyW9Xf3sWZHN/lxe9fTh1U45DpPf07yj94KsUHHWe4Yk1A==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.3.0/localforage.js"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.8/angular.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.8/angular-resource.js"></script>
-    <!--<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular-messages.js"></script>
-        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular-route.js"></script>
-        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular-animate.js"></script>
-        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular-aria.js"></script>
-        <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.0.0-rc1/angular-material.js"></script>-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.5.0/js/material.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.5.0/js/ripples.js"></script>
 
-    <script src="https://code.jquery.com/jquery-2.1.4.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.2.15/angular-ui-router.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ng-table/0.8.3/ng-table.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/angularjs-toaster/0.4.16/toaster.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.3.0/localforage.js"></script>
+    <script src="ng/res/angular-ui-router.js"></script>
 
     <script src="ng/res/nyan.js"></script>
     <script src="ng/app.js"></script>
-
 
 </body>
 </html>

@@ -5,6 +5,9 @@ app
         '$locationProvider', '$stateProvider', 'nyanStackProvider', '$httpProvider',
         function ($locationProvider, $stateProvider, nyanStackProvider, $httpProvider) {
 
+            $httpProvider.defaults.useXDomain = true;
+            delete $httpProvider.defaults.headers.common['X-Requested-With'];
+
             nyanStackProvider
                 .setup({
                     AppName: 'Nyan Angular Sample',
@@ -12,29 +15,13 @@ app
                 })
                 .module('user', {
                     RootPrefix: "data",
-                    collectionName: 'User',
-                    useLookupQuery: true,
-                    useLocatorQuery: true,
+                    collectionName: 'User'
+                })
+                .start();
 
-                });
-
-            $httpProvider.defaults.useXDomain = true;
-            delete $httpProvider.defaults.headers.common['X-Requested-With'];
         }
-    ]).run([
-        'nyanStack', function (nyanStack) {
-            nyanStack.start();
+    ]).run(
+        function (nyanStack, $state) {
+            $state.go('module-users');
         }
-    ]);
-angular.module('ngNyanStack')
-    .controller('SampleController', function ($scope, userDataService) {
-
-        $scope.svc = userDataService;
-
-        var localUpdate = function () {
-            $scope.data = userDataService.data;
-        };
-
-        userDataService.register(localUpdate);
-
-    });
+    );
