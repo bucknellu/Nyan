@@ -89,6 +89,7 @@
   <ItemGroup>
     <Content Include="index.html" />
     <Content Include="ng\app.js" />
+    <Content Include="ng\res\angular-ui-router.js" />
     <Content Include="ng\scopes\user\user-collection.html" />
     <Content Include="ng\scopes\user\user-item.html" />
     <Content Include="packages.config" />
