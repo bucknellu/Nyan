@@ -1,61 +1,64 @@
-﻿<form class="form-horizontal well">
-    <fieldset>
-        <legend>Entry {{item.id}}</legend>
-        <div class="form-group">
-            <label class="col-md-2 control-label">Name</label>
+﻿<div class="panel">
+    <div class="panel-heading">
+        <h3 class="panel-title">Entry {{item.id}}</h3>
+    </div>
+    <div class="panel-body">
 
-            <div class="col-md-10">
-                <input type="text" class="form-control" placeholder="Name" ng-model="item.Name">
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="col-md-2 control-label">Surname</label>
+        <form class="form-horizontal">
+            <fieldset>
+                <div class="form-group">
+                    <label class="col-md-2 control-label">Name</label>
 
-            <div class="col-md-10">
-                <input type="text" class="form-control" placeholder="Surname" ng-model="item.Surname">
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="col-md-2 control-label">Username</label>
+                    <div class="col-md-5">
+                        <input type="text" class="form-control" placeholder="Name" ng-model="item.Name">
+                    </div>
+                    <div class="col-md-5">
+                        <input type="text" class="form-control" placeholder="Surname" ng-model="item.Surname">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-md-2 control-label">Username</label>
 
-            <div class="col-md-10">
-                <input type="text" class="form-control" placeholder="Username" ng-model="item.Username">
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="col-md-2 control-label">Email</label>
+                    <div class="col-md-10">
+                        <input type="text" class="form-control" placeholder="Username" ng-model="item.Username">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-md-2 control-label">Email</label>
 
-            <div class="col-md-10">
-                <input type="email" class="form-control" placeholder="Email" ng-model="item.Email">
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="col-md-2 control-label">Address</label>
+                    <div class="col-md-10">
+                        <input type="email" class="form-control" placeholder="Email" ng-model="item.Email">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-md-2 control-label">Address</label>
 
-            <div class="col-md-10">
-                <input type="text" class="form-control" placeholder="Address" ng-model="item.Address">
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="col-md-2 control-label">Biography</label>
+                    <div class="col-md-10">
+                        <input type="text" class="form-control" placeholder="Address" ng-model="item.Address">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-md-2 control-label">Biography</label>
 
-            <div class="col-md-10">
-                <input type="text" class="form-control" placeholder="Biography" ng-model="item.Biography">
-            </div>
-        </div>
-        <div class="col-md-offset-2 col-md-10">
-            <div class="checkbox">
-                <label>
-                    <input type="checkbox" ng-model="item.isAdmin"><span class="checkbox-material"><span class="check"></span></span> Administrator
-                </label>
-            </div>
-        </div>
-        <div class="form-group">
-            <div class="col-md-10 col-md-offset-2">
-                <button type="button" class="btn btn-default" ng-click="cancel()">Cancel</button>
-                <button type="button" class="btn btn-default" ng-click="delete(item.id)">Delete</button>
-                <button type="submit" class="btn btn-primary" ng-click="save()">Save<div class="ripple-container"></div></button>
-            </div>
-        </div>
-    </fieldset>
-</form>
+                    <div class="col-md-10">
+                        <input type="text" class="form-control" placeholder="Biography" ng-model="item.Biography">
+                    </div>
+                </div>
+                <div class="col-md-offset-2 col-md-10">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" ng-model="item.isAdmin"><span class="checkbox-material"><span class="check"></span></span> Administrator
+                        </label>
+                    </div>
+                </div>
+                <div class="form-footer">
+                    <div class="col-md-10 col-md-offset-2" style="text-align:right;">
+                        <button type="button" class="btn btn-raised btn-default" ng-click="cancel()">Cancel</button>
+                        <button type="button" class="btn btn-raised btn-default" ng-click="delete(item.id)">Delete</button>
+                        <button type="submit" class="btn btn-raised btn-primary" ng-click="save()">Save<div class="ripple-container"></div></button>
+                    </div>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+</div>
