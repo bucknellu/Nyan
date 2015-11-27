@@ -9,6 +9,8 @@
     "nyanStack",
     function provideNyan($stateProvider, $controllerProvider, $compileProvider, $filterProvider, $provide) {
 
+        console.log('nyanStack: Initializing');
+
         //Setup and primitives
 
         var settings = {
@@ -72,72 +74,100 @@
             $get: configFactory
         });
 
-
         //Setup services
+
+
 
         function setupStackServices() {
 
-            console.log('StackLog');
+            $provide.decorator('$log', [
+            "$delegate",
+            "nyanLogPipelineService",
+            function ($delegate, pipeline) {
+                // Save the original $log.debug()
+
+                var original = {
+                    log: $delegate.log,
+                    info: $delegate.info,
+                    warn: $delegate.warn,
+                    error: $delegate.error,
+                    debug: $delegate.debug
+                };
+
+                $delegate.log = function () {
+                    pipeline.log.apply(null, arguments);
+                    original.log.apply(null, arguments);
+                };
+
+                $delegate.info = function () {
+                    pipeline.info.apply(null, arguments);
+                    original.info.apply(null, arguments);
+                };
+
+                $delegate.warn = function () {
+                    pipeline.warn.apply(null, arguments);
+                    original.warn.apply(null, arguments);
+                };
+
+                $delegate.error = function () {
+                    pipeline.error.apply(null, arguments);
+                    original.error.apply(null, arguments);
+                };
+
+                $delegate.debug = function () {
+                    pipeline.debug.apply(null, arguments);
+                    original.debug.apply(null, arguments);
+                };
+
+                return $delegate;
+            }]);
 
             registry
-            .service('StackLog',
+            .service('nyanLogPipelineService',
             function () {
 
                 var observerCallbacks = [];
-
-                var that = this;
 
                 this.register = function (callback) {
                     observerCallbacks.push(callback);
                 };
 
-                var notifyObservers = function (pType, pMessage) {
+                this.log = function () {
+                    var args = arguments;
                     angular.forEach(observerCallbacks, function (callback) {
-                        callback(pType, pMessage);
+                        callback.log.apply(null, args);
                     });
                 };
 
-                this.log = function (msg) {
-                    notifyObservers('l', msg);
-                }
+                this.info = function () {
+                    var args = arguments;
+                    angular.forEach(observerCallbacks, function (callback) {
+                        callback.info.apply(null, args);
+                    });
+                };
 
-                this.info = function (msg) {
-                    notifyObservers('i', msg);
-                }
+                this.warn = function () {
+                    var args = arguments;
+                    angular.forEach(observerCallbacks, function (callback) {
+                        callback.warn.apply(null, args);
+                    });
+                };
 
-                this.warn = function (msg) {
-                    notifyObservers('w', msg);
-                }
+                this.error = function () {
+                    var args = arguments;
+                    angular.forEach(observerCallbacks, function (callback) {
+                        callback.error.apply(null, args);
+                    });
+                };
 
-                this.error = function (msg) {
-                    notifyObservers('e', msg);
+                this.debug = function () {
+                    var args = arguments;
+                    angular.forEach(observerCallbacks, function (callback) {
+                        callback.log.apply(null, args);
+                    });
                 }
-                this.debug = function (msg) {
-                    notifyObservers('d', msg);
-                }
-                return this;
             });
 
-            registry.service('LogConsumer', function ($log, StackLog) {
-
-                StackLog.register(function (t, m) {
-
-                    if (t == 'l')
-                        $log.log(m);
-
-                    if (t == 'i')
-                        $log.info(m);
-
-                    if (t == 'w')
-                        $log.warn(m);
-
-                    if (t == 'e')
-                        $log.error(m);
-
-                    if (t == 'd')
-                        $log.debug(m);
-                });
-            });
         }
         //Helpers
 
@@ -398,7 +428,8 @@
             .service(initOptions.ModuleServiceName, [
             initOptions.CollectionFactoryName,
             dataItemServiceName,
-            function (collectionFactory, itemFactory) {
+            '$log',
+            function (collectionFactory, itemFactory, $log) {
 
                 var observerCallbacks = [];
 
@@ -419,25 +450,60 @@
                     });
                 };
 
-                this.remove = function (id) {
+                this.remove = function (id, successCallback, failCallback) {
 
-                    console.log(initOptions.ModuleServiceName + ': DELETE ' + id);
+                    $log.log(initOptions.ModuleServiceName + ': DELETE ' + id);
 
-                    itemFactory.delete({ id: id },
+                    itemFactory.delete(
+                    { id: id },
                     function (data) {
-                        console.log('itemFactory DELETE SUCCESS');
-                        factoryGet();
+                        $log.log('itemFactory DELETE SUCCESS');
+
+                        var _index = that.data.map(function (x) { return x.id; }).indexOf(id);
+                        that.data.splice(_index, 1);
+                        notifyObservers();
+                        successCallback(data);
                     },
                     function (data) {
-                        console.log('itemFactory DELETE FAIL =(');
+                        $log.log('itemFactory DELETE FAIL =(');
+                        failCallback(data);
                     }
                     );
                 }
 
-                this.fetch = itemFactory.fetch;
-                this.delete = itemFactory.delete;
-                this.update = collectionFactory.update;
-                this.create = itemFactory.create;
+                this.save = function (oData, successCallback, failCallback) {
+                    $log.log(initOptions.ModuleServiceName + ': SAVE ' + oData.id);
+
+                    collectionFactory.update(
+                    oData,
+                    function (data) {
+                        if (oData.id != 0) {
+                            var _index = that.data.map(function (x) { return x.id; }).indexOf(data.id);
+                            that.data[_index] = data;
+                        } else {
+                            that.data.push(data);
+                            //factoryGet();
+                        }
+                        notifyObservers();
+                        successCallback(data);
+                    },
+                    function (data) {
+                        failCallback(data);
+                    }
+                    );
+
+                };
+
+                this.factory = {
+                    fetch: itemFactory.fetch,
+                    delete: itemFactory.delete,
+                    update: collectionFactory.update,
+                    create: itemFactory.create
+                }
+
+                this.refresh = function () {
+                    factoryGet();
+                }
 
                 function factoryGet(pScheduled) {
 
@@ -632,9 +698,9 @@
             '$state',
             '$stateParams',
             initOptions.ModuleServiceName,
-            'StackLog',
+            '$log',
             '$q',
-            function ($scope, $state, $stateParams, dataService, Log, $q) {
+            function ($scope, $state, $stateParams, dataService, $log, $q) {
 
                 $scope.Stack = {
                     service: dataService,
@@ -647,6 +713,9 @@
 
                 //console.log('    Controller \'' + initOptions.baseItemController + '\' invoked');
 
+
+                // SAVE
+                // 1) Handle OnBeforeSave (if present)
                 $scope.save = function () {
 
                     var data = $scope.item;
@@ -657,9 +726,10 @@
                         $scope.onHandlePreSave(data);
                 };
 
+                // 1) Handle events just before saving
                 $scope.onHandlePreSave = function (data) {
 
-                    dataService.update(data,
+                    dataService.save(data,
                     function (procData) {
                         if ($scope.onAfterSave)
                             $q.when($scope.onAfterSave(procData)).then(function () { $scope.onHandlePostSave(procData); });
@@ -667,23 +737,17 @@
                             $scope.onHandlePostSave(procData);
                     },
                     function (e) {
-                        Log.warn({
-                            title: $scope.Stack.Options.collectionName,
-                            description: "An exception occurred while saving this item: " + e.data.ExceptionMessage
-                        });
+                        $log.warn($scope.Stack.Options.collectionName, e.data.ExceptionMessage);
                     }
                     );
                 };
 
+                // 1) Handle events just after saving
                 $scope.onHandlePostSave = function (data) {
 
-                    Log.info({
-                        title: $scope.Stack.Options.collectionName,
-                        description: "Item saved."
-                    });
-
-                    $scope.selectedId = data.Id;
-                    $state.go(initOptions.StateBase + '.detail', { id: data.Id }, { reload: true });
+                    $log.info($scope.Stack.Options.collectionName, "Item saved.");
+                    $scope.selectedId = data.id;
+                    $state.go(initOptions.StateBase + '.detail', { id: data.id }, { reload: true });
                 };
 
                 $scope.cancel = function () {
@@ -698,24 +762,16 @@
                     dataService.remove(id,
 
                     function (data) {
-
                         if ($scope.onAfterDelete) $scope.onAfterDelete();
 
                         $scope.selectedId = 0;
 
+                        $log.info($scope.Stack.Options.collectionName, "Item " + id + " successfully removed.");
+
                         $state.go(initOptions.StateBase, null, { reload: true });
-
-                        Log.info({
-                            title: $scope.Stack.Options.collectionName,
-                            description: "Item " + id + " successfully removed."
-                        });
-
                     },
                     function (e) {
-                        Log.warn({
-                            title: $scope.Stack.Options.collectionName,
-                            description: "An exception occurred while removing this item: " + e.data.ExceptionMessage
-                        });
+                        $log.warn($scope.Stack.Options.collectionName, "An exception occurred while removing this item: " + e.data.ExceptionMessage);
                     }
                     );
                 };
@@ -750,8 +806,8 @@
                     if ($scope.onBeforeLoadData) $scope.onBeforeLoadData();
 
                     $scope.itemLoadData = function () {
-                        dataService.fetch(
-                        { id: targetId },
+                        dataService.factory.fetch(
+                            { id: targetId },
                         function (data) {
                             $scope.item = data;
                             if ($scope.onAfterLoadData) $scope.onAfterLoadData();
