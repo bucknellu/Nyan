@@ -11,10 +11,13 @@ namespace Nyan.Modules.Cache.Memory
     public class MemoryCacheProvider : ICacheProvider
     {
         private MemoryCache _cache;
+
         public MemoryCacheProvider()
         {
             OperationalStatus = EOperationalStatus.Initialized;
-            _cache = new MemoryCache("NyanCache");
+            //_cache = new MemoryCache("NyanCache");
+            _cache = MemoryCache.Default;
+
             OperationalStatus = EOperationalStatus.Operational;
         }
 
@@ -24,17 +27,23 @@ namespace Nyan.Modules.Cache.Memory
         {
             get
             {
-                var res = _cache[key];
+                if (OperationalStatus != EOperationalStatus.Operational) return null;
+                var res = _cache.Get(key);
                 return res == null ? null : res.ToString();
             }
 
             set
             {
+                if (OperationalStatus != EOperationalStatus.Operational) return;
+
                 if (value == null)
                     Remove(key);
                 else
-                    lock (OLock) { _cache.Add(key, value, DateTimeOffset.Now.AddMilliseconds(cacheTimeOutSeconds)); }
-
+                    lock (OLock) {
+                        CacheItemPolicy policy = new CacheItemPolicy();
+                        policy.AbsoluteExpiration = DateTimeOffset.Now.AddSeconds(cacheTimeOutSeconds);
+                        _cache.Set(key, value, policy);
+                    }
             }
         }
 
