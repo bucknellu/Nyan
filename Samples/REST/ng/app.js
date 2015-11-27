@@ -1,4 +1,4 @@
-﻿var app = angular.module('NyanNG', ['ui.router', 'ngNyanStack']);
+﻿var app = angular.module('NyanNG', ['ui.router', 'ngNyanStack', 'ngNyanLogToaster']);
 
 app
     .config([
@@ -15,7 +15,7 @@ app
                 })
                 .module('user', {
                     RootPrefix: "data",
-                    collectionName: 'User'
+                    collectionName: 'Users'
                 })
                 .start();
 
