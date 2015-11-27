@@ -90,6 +90,7 @@
     <Content Include="index.html" />
     <Content Include="ng\app.js" />
     <Content Include="ng\res\angular-ui-router.js" />
+    <Content Include="ng\res\nyan-log-toaster.js" />
     <Content Include="ng\scopes\user\user-collection.html" />
     <Content Include="ng\scopes\user\user-item.html" />
     <Content Include="packages.config" />
@@ -118,6 +119,10 @@
     <ProjectReference Include="..\..\Core\Nyan.Core.csproj">
       <Project>{5f53ab9e-fdda-4a45-b0be-d1fce1916fde}</Project>
       <Name>Nyan.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Modules\Cache\Memory\Nyan.Modules.Cache.Memory.csproj">
+      <Project>{ce77d796-c158-48ff-b141-54489564a7e1}</Project>
+      <Name>Nyan.Modules.Cache.Memory</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Modules\Data\SQLCE\Nyan.Modules.Data.SQLCompact.csproj">
       <Project>{6abc14a3-5fd6-4400-824d-14420e9848b0}</Project>

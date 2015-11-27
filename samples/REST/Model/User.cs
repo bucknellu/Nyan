@@ -38,7 +38,7 @@ namespace Nyan.Samples.REST.Model
             if (pAccessType != AccessType.Write) return true;
 
             if (!pObject.isAdmin)
-                throw new Exception("User isn't an Admin");
+                throw new Exception("User isn't marked as an Admin");
 
             return true;
         }

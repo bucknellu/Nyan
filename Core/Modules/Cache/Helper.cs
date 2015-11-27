@@ -30,24 +30,24 @@ namespace Nyan.Core.Modules.Cache
 
         public static T FetchCacheableSingleResultByKey<T>(Func<string, T> method, string key, string baseType = null)
         {
+
+            if (Current.Cache.OperationalStatus != EOperationalStatus.Operational)
+                return method(key);
+
             var cacheid = typeof(T).CacheKey(key, baseType);
 
-            if (Current.Cache.OperationalStatus == EOperationalStatus.Operational)
+            var cache = Current.Cache[cacheid].FromJson<T>();
+            if (cache != null)
             {
-                var cache = Current.Cache[cacheid].FromJson<T>();
-                if (cache != null)
-                {
-                    Current.Log.Add("CACHE HIT " + cacheid);
-                    return cache;
-                }
+                Current.Log.Add("CACHE HIT " + cacheid);
+                return cache;
             }
 
             Current.Log.Add("CACHE MISS " + cacheid);
 
             var ret = method(key);
 
-            if (Current.Cache.OperationalStatus == EOperationalStatus.Operational)
-                Current.Cache[cacheid] = ret.ToJson();
+            Current.Cache[cacheid] = ret.ToJson();
 
             return ret;
         }
