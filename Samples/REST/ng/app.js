@@ -15,7 +15,8 @@ app
                 })
                 .module('user', {
                     RootPrefix: "data",
-                    collectionName: 'Users'
+                    collectionName: 'Users',
+                    CollectionController: 'userCollectionCtrl'
                 })
                 .start();
 
@@ -25,3 +26,6 @@ app
             $state.go('module-users');
         }
     );
+
+app.controller('topLevelController', function ($log) {
+});
