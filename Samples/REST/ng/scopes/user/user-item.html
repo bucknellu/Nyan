@@ -1,6 +1,7 @@
 ﻿<div class="panel">
     <div class="panel-heading">
-        <h3 class="panel-title">Entry {{item.id}}</h3>
+        <h3 class="panel-title" ng-if="item.id">Entry {{item.id}}</h3>
+        <h3 class="panel-title" ng-if="!item.id">New Entry</h3>
     </div>
     <div class="panel-body">
 
