@@ -21,8 +21,8 @@
             CollectionPage: '{ScopeDescriptor}-collection.html',
             ItemPage: '{ScopeDescriptor}-item.html',
 
-            CollectionController: '{ScopeDescriptor}CollectionCtrl',
-            ItemController: '{ScopeDescriptor}ItemCtrl',
+            CollectionBaseController: '{ScopeDescriptor}CollectionBaseCtrl',
+            ItemBaseController: '{ScopeDescriptor}ItemBaseCtrl',
 
             RestEndpoint: '{RestPrefix}/{PluralDescriptor}',
 
@@ -75,8 +75,6 @@
         });
 
         //Setup services
-
-
 
         function setupStackServices() {
 
@@ -163,14 +161,13 @@
                 this.debug = function () {
                     var args = arguments;
                     angular.forEach(observerCallbacks, function (callback) {
-                        callback.log.apply(null, args);
+                        callback.debug.apply(null, args);
                     });
                 }
             });
-
         }
-        //Helpers
 
+        //Helpers
         function inherit(parent, extra) {
             return extend(new (extend(function () { }, { prototype: parent }))(), extra);
         }
@@ -260,9 +257,10 @@
                 baseServiceUrl: './',
 
                 RestEndpoint: settings.RestEndpoint,
+                Identifier: 'id',
                 isRestReadOnly: false,
 
-                CollectionController: settings.CollectionController,
+                CollectionBaseController: settings.CollectionBaseController,
                 CollectionFactoryName: "{ScopeDescriptor}CollectionFactory",
                 CollectionName: '{ScopeDescriptor}',
                 MainRestEndpoint: settings.RestEndpoint,
@@ -275,10 +273,12 @@
                 isGlobalService: false,
                 isItemQuery: false,
 
-                ItemController: settings.ItemController,
+                ItemBaseController: settings.ItemBaseController,
                 ItemFactoryName: '{ScopeDescriptor}ItemFactory',
                 SecondaryRestEndpoint: settings.RestEndpoint + '/:id',
                 ItemPartialUrl: settings.ScopePartialsStorageUrl + '/' + settings.ItemPage,
+
+                ScopePartialsStorageUrl: settings.ScopePartialsStorageUrl,
 
                 LocatorQueryFactory: '{ScopeDescriptor}LocatorFactory',
                 LocatorRestEndpoint: '{RestEndpoint}/bylocator/:id',
@@ -358,11 +358,61 @@
                     prepareRoutes(initOptions);
                 }
 
+                if (initOptions.script) {
+                    loadScript3(initOptions.ScopePartialsStorageUrl + '/' + initOptions.script)
+                }
+
+
             });
 
             return this;
         }
 
+        function loadScript3(src) {
+
+            var o = src;
+            console.log('Loading custom resource file [' + o + ']');
+            $.holdReady(true);
+            $.getScript(o, function () {
+                console.log('Custom resource [' + o + '] loaded.');
+                $.holdReady(false);
+            });
+        };
+
+
+        function loadScript(url, type, charset) {
+            if (type === undefined) type = 'text/javascript';
+            if (charset === undefined) charset = 'utf-8';
+            if (url) {
+                var script = document.querySelector("script[src*='" + url + "']");
+                if (!script) {
+                    var heads = document.getElementsByTagName("head");
+                    if (heads && heads.length) {
+                        var head = heads[0];
+                        if (head) {
+                            script = document.createElement('script');
+                            script.setAttribute('src', url);
+                            script.setAttribute('type', type);
+                            if (charset) script.setAttribute('charset', charset);
+                            head.appendChild(script);
+                        }
+                    }
+                }
+                return script;
+            }
+        };
+        function loadScript2(url) {
+
+            $http({
+                method: 'GET',
+                url: url
+            }).then(function successCallback(response) {
+                console.log(response);
+            }, function errorCallback(response) {
+                // called asynchronously if an error occurs
+                // or server returns response with an error status.
+            });
+        }
 
         function ImplementNullElements() {
 
@@ -459,7 +509,7 @@
                     function (data) {
                         $log.log('itemFactory DELETE SUCCESS');
 
-                        var _index = that.data.map(function (x) { return x.id; }).indexOf(id);
+                        var _index = that.data.map(function (x) { return x[initOptions.Identifier]; }).indexOf(id);
                         that.data.splice(_index, 1);
                         notifyObservers();
                         successCallback(data);
@@ -472,13 +522,13 @@
                 }
 
                 this.save = function (oData, successCallback, failCallback) {
-                    $log.log(initOptions.ModuleServiceName + ': SAVE ' + oData.id);
+                    $log.log(initOptions.ModuleServiceName + ': SAVE ' + oData[initOptions.Identifier]);
 
                     collectionFactory.update(
                     oData,
                     function (data) {
-                        if (oData.id != 0) {
-                            var _index = that.data.map(function (x) { return x.id; }).indexOf(data.id);
+                        if (oData[initOptions.Identifier] != 0) {
+                            var _index = that.data.map(function (x) { return x[initOptions.Identifier]; }).indexOf(data.id);
                             that.data[_index] = data;
                         } else {
                             that.data.push(data);
@@ -616,6 +666,8 @@
 
         function prepareRoutes(initOptions) {
 
+            initOptions.CollectionController = initOptions.CollectionController ? initOptions.CollectionController : initOptions.CollectionBaseController;
+
             console.log(' Preparing Routes ' + initOptions.StateRoute);
 
             console.log('            State ' + initOptions.StateBase);
@@ -628,6 +680,9 @@
                 templateUrl: initOptions.CollectionPartialUrl,
                 controller: initOptions.CollectionController
             });
+
+            initOptions.ItemController = initOptions.ItemController ? initOptions.ItemController : initOptions.ItemBaseController;
+
 
             console.log('            State ' + initOptions.StateDetail);
             console.log('              URL ' + initOptions.ItemPartialUrl);
@@ -653,14 +708,21 @@
         }
 
         function prepareControllers(initOptions) {
+
+            //Collection Control
+            console.log('Creating controller ' + initOptions.CollectionBaseController);
+
             registry.controller(
-            initOptions.CollectionController, [
+            initOptions.CollectionBaseController, [
             '$scope',
             '$state',
             '$stateParams',
             '$filter',
+            '$log',
             initOptions.ModuleServiceName,
-            function ($scope, $state, $stateParams, $filter, dataService) {
+            function ($scope, $state, $stateParams, $filter, $log, dataService) {
+
+                $log.log('Starting ' + initOptions.CollectionBaseController + ' instance');
 
                 $scope.Stack = {
                     service: dataService,
@@ -675,11 +737,11 @@
                     $scope.selectedId = $state.params.id;
 
                 $scope.select = function (item) {
-                    $scope.selectedId = item.id;
+                    $scope.selectedId = item[initOptions.Identifier];
                     $state.go(initOptions.StateBase + '.detail', { id: $scope.selectedId });
                 };
 
-                $scope.createNew = function () {
+                $scope.new = function () {
                     $scope.selectedId = 0;
                     $state.go(initOptions.StateBase + '.new');
                 };
@@ -687,20 +749,28 @@
                 dataService.register(function (data) {
                     $scope.data = data;
                 });
+
+                $scope.refresh = function () {
+                    dataService.refresh();
+                };
             }
             ]);
 
 
             //Item Control
+            console.log('Creating controller ' + initOptions.ItemBaseController);
+
             registry.controller(
-            initOptions.ItemController, [
+            initOptions.ItemBaseController, [
             '$scope',
             '$state',
             '$stateParams',
-            initOptions.ModuleServiceName,
             '$log',
             '$q',
-            function ($scope, $state, $stateParams, dataService, $log, $q) {
+            initOptions.ModuleServiceName,
+            function ($scope, $state, $stateParams, $log, $q, dataService) {
+
+                $log.log('Starting ' + initOptions.ItemBaseController + ' instance');
 
                 $scope.Stack = {
                     service: dataService,
@@ -711,7 +781,7 @@
 
                 $scope.item = {};
 
-                //console.log('    Controller \'' + initOptions.baseItemController + '\' invoked');
+                //console.log('    Controller \'' + initOptions.baseItemBaseController + '\' invoked');
 
 
                 // SAVE
@@ -746,8 +816,8 @@
                 $scope.onHandlePostSave = function (data) {
 
                     $log.info($scope.Stack.Options.collectionName, "Item saved.");
-                    $scope.selectedId = data.id;
-                    $state.go(initOptions.StateBase + '.detail', { id: data.id }, { reload: true });
+                    $scope.selectedId = data[initOptions.Identifier];
+                    $state.go(initOptions.StateBase + '.detail', { id: $scope.selectedId }, { reload: true });
                 };
 
                 $scope.cancel = function () {
@@ -764,10 +834,9 @@
                     function (data) {
                         if ($scope.onAfterDelete) $scope.onAfterDelete();
 
-                        $scope.selectedId = 0;
-
                         $log.info($scope.Stack.Options.collectionName, "Item " + id + " successfully removed.");
 
+                        $scope.selectedId = 0;
                         $state.go(initOptions.StateBase, null, { reload: true });
                     },
                     function (e) {
@@ -806,6 +875,8 @@
                     if ($scope.onBeforeLoadData) $scope.onBeforeLoadData();
 
                     $scope.itemLoadData = function () {
+
+
                         dataService.factory.fetch(
                             { id: targetId },
                         function (data) {
@@ -819,7 +890,7 @@
 
                 $scope.itemLoadData();
 
-                //console.log('    Controller \'' + initOptions.baseItemController + '\' finished loading');
+                //console.log('    Controller \'' + initOptions.baseItemBaseController + '\' finished loading');
             }
             ]);
 
