@@ -33,6 +33,8 @@ namespace Nyan.Core.Modules.Log
                 {
                     if (_workerThread == null)
                         return;
+
+                    _workerThread.Abort();
                     _workerThread = null;
                     DispatchQueue();
                 }
@@ -68,15 +70,19 @@ namespace Nyan.Core.Modules.Log
             {
                 var a = _messageQueue.Peek();
 
+                if (_Shutdown) return;
+
                 try
                 {
                     Dispatch(a);
-                    _messageQueue.Dequeue();
                 }
                 catch (Exception e)
                 {
                     //Something very wrong happened: Can't send the messages. What to do...
                 }
+
+                _messageQueue.Dequeue();
+
             }
         }
 
@@ -84,6 +90,7 @@ namespace Nyan.Core.Modules.Log
 
         public virtual void Shutdown()
         {
+            _messageQueue.Clear();
             _Shutdown = true;
             UseScheduler = false;
         }
@@ -119,6 +126,8 @@ namespace Nyan.Core.Modules.Log
 
         public virtual void Add(string content, Message.EContentType type = Message.EContentType.Generic)
         {
+            if (_Shutdown) return;
+
             if (type > VerbosityThreshold) return;
 
             var payload = new Message { Content = content, Subject = type.ToString(), Type = type };
