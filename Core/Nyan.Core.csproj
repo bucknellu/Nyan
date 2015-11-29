@@ -67,8 +67,6 @@
     <Compile Include="Factories\ShortGuid.cs" />
     <Compile Include="Modules\Data\ComplexMicroEntity.cs" />
     <Compile Include="Modules\Data\Contracts\ISearch.cs" />
-    <Compile Include="Modules\Data\Operators\Expressions\Contains.cs" />
-    <Compile Include="Modules\Data\Operators\Expressions\PropertyExpression.cs" />
     <Compile Include="Modules\Identity\IAuthorizationProvider.cs" />
     <Compile Include="Modules\Identity\NullAuthorizationProvider.cs" />
     <Compile Include="Modules\Cache\ICacheConfiguration.cs" />
@@ -128,6 +126,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Modules\Data\Operators\Expressions\" />
     <Folder Include="Modules\Data\Storage\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

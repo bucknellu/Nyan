@@ -28,7 +28,7 @@ namespace Nyan.Core.Settings
             try
             {
                 AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
-                AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+                //AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             } catch {}
 
             var refObj = ResolveSettingsPackage();

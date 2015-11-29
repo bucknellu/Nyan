@@ -25,8 +25,8 @@ namespace Nyan.Modules.Log.ZeroMQ
 
         public override void Shutdown()
         {
-            if (_in != null) _in.Terminate();
-            if (_out != null) _out.Terminate();
+            //if (_in != null) _in.Terminate();
+            //if (_out != null) _out.Terminate();
         }
 
         public override event Message.MessageArrivedHandler MessageArrived;
