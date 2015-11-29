@@ -19,6 +19,11 @@ namespace Nyan.Core.Extensions
             "Dapper.SqlMapper+<QueryImpl>"
         };
 
+        public static string Truncate(this string value, int maxChars)
+        {
+            return value.Length <= maxChars ? value : value.Substring(0, maxChars) + " ..";
+        }
+
         public static bool IsNumeric(this object refObj)
         {
             if (refObj == null) return false;

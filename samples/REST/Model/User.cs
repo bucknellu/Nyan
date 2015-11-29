@@ -64,13 +64,10 @@ namespace Nyan.Samples.REST.Model
                     Locator = i.Email,
                     Description = i.Name + " " + i.Surname
                 }
-                    );
-
-
+                );
             }
 
             return ret;
-
         }
 
         public override bool AuthorizeAction(RequestType pRequestType, AccessType pAccessType, string pidentifier, User pObject, string pContext)
@@ -87,7 +84,7 @@ namespace Nyan.Samples.REST.Model
         [HttpGet]
         public void Wipe()
         {
-            Core.Settings.Current.Log.Add("Wiping all User data", Message.EContentType.Maintenance);
+            Current.Log.Add("Wiping all User data", Message.EContentType.Maintenance);
             Model.User.RemoveAll();
         }
 
@@ -95,25 +92,33 @@ namespace Nyan.Samples.REST.Model
         [HttpGet]
         public void Make(long count)
         {
-            Core.Settings.Current.Log.Add("Creating " + count + " new records", Message.EContentType.Maintenance);
+            Current.Log.Add("Creating " + count + " new records", Message.EContentType.Maintenance);
 
             for (int i = 0; i < count; i++)
             {
-                new User
+                try
                 {
-                    Name = Faker.Name.First(),
-                    Surname = Faker.Name.Last(),
-                    Email = Faker.Internet.Email(),
-                    Username = Faker.Internet.UserName(),
-                    Address = Faker.Address.StreetAddress(),
-                    City = Faker.Address.City(),
-                    State = Faker.Address.UsStateAbbr(),
-                    ZipCode = Faker.Address.ZipCode(),
-                    isAdmin = (Faker.RandomNumber.Next(0, 2) == 0),
-                    BirthDate = RandomDay(),
-                    Biography = Faker.Company.BS(),
-                    Company = Faker.Company.Name()
-                }.Save();
+                    new User
+                    {
+                        Name = Faker.Name.First(),
+                        Surname = Faker.Name.Last(),
+                        Email = Faker.Internet.Email(),
+                        Username = Faker.Internet.UserName(),
+                        Address = Faker.Address.StreetAddress(),
+                        City = Faker.Address.City(),
+                        State = Faker.Address.UsStateAbbr(),
+                        ZipCode = Faker.Address.ZipCode(),
+                        isAdmin = (Faker.RandomNumber.Next(0, 2) == 0),
+                        BirthDate = RandomDay(),
+                        Biography = Faker.Company.BS(),
+                        Company = Faker.Company.Name()
+                    }.Save();
+
+                }
+                catch (Exception e)
+                {
+                    Current.Log.Add("Something went wrong while creating a new fake user: " + e.Message, Message.EContentType.Warning);
+                }
             }
         }
 
