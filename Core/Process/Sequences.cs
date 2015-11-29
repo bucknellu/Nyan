@@ -1,5 +1,6 @@
 ﻿using Nyan.Core.Modules.Log;
 using Nyan.Core.Settings;
+using System;
 
 namespace Nyan.Core.Process
 {
@@ -27,6 +28,9 @@ namespace Nyan.Core.Process
             Current.Log.Add(@"Stack shutdown concluded.", Message.EContentType.ShutdownSequence);
 
             Current.Log.Shutdown();
+
+            try { System.Windows.Forms.Application.Exit(); } catch { }
+            try { Environment.Exit(0); } catch { }
         }
     }
 }
