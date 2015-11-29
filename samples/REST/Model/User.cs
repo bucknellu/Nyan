@@ -3,6 +3,10 @@ using Nyan.Modules.Web.REST;
 using System;
 using System.Web.Http;
 using Nyan.Core.Modules.Log;
+using Nyan.Core.Modules.Data.Contracts;
+using System.Collections.Generic;
+using Nyan.Core.Extensions;
+using Nyan.Core.Settings;
 
 namespace Nyan.Samples.REST.Model
 {
@@ -31,8 +35,44 @@ namespace Nyan.Samples.REST.Model
     }
 
     [RoutePrefix("data/users")]
-    public class UserController : MicroEntityWebApiController<User>
+    public class UserController : MicroEntityWebApiController<User>, ISearch
     {
+        public string SearchResultMoniker { get { return "Users"; } }
+
+        [Route("search/{term}")]
+        [HttpGet]
+        public List<SearchResult> SimpleQuery(string term)
+        {
+
+            Current.Log.Add(term);
+
+            var b = Model.User.GetNewDynamicParameterBag();
+            b.Add("term", "%" + term + "%");
+
+            var pTerm = Model.User.ParameterDefinition.ToString() + "term";
+            var q = "Name LIKE ({0}) OR Surname LIKE ({0}) OR Email LIKE ({0})".format(pTerm);
+
+            var res = Model.User.QueryByWhereClause(q, b);
+
+            var ret = new List<SearchResult>();
+
+            foreach (var i in res)
+            {
+                ret.Add(new SearchResult()
+                {
+                    Id = i.id.ToString(),
+                    Locator = i.Email,
+                    Description = i.Name + " " + i.Surname
+                }
+                    );
+
+
+            }
+
+            return ret;
+
+        }
+
         public override bool AuthorizeAction(RequestType pRequestType, AccessType pAccessType, string pidentifier, User pObject, string pContext)
         {
             if (pAccessType != AccessType.Write) return true;
@@ -85,5 +125,6 @@ namespace Nyan.Samples.REST.Model
             int range = (DateTime.Today - start).Days;
             return start.AddDays(gen.Next(range));
         }
+
     }
 }

@@ -64,6 +64,8 @@
     <Compile Include="auth\AddChallengeOnUnauthorizedResult.cs" />
     <Compile Include="auth\AuthenticationFailureResult.cs" />
     <Compile Include="auth\NyanAuthenticationFilter.cs" />
+    <Compile Include="Search\Global.cs" />
+    <Compile Include="Search\GlobalSearchController.cs" />
     <Compile Include="Sequences.cs" />
     <Compile Include="Initialization.cs" />
     <Compile Include="WebApiInitializationHookAttribute.cs" />
