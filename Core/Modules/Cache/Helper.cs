@@ -28,7 +28,7 @@ namespace Nyan.Core.Modules.Cache
             return ret;
         }
 
-        public static T FetchCacheableSingleResultByKey<T>(Func<string, T> method, string key, string baseType = null)
+        public static T FetchCacheableSingleResultByKey<T>(Func<string, T> method, string key, string baseType = null, int cacheTimeOutSeconds = 600)
         {
 
             if (Current.Cache.OperationalStatus != EOperationalStatus.Operational)
@@ -47,7 +47,7 @@ namespace Nyan.Core.Modules.Cache
 
             var ret = method(key);
 
-            Current.Cache[cacheid] = ret.ToJson();
+            Current.Cache[cacheid, null, cacheTimeOutSeconds] = ret.ToJson();
 
             return ret;
         }
@@ -75,6 +75,9 @@ namespace Nyan.Core.Modules.Cache
             }
             else
                 cacheid = namespaceSpec + ":s";
+
+            if (singletonLock == null)
+                singletonLock = new object();
 
             var sw = new Stopwatch();
             sw.Start();
