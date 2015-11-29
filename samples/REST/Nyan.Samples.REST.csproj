@@ -89,8 +89,9 @@
   <ItemGroup>
     <Content Include="index.html" />
     <Content Include="ng\app.js" />
-    <Content Include="ng\res\angular-ui-router.js" />
-    <Content Include="ng\res\nyan-log-toaster.js" />
+    <Content Include="ng\libs\nyan-log-toaster.js" />
+    <Content Include="ng\scopes\menu\menu-partial.html" />
+    <Content Include="ng\scopes\user\user-config.js" />
     <Content Include="ng\scopes\user\user-collection.html" />
     <Content Include="ng\scopes\user\user-item.html" />
     <Content Include="packages.config" />
@@ -103,7 +104,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Global.asax" />
-    <Content Include="ng\res\nyan.js" />
+    <Content Include="ng\libs\nyan.js" />
+    <Content Include="res\css\nyanSample.css" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>
