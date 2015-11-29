@@ -347,11 +347,19 @@ break; */
             return set;
         }
 
-        public static IEnumerable<T> QueryByWhereClause(string clause)
+        public static IEnumerable<T> QueryByWhereClause(string clause, object b)
         {
             var statement = string.Format(Statements.SqlAllFieldsQueryTemplate, clause);
-            var set = Query(statement);
+            var set = Query(statement, b);
             return set;
+        }
+
+        public static ParameterDefinition ParameterDefinition
+        {
+            get
+            {
+                return Statements.Adapter.ParameterDefinition;
+            }
         }
 
         public static DynamicParametersPrimitive GetNewDynamicParameterBag() { return Statements.Adapter.Parameters<T>(null); }
@@ -786,7 +794,7 @@ break; */
                     var cat = new ColumnAttributeTypeMapper<T>();
                     SqlMapper.SetTypeMap(typeof(T), cat);
 
-                    Current.Log.Add("{0} : INIT{2}".format(typeof(T).FullName, Environment.MachineName,Current.Scope.Current.Code != "UND"? " (" + Current.Scope.Current +  ")": ""), Message.EContentType.Info);
+                    Current.Log.Add("{0} : INIT{2}".format(typeof(T).FullName, Environment.MachineName, Current.Scope.Current.Code != "UND" ? " (" + Current.Scope.Current + ")" : ""), Message.EContentType.Info);
 
                     var refBundle = TableData.ConnectionBundleType ?? Current.GlobalConnectionBundleType;
 
