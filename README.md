@@ -15,7 +15,7 @@ To have it working straight out of the box with no setup required, add a referen
 
 ## Usage
 
-Very complicated steps aread: 
+Very complicated example steps aread: 
  - Create a class that inherits from the `MicroEntity<>` generic class
  - Add a `MicroEntitySetup` attribute, and assign a table name
  - Mark the property you want to use as a unique identifier with the [Key] attribute
@@ -41,7 +41,7 @@ C# example:
 
 ## W-wait, what have I just done?
 
-Congratulations! You created a SQL Compact-backed ORM class. A default database was created, together with a table to store entries.
+Congratulations! You created a SQL Compact- and memory cache-backed ORM class. A default database was created, together with a table to store entries.
 
 ## You mentioned something about REST
 
