@@ -70,7 +70,7 @@
             service: configService,
             scheduledService: configScheduledService,
             module: configModule,
-            start: runtimeStart,
+            start: configStart,
             $get: configFactory
         });
 
@@ -189,15 +189,17 @@
 
         //Interface members
         function configSetup(uSettings) {
+
             settings = merge(uSettings, settings);
+
             return this;
         }
 
-        function configService(ScopeDescriptor, initOptions) {
+        function configService(scopeDescriptor, initOptions) {
 
             initOptions = initOptions || {};
 
-            initOptions.ScopeDescriptor = ScopeDescriptor;
+            initOptions.ScopeDescriptor = scopeDescriptor;
             initOptions = merge(initOptions, defaultOptions);
 
             initOptions.implementFactory = true;
@@ -208,22 +210,22 @@
             return this;
         }
 
-        function configScheduledService(ScopeDescriptor, initOptions) {
+        function configScheduledService(scopeDescriptor, initOptions) {
 
             initOptions = initOptions || {};
 
             initOptions.autoRefreshCycleSeconds = 60;
 
-            service(ScopeDescriptor, initOptions);
+            service(scopeDescriptor, initOptions);
 
             return this;
         }
 
-        function configModule(ScopeDescriptor, initOptions) {
+        function configModule(scopeDescriptor, initOptions) {
 
             initOptions = initOptions || {};
 
-            initOptions.ScopeDescriptor = ScopeDescriptor;
+            initOptions.ScopeDescriptor = scopeDescriptor;
             initOptions = merge(initOptions, defaultOptions);
 
             initOptions.implementFactory = true;
@@ -232,7 +234,7 @@
             initOptions.implementService = true;
             initOptions.useSecondaryRestEndpoint = true;
 
-            initOptions.ScopeDescriptor = ScopeDescriptor;
+            initOptions.ScopeDescriptor = scopeDescriptor;
 
             requests.push(initOptions);
 
@@ -243,11 +245,12 @@
 
         function configFactory() {
             return ({
-                start: runtimeStart
+                start: configStart,
+                settings: settings
             });
         }
 
-        function runtimeStart() {
+        function configStart() {
 
             console.log("Starting");
 
@@ -340,7 +343,7 @@
                     }
                 };
 
-                console.log(initOptions);
+                //console.log(initOptions);
 
                 //Pre-compile some statements, based on user choice
 
@@ -489,6 +492,8 @@
 
                 this.data = [];
 
+                this.status = 'Initializing';
+
                 this.register = function (callback) {
                     observerCallbacks.push(callback);
                     callback(that.data);
@@ -504,6 +509,8 @@
 
                     $log.log(initOptions.ModuleServiceName + ': DELETE ' + id);
 
+                    this.status = 'Removing';
+
                     itemFactory.delete(
                     { id: id },
                     function (data) {
@@ -511,11 +518,17 @@
 
                         var _index = that.data.map(function (x) { return x[initOptions.Identifier]; }).indexOf(id);
                         that.data.splice(_index, 1);
+
+                        that.status = false;
+
                         notifyObservers();
                         successCallback(data);
                     },
                     function (data) {
                         $log.log('itemFactory DELETE FAIL =(');
+
+                        that.status = false;
+
                         failCallback(data);
                     }
                     );
@@ -523,6 +536,8 @@
 
                 this.save = function (oData, successCallback, failCallback) {
                     $log.log(initOptions.ModuleServiceName + ': SAVE ' + oData[initOptions.Identifier]);
+
+                    that.status = 'Saving';
 
                     collectionFactory.update(
                     oData,
@@ -534,10 +549,16 @@
                             that.data.push(data);
                             //factoryGet();
                         }
+
+                        that.status = false;
+
                         notifyObservers();
                         successCallback(data);
                     },
                     function (data) {
+
+                        that.status = false;
+
                         failCallback(data);
                     }
                     );
@@ -560,7 +581,13 @@
                     console.log(initOptions.ModuleServiceName + ': GET' + (pScheduled ? " (SCHED)" : ""));
 
                     _init = true;
+
+                    that.status = 'Loading';
+
                     that.data = collectionFactory.fetch(function (data) {
+
+                        that.status = false;
+
                         that.data = data;
                         notifyObservers(data);
                     });
@@ -725,7 +752,7 @@
                 $log.log('Starting ' + initOptions.CollectionBaseController + ' instance');
 
                 $scope.Stack = {
-                    service: dataService,
+                    Service: dataService,
                     Options: initOptions
                 }
 
@@ -771,11 +798,6 @@
             function ($scope, $state, $stateParams, $log, $q, dataService) {
 
                 $log.log('Starting ' + initOptions.ItemBaseController + ' instance');
-
-                $scope.Stack = {
-                    service: dataService,
-                    Options: initOptions
-                }
 
                 $scope.State = {};
 
