@@ -65,6 +65,12 @@
 
         var provider = this;
 
+        var configuration = {
+            appRootUrl: window.location.origin + window.location.pathname,
+            isOperational: true
+        };
+
+
         return ({
             setup: configSetup,
             service: configService,
@@ -312,7 +318,8 @@
                 useLookupQuery: false,
                 useReferenceRestService: false,
                 useResource: false,
-                useState: false
+                useState: false,
+                useLocalCache: true
             };
 
             ImplementNullElements();
@@ -343,7 +350,7 @@
                     }
                 };
 
-                //console.log(initOptions);
+                console.log(initOptions);
 
                 //Pre-compile some statements, based on user choice
 
@@ -436,21 +443,21 @@
             console.log('Registering Factory ' + initOptions.CollectionFactoryName);
             console.log('                 to ' + initOptions.MainRestEndpoint);
 
+
+            // Collection Factory
+
             registry
             .factory(initOptions.CollectionFactoryName, function ($resource) {
 
                 var oInterface = {
-                    fetch: { method: 'GET', isArray: initOptions.isArrayRestSource, withCredentials: settings.Authenticate },
-                    update: { method: 'POST', withCredentials: settings.Authenticate },
-
+                    fetch: { method: 'GET', isArray: initOptions.isArrayRestSource, withCredentials: settings.Authenticate }
                 };
-
-                if (!initOptions.isRestReadOnly) {
-                    oInterface.create = { method: 'POST', withCredentials: settings.Authenticate }
-                }
 
                 return $resource(initOptions.MainRestEndpoint, {}, oInterface);
             });
+
+
+            // Item Factory
 
 
             if (initOptions.useSecondaryRestEndpoint) {
@@ -463,7 +470,7 @@
                     var oInterface = {
                         fetch: { method: 'GET', isArray: false, withCredentials: settings.Authenticate },
                         create: { method: 'PUT', withCredentials: settings.Authenticate },
-                        update: { method: 'POST', params: { id: '@id' }, withCredentials: settings.Authenticate },
+                        update: { method: 'POST', withCredentials: settings.Authenticate },
                         delete: { method: 'DELETE', params: { id: '@id' }, withCredentials: settings.Authenticate }
                     };
 
@@ -471,11 +478,13 @@
                 });
             }
 
-            var dataItemServiceName = (initOptions.useSecondaryRestEndpoint ? initOptions.ItemFactoryName : 'NullItemFactory')
+            var dataItemServiceName = (initOptions.useSecondaryRestEndpoint ? initOptions.ItemFactoryName : 'NullItemFactory');
 
             console.log('Registering Service ' + initOptions.ModuleServiceName);
             console.log('         Collection ' + initOptions.CollectionFactoryName);
             console.log('               Item ' + dataItemServiceName);
+
+            // Data Service
 
             registry
             .service(initOptions.ModuleServiceName, [
@@ -494,15 +503,28 @@
 
                 this.status = 'Initializing';
 
+                console.log(configuration);
+
+                this.storageDescriptor = configuration.appRootUrl + initOptions.ScopeDescriptor;
+
                 this.register = function (callback) {
                     observerCallbacks.push(callback);
-                    callback(that.data);
+
+                    if (_init)
+                        callback(that.data);
                 };
 
                 var notifyObservers = function () {
+
+                    $log.log('notifyObservers START : ' + observerCallbacks.length + ' Observer, ' + that.data.length + " entries");
+
                     angular.forEach(observerCallbacks, function (callback) {
+                        $log.log('NOTIFY ' + that.data.length);
                         callback(that.data);
                     });
+
+                    $log.log('notifyObservers END');
+
                 };
 
                 this.remove = function (id, successCallback, failCallback) {
@@ -539,7 +561,9 @@
 
                     that.status = 'Saving';
 
-                    collectionFactory.update(
+                    console.log(" SAVE ITEM");
+
+                    itemFactory.update(
                     oData,
                     function (data) {
                         if (oData[initOptions.Identifier] != 0) {
@@ -568,7 +592,7 @@
                 this.factory = {
                     fetch: itemFactory.fetch,
                     delete: itemFactory.delete,
-                    update: collectionFactory.update,
+                    update: itemFactory.update,
                     create: itemFactory.create
                 }
 
@@ -576,21 +600,41 @@
                     factoryGet();
                 }
 
+                function factoryScheduledGet() {
+                    factoryGet(true);
+                }
+
                 function factoryGet(pScheduled) {
 
                     console.log(initOptions.ModuleServiceName + ': GET' + (pScheduled ? " (SCHED)" : ""));
-
-                    _init = true;
 
                     that.status = 'Loading';
 
                     that.data = collectionFactory.fetch(function (data) {
 
+                        data = angular.fromJson(angular.toJson(data));
+
+                        if (initOptions.collectionPostProcessing) {
+                            $log.info('Service[' + initOptions.ScopeDescriptor + ']: Collection Post Processing');
+                            data = initOptions.collectionPostProcessing(data);
+                        }
+
                         that.status = false;
 
-                        that.data = data;
-                        notifyObservers(data);
+                        if (initOptions.useLocalCache) {
+                            $log.info('Service [' + initOptions.ScopeDescriptor + ']: LocalStorage PUSH');
+                            localforage.setItem(that.storageDescriptor, data);
+                        }
+
+                        setData(data);
                     });
+                }
+
+                function setData(data) {
+
+
+                    that.data = data;
+                    notifyObservers();
                 }
 
                 //Service bootstrap
@@ -598,17 +642,42 @@
                 //Set schedule, if required. 
 
                 if (initOptions.autoRefreshCycleSeconds) {
-
                     _schedule = setInterval(function () { factoryGet(true); }, initOptions.autoRefreshCycleSeconds * 1000);
                     console.log(initOptions.ModuleServiceName + ': SCHED ' + initOptions.autoRefreshCycleSeconds + "s");
                 }
 
                 //Initial load
 
-                factoryGet();
+                if (initOptions.useLocalCache) {
+
+                    $log.info('INITLOAD CACHE');
+
+                    that.status = 'Loading';
+
+                    localforage.getItem(that.storageDescriptor).then(function (value) {
+                        if (value) {
+                            $log.info('Service [' + initOptions.ScopeDescriptor + ']: LocalStorage PULL');
+
+                            that.data = value;
+                            setTimeout(notifyObservers, 1);
+                            setData(value);
+                        }
+                    });
+
+                    that.status = false;
+
+
+                    setTimeout(factoryScheduledGet, 10000);
+                } else {
+                    factoryGet();
+                }
+
+                _init = true;
 
                 return this;
             }]);
+
+            // Look-up Factory
 
             if (initOptions.useLookupQuery) {
 
@@ -622,6 +691,8 @@
                 });
             }
 
+            // Locator Factory
+
             if (initOptions.useLocatorQuery) {
                 console.log('Registering Factory ' + initOptions.LocatorQueryFactory);
                 console.log('                 to ' + initOptions.LocatorRestEndpoint);
@@ -633,6 +704,8 @@
                 });
 
                 console.log('Registering Service ' + initOptions.LocatorServiceName);
+
+                // Locator Service
 
                 registry.service(initOptions.LocatorServiceName,
                 [
@@ -774,10 +847,15 @@
                 };
 
                 dataService.register(function (data) {
+                    $log.warn('GOT ' + data.length);
+
                     $scope.data = data;
+
                 });
 
                 $scope.refresh = function () {
+
+
                     dataService.refresh();
                 };
             }
@@ -917,16 +995,6 @@
             ]);
 
 
-        }
-
-        function configuration() {
-            return ({
-                appRootUrl: appRootUrl,
-                isOperational: true
-            });
-            function appRootUrl() {
-                return window.location.origin + window.location.pathname;
-            }
         }
 
     }
