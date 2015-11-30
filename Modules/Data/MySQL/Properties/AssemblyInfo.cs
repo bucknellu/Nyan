@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("A MySQL database module for the Nyan data service stack")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Nyan Development Team")]
-[assembly: AssemblyProduct("MySQL")]
+[assembly: AssemblyProduct("Nyan.Modules.Data.MySQL")]
 [assembly: AssemblyCopyright("Copyright © 2015 Nyan Development Team")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -32,4 +32,4 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.0.0.*")]
+[assembly: AssemblyVersion("0.0.1.*")]
