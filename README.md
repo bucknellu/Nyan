@@ -11,7 +11,7 @@ Not quite. It provides not only ORM but also caching, encryption and RESTful end
 
 ## Installation
 
-To have it working straight out of the box with no setup required, add a reference to `Nyan.Core.dll` and `Nyan.Portable.dll` (`Nyan.Modules.Cache.Memory.dll` and `Nyan.Modules.Data.SQLite.dll` are referenced by `Nyan.Portable`.)
+To have it working straight out of the box with no setup required, add a reference to `Nyan.Core.dll`, `Nyan.Modules.Cache.Memory.dll` and `Nyan.Modules.Data.SQLCompact.dll`. (Check NuGet for their packages!)
 
 ## Usage
 
@@ -41,7 +41,7 @@ C# example:
 
 ## W-wait, what have I just done?
 
-Congratulations! You created a SQLite- and MemoryCache- backed ORM class. A SQLite database was created, together with a table to store entries.
+Congratulations! You created a SQL Compact-backed ORM class. A default database was created, together with a table to store entries.
 
 ## You mentioned something about REST
 
