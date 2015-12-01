@@ -14,8 +14,11 @@
 <div class="col-md-6">
     <div class="panel">
         <div class="panel-heading">
-            <h3 class="panel-title">
+            <h3 class="panel-title" ng-if="!Stack.Service.status">
                 <ng-pluralize count="data.length" when="{'0': 'No entries', 'one': 'One entry', 'other': '{} entries'}"></ng-pluralize>
+            </h3>
+            <h3 class="panel-title" ng-if="Stack.Service.status">
+                {{Stack.Service.status}}... <i class="fa fa-spinner fa-spin"></i>
             </h3>
         </div>
         <div class="panel-body" ng-if="data.length">
