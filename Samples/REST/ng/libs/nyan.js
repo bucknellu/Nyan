@@ -616,8 +616,6 @@
                             data = initOptions.collectionPostProcessing(data);
                         }
 
-                        that.status = false;
-
                         if (initOptions.useLocalCache) {
                             $log.log(initOptions.ModuleServiceName + ': LocalStorage <= Data');
                             localforage.setItem(that.storageDescriptor, data);
@@ -632,6 +630,7 @@
                     init = true;
                     that.data = data;
                     notifyObservers();
+                    that.status = false;
                 }
 
                 //Service bootstrap
@@ -666,9 +665,6 @@
                                 setData(value);
                             }
                         });
-
-                    that.status = false;
-
 
                     setTimeout(factoryScheduledGet, 1000);
                 } else {
@@ -830,7 +826,7 @@
                     Options: initOptions
                 }
 
-                $scope.data = [];
+                $scope.data = $scope.data || [];
 
                 $scope.selectedId = 0;
 
@@ -838,8 +834,20 @@
                     $scope.selectedId = $state.params.id;
 
                 $scope.select = function (item) {
+
+                    //If a beforeSelect event hook is defined, run it:
+                    if ($scope.beforeSelect)
+                        $scope.beforeSelect(item, $scope.selectedId);
+
+
                     $scope.selectedId = item[initOptions.Identifier];
+
+                    //If a afterSelect event hook is defined, run it:
+                    if ($scope.afterSelect)
+                        $scope.afterSelect($scope.selectedId);
+
                     $state.go(initOptions.StateBase + '.detail', { id: $scope.selectedId });
+
                 };
 
                 $scope.new = function () {
@@ -848,7 +856,12 @@
                 };
 
                 dataService.register(function (data) {
+
                     $scope.data = data;
+
+                    if ($scope.afterDataLoad)
+                        $scope.afterDataLoad();
+
                 });
 
                 $scope.refresh = function () {
