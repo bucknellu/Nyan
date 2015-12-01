@@ -491,40 +491,36 @@
             initOptions.CollectionFactoryName,
             dataItemServiceName,
             '$log',
-            function (collectionFactory, itemFactory, $log) {
+            '$timeout',
+            function (collectionFactory, itemFactory, $log, $timeout) {
 
                 var observerCallbacks = [];
 
                 var that = this;
-                var _init = false;
+                var init = false;
                 var _schedule = null;
 
                 this.data = [];
 
                 this.status = 'Initializing';
 
-                console.log(configuration);
-
                 this.storageDescriptor = configuration.appRootUrl + initOptions.ScopeDescriptor;
 
                 this.register = function (callback) {
                     observerCallbacks.push(callback);
 
-                    if (_init)
+                    if (init)
                         callback(that.data);
                 };
 
                 var notifyObservers = function () {
 
-                    $log.log('notifyObservers START : ' + observerCallbacks.length + ' Observer, ' + that.data.length + " entries");
-
-                    angular.forEach(observerCallbacks, function (callback) {
-                        $log.log('NOTIFY ' + that.data.length);
-                        callback(that.data);
+                    //$timeout: avoid $scope.$apply pitfalls.
+                    $timeout(function () {
+                        angular.forEach(observerCallbacks, function (callback) {
+                            callback(that.data);
+                        });
                     });
-
-                    $log.log('notifyObservers END');
-
                 };
 
                 this.remove = function (id, successCallback, failCallback) {
@@ -577,6 +573,7 @@
                         that.status = false;
 
                         notifyObservers();
+
                         successCallback(data);
                     },
                     function (data) {
@@ -615,14 +612,14 @@
                         data = angular.fromJson(angular.toJson(data));
 
                         if (initOptions.collectionPostProcessing) {
-                            $log.info('Service[' + initOptions.ScopeDescriptor + ']: Collection Post Processing');
+                            $log.log(initOptions.ModuleServiceName + ': Collection Post Processing');
                             data = initOptions.collectionPostProcessing(data);
                         }
 
                         that.status = false;
 
                         if (initOptions.useLocalCache) {
-                            $log.info('Service [' + initOptions.ScopeDescriptor + ']: LocalStorage PUSH');
+                            $log.log(initOptions.ModuleServiceName + ': LocalStorage <= Data');
                             localforage.setItem(that.storageDescriptor, data);
                         }
 
@@ -632,7 +629,7 @@
 
                 function setData(data) {
 
-
+                    init = true;
                     that.data = data;
                     notifyObservers();
                 }
@@ -642,37 +639,41 @@
                 //Set schedule, if required. 
 
                 if (initOptions.autoRefreshCycleSeconds) {
-                    _schedule = setInterval(function () { factoryGet(true); }, initOptions.autoRefreshCycleSeconds * 1000);
-                    console.log(initOptions.ModuleServiceName + ': SCHED ' + initOptions.autoRefreshCycleSeconds + "s");
+                    startSchedule(initOptions.autoRefreshCycleSeconds);
+                }
+
+                this.startSchedule = function (pSecs) {
+                    _schedule = setInterval(function () { factoryGet(true); }, pSecs * 1000);
+                    console.log(initOptions.ModuleServiceName + ': SCHED ' + pSecs + 's');
+                }
+
+                this.stopSchedule = function () {
+                    _schedule.stop();
+                    console.log(initOptions.ModuleServiceName + ': SCHED STOP');
                 }
 
                 //Initial load
 
                 if (initOptions.useLocalCache) {
 
-                    $log.info('INITLOAD CACHE');
-
                     that.status = 'Loading';
 
-                    localforage.getItem(that.storageDescriptor).then(function (value) {
-                        if (value) {
-                            $log.info('Service [' + initOptions.ScopeDescriptor + ']: LocalStorage PULL');
+                    localforage.getItem(that.storageDescriptor)
+                        .then(function (value) {
+                            if (value) {
+                                $log.log(initOptions.ModuleServiceName + ': LocalStorage => Data');
 
-                            that.data = value;
-                            setTimeout(notifyObservers, 1);
-                            setData(value);
-                        }
-                    });
+                                setData(value);
+                            }
+                        });
 
                     that.status = false;
 
 
-                    setTimeout(factoryScheduledGet, 10000);
+                    setTimeout(factoryScheduledGet, 1000);
                 } else {
                     factoryGet();
                 }
-
-                _init = true;
 
                 return this;
             }]);
@@ -847,15 +848,10 @@
                 };
 
                 dataService.register(function (data) {
-                    $log.warn('GOT ' + data.length);
-
                     $scope.data = data;
-
                 });
 
                 $scope.refresh = function () {
-
-
                     dataService.refresh();
                 };
             }
@@ -993,10 +989,7 @@
                 //console.log('    Controller \'' + initOptions.baseItemBaseController + '\' finished loading');
             }
             ]);
-
-
         }
-
     }
     );
 }
