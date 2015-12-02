@@ -647,7 +647,7 @@
                 }
 
                 this.stopSchedule = function () {
-                    _schedule.stop();
+                    clearInterval(_schedule);
                     console.log(initOptions.ModuleServiceName + ': SCHED STOP');
                 }
 
