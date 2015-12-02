@@ -1,11 +1,5 @@
 ﻿using System;
-using System.Reflection;
 using System.Web;
-using System.Web.Http;
-using Nyan.Core.Extensions;
-using Nyan.Core.Modules.Log;
-using Nyan.Core.Settings;
-using Nyan.Modules.Web.REST;
 
 namespace Nyan.Samples.REST
 {
