@@ -39,11 +39,11 @@ namespace Nyan.Core.Modules.Cache
             var cache = Current.Cache[cacheid].FromJson<T>();
             if (cache != null)
             {
-                Current.Log.Add("CACHE HIT " + cacheid);
+                //Current.Log.Add("CACHE HIT " + cacheid);
                 return cache;
             }
 
-            Current.Log.Add("CACHE MISS " + cacheid);
+            //Current.Log.Add("CACHE MISS " + cacheid);
 
             var ret = method(key);
 
@@ -89,7 +89,7 @@ namespace Nyan.Core.Modules.Cache
                 if (cache != null)
                 {
                     sw.Stop();
-                    Current.Log.Add("GET " + "edu.bucknell.webapps.Projects.Models.ReportData" + " CACHE (" + sw.ElapsedMilliseconds + " ms)");
+                    //Current.Log.Add("GET " + "edu.bucknell.webapps.Projects.Models.ReportData" + " CACHE (" + sw.ElapsedMilliseconds + " ms)");
 
                     return cache;
                 }
@@ -103,7 +103,7 @@ namespace Nyan.Core.Modules.Cache
                     if (cache != null)
                     {
                         sw.Stop();
-                        Current.Log.Add("GET " + "edu.bucknell.webapps.Projects.Models.ReportData" + " CACHE (" + sw.ElapsedMilliseconds + " ms)");
+                        //Current.Log.Add("GET " + "edu.bucknell.webapps.Projects.Models.ReportData" + " CACHE (" + sw.ElapsedMilliseconds + " ms)");
                         return cache;
                     }
                 }
@@ -116,7 +116,7 @@ namespace Nyan.Core.Modules.Cache
                 cache = ret;
 
                 sw.Stop();
-                Current.Log.Add("GET " + "edu.bucknell.webapps.Projects.Models.ReportData" + " OK (" + sw.ElapsedMilliseconds + " ms)");
+                //Current.Log.Add("GET " + "edu.bucknell.webapps.Projects.Models.ReportData" + " OK (" + sw.ElapsedMilliseconds + " ms)");
 
             }
 
