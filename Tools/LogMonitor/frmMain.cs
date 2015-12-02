@@ -131,5 +131,28 @@ namespace Nyan.Tools.LogMonitor
         {
             this.lstMain.Items.Clear();
         }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+
+            string s = "";
+            foreach (ListViewItem o in lstMain.SelectedItems)
+            {
+                s += o.Text;
+
+                foreach (ListViewItem.ListViewSubItem si in o.SubItems)
+                {
+                    s += "\t" + si.Text;
+                }
+
+                s += Environment.NewLine;
+            }
+
+            try
+            {
+                Clipboard.SetText(s);
+            }
+            catch { }
+        }
     }
 }
