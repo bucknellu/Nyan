@@ -7,6 +7,9 @@ using Nyan.Core.Settings;
 
 namespace Nyan.Core.Extensions
 {
+    /// <summary>
+    /// Reflection-related extensions.
+    /// </summary>
     public static class Reflections
     {
         private static readonly Type[] PrimitiveTypes =
@@ -22,6 +25,13 @@ namespace Nyan.Core.Extensions
             typeof (object)
         };
 
+        /// <summary>
+        /// Gets an object fo type T, transposing matching keys from a reference dictionary. Optionally consumes a translation dictionary that maps correlating keys.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="dict">The reference dictionary.</param>
+        /// <param name="translationDictionary">The translation dictionary.</param>
+        /// <returns></returns>
         public static T GetObject<T>(this IDictionary<string, object> dict, Dictionary<string, string> translationDictionary = null)
         {
             var type = typeof (T);
@@ -71,6 +81,13 @@ namespace Nyan.Core.Extensions
             return (T) obj;
         }
 
+        /// <summary>
+        /// Gets the method ext.
+        /// </summary>
+        /// <param name="thisType">Type of the this.</param>
+        /// <param name="name">The name.</param>
+        /// <param name="parameterTypes">The parameter types.</param>
+        /// <returns></returns>
         public static MethodInfo GetMethodExt(this Type thisType, string name, params Type[] parameterTypes)
         {
             return GetMethodExt(thisType,
@@ -83,6 +100,14 @@ namespace Nyan.Core.Extensions
                 parameterTypes);
         }
 
+        /// <summary>
+        /// Gets the method ext.
+        /// </summary>
+        /// <param name="thisType">Type of the this.</param>
+        /// <param name="name">The name.</param>
+        /// <param name="bindingFlags">The binding flags.</param>
+        /// <param name="parameterTypes">The parameter types.</param>
+        /// <returns></returns>
         public static MethodInfo GetMethodExt(this Type thisType, string name, BindingFlags bindingFlags, params Type[] parameterTypes)
         {
             MethodInfo matchingMethod = null;

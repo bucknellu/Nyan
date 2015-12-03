@@ -7,8 +7,14 @@ using Nyan.Core.Settings;
 
 namespace Nyan.Modules.Web.REST
 {
+    /// <summary>
+    /// Initialization hooks for the REST module.
+    /// </summary>
     public static class Sequences
     {
+        /// <summary>
+        /// Start-up sequence hook for the rest module. Register and initializes WebApi routes.
+        /// </summary>
         public static void Start()
         {
             GlobalConfiguration.Configure(Initialization.Register);
@@ -19,6 +25,9 @@ namespace Nyan.Modules.Web.REST
             }
         }
 
+        /// <summary>
+        /// Shutdown sequence hook for the rest module. Intercepts and logs the reason, and call the core shutdown sequence.
+        /// </summary>
         public static void End()
         {
             var runtime = (HttpRuntime)typeof(HttpRuntime).InvokeMember("_theRuntime",

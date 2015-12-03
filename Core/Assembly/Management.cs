@@ -6,15 +6,15 @@ using Nyan.Core.Shared;
 
 namespace Nyan.Core.Assembly
 {
+    /// <summary>
+    /// Assembly management. At static creation time loads all assemblies placed in the same physical directory as the caller project and keep a static reference to them.
+    /// </summary>
     public static class Management
     {
         private static readonly Dictionary<string, System.Reflection.Assembly> _assys = new Dictionary<string, System.Reflection.Assembly>();
 
         static Management()
         {
-            // This bootstrapper loads all assemblies placed in the same physical directory as the caller project,
-            // And keep a static reference to them.
-
             var self = System.Reflection.Assembly.GetEntryAssembly();
 
             if (self != null)
@@ -39,6 +39,12 @@ namespace Nyan.Core.Assembly
             }
         }
 
+        /// <summary>
+        /// Gets a list of classes by implemented interface/base class.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="excludeCoreNullDefinitions">if set to <c>true</c> it ignores all core null providers, retuning only external providers.</param>
+        /// <returns>The list of classes.</returns>
         public static List<Type> GetClassesByInterface<T>(bool excludeCoreNullDefinitions = true)
         {
             var type = typeof(T);
