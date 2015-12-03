@@ -37,8 +37,6 @@ namespace Nyan.Samples.REST.Model
     [RoutePrefix("data/users")]
     public class UserController : MicroEntityWebApiController<User>, ISearch
     {
-        public string SearchResultMoniker { get { return "Users"; } }
-
         [Route("search/{term}")]
         [HttpGet]
         public List<SearchResult> SimpleQuery(string term)

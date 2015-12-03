@@ -24,6 +24,7 @@ namespace Nyan.Core.Modules.Data
 
         public string ConnectionString;
         public string IdColumn;
+        public string Label;
         public string IdProperty;
         public string IdPropertyRaw;
         public DateTime PrdConfigLastChange;

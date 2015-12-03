@@ -44,6 +44,8 @@ namespace Nyan.Core.Modules.Data
 
         public string IdentifierColumnName { get; set; }
 
+        public string Label { get; set; }
+
         /// <summary>
         /// Indicates whether import/export maintenance procedures should ignore physically stored data.
         /// </summary>

@@ -791,6 +791,13 @@ break; */
                     Statements.Status = MicroEntityCompiledStatements.EStatus.Initializing;
                     Statements.StatusStep = "Instantiating ColumnAttributeTypeMapper";
 
+                    if (TableData.Label != null)
+                        Statements.Label = TableData.Label;
+                    else if (TableData.TableName != null)
+                        Statements.Label = TableData.TableName;
+                    else
+                        Statements.Label = typeof(T).Name;
+
                     var cat = new ColumnAttributeTypeMapper<T>();
                     SqlMapper.SetTypeMap(typeof(T), cat);
 

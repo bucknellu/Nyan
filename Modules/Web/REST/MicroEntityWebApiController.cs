@@ -420,5 +420,7 @@ namespace Nyan.Modules.Web.REST
             ret.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
             return ret;
         }
+
+        public virtual string SearchResultMoniker { get { return MicroEntity<T>.Statements.Label; } }
     }
 }
