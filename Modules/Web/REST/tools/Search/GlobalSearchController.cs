@@ -1,15 +1,15 @@
-﻿using Nyan.Core.Modules.Data.Contracts;
-using Nyan.Core.Settings;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Web.Http;
+using Nyan.Core.Modules.Data.Contracts;
+using Nyan.Core.Settings;
 
-namespace Nyan.Modules.Web.REST.Search
+namespace Nyan.Modules.Web.REST.tools.Search
 {
-    [RoutePrefix("stack")]
+    [RoutePrefix("stack/search")]
     public class SearchController : ApiController
     {
-        [Route("search/{term}")]
+        [Route("{term}")]
         [HttpGet]
         public Dictionary<string, List<SearchResult>> Search(string term)
         {

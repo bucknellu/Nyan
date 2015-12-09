@@ -1,13 +1,13 @@
-﻿using Nyan.Core.Assembly;
-using Nyan.Core.Extensions;
-using Nyan.Core.Modules.Data.Contracts;
-using Nyan.Core.Settings;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Nyan.Core.Assembly;
+using Nyan.Core.Extensions;
+using Nyan.Core.Modules.Data.Contracts;
+using Nyan.Core.Settings;
 
-namespace Nyan.Modules.Web.REST.Search
+namespace Nyan.Modules.Web.REST.tools.Search
 {
     public static class Global
     {
