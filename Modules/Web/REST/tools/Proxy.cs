@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using Nyan.Core.Settings;
@@ -17,8 +18,14 @@ namespace Nyan.Modules.Web.REST.tools
                 var client = new HttpClient();
                 var result = client.GetStringAsync(url).Result;
 
-                return result;
-            } catch (Exception e)
+                var resp = new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(result, System.Text.Encoding.UTF8, "text/plain")
+                };
+
+                return resp;
+            }
+            catch (Exception e)
             {
                 Current.Log.Add(e);
                 throw;
