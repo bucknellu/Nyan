@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>$author$</authors>
+    <owners>$author$</owners>
+    <licenseUrl>https://github.com/bucknellu/Nyan/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/bucknellu/Nyan</projectUrl>
+    <iconUrl>https://cloud.githubusercontent.com/assets/6088476/11462205/3f0c43fa-96df-11e5-95d8-c012faa32200.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>$description$</description>
+    <releaseNotes></releaseNotes>
+    <copyright>Copyright (C) 2015 Nyan Development Team</copyright>
+    <tags>ORM Dapper Stack static REST API Framework ZeroMQ</tags>
+  </metadata>
+</package>
