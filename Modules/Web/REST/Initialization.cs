@@ -20,6 +20,8 @@ namespace Nyan.Modules.Web.REST
 
         public static void Register(HttpConfiguration config)
         {
+            config.EnableCors();
+
             config.SuppressHostPrincipal(); //Isolates WebApi Auth form Host (IIS) Auth
 
             config.Filters.Add(new NyanAuthenticationFilter());
