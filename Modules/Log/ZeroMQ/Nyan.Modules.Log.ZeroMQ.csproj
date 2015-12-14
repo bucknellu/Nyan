@@ -52,14 +52,14 @@
     <Compile Include="ZeroMqLogProvider.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\..\Core\Nyan.Core.csproj">
       <Project>{5F53AB9E-FDDA-4A45-B0BE-D1FCE1916FDE}</Project>
       <Name>Nyan.Core</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
-    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

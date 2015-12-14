@@ -55,14 +55,14 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\Nyan.Core.csproj">
-      <Project>{5f53ab9e-fdda-4a45-b0be-d1fce1916fde}</Project>
-      <Name>Nyan.Core</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\Nyan.Core.csproj">
+      <Project>{5F53AB9E-FDDA-4A45-B0BE-D1FCE1916FDE}</Project>
+      <Name>Nyan.Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
