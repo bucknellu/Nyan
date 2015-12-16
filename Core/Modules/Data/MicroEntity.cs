@@ -183,6 +183,8 @@ namespace Nyan.Core.Modules.Data
                 case "System.Linq.Expressions.LogicalBinaryExpression":
                 case "System.Linq.Expressions.MethodBinaryExpression":
                 // TODO: Finish
+                case "System.Linq.Expressions.UnaryExpression":
+                    return ResolveExpression((expression as UnaryExpression).Operand);
                 case "System.Linq.Expressions.PropertyExpression":
                     // return ResolveMemberExpression(expression as MemberExpression);
 
