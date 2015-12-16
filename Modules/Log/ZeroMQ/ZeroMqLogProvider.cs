@@ -10,6 +10,8 @@ namespace Nyan.Modules.Log.ZeroMQ
         private Channel _out;
         private string _targetAddress = "";
 
+        AsyncIO.AsyncSocket _fakeRefReally = null; // Necessary for proper assembly reference. Silly, right?
+
         public ZeroMqLogProvider()
         {
             //tcp://127.0.0.1:5002
