@@ -390,6 +390,16 @@ break; */
             return (GetType().GetProperty(Statements.IdPropertyRaw).GetValue(oRef, null) ?? "").ToString();
         }
 
+        public void SetEntityIdentifier(object value)
+        {
+            var oRef = this;
+
+            if (value.IsNumeric())
+                value = Convert.ToInt64(value);
+
+            GetType().GetProperty(Statements.IdPropertyRaw).SetValue(oRef, value);
+        }
+
         public void Remove()
         {
             if (TableData.IsReadOnly)
@@ -460,6 +470,7 @@ break; */
 
             if (_isDeleted) return null;
             var ret = InsertAndReturnIdentifier(obj);
+            this.SetEntityIdentifier(ret);
             return ret;
         }
 
