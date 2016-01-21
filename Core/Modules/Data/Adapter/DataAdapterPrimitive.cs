@@ -92,8 +92,14 @@ namespace Nyan.Core.Modules.Data.Adapter
                     var canAddField = true;
 
                     if (statements.IdPropertyRaw != null)
+                    {
                         if (field.Value.ToLower().Equals(statements.IdPropertyRaw.ToLower()))
                             canAddField = tableData.IsInsertableIdentifier;
+
+                        if (!canAddField)
+                            if (field.Key.ToLower().Equals(statements.IdPropertyRaw.ToLower()))
+                                canAddField = tableData.IsInsertableIdentifier;
+                    }
 
                     if (!canAddField) continue;
 
