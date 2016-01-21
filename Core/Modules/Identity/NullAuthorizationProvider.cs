@@ -1,4 +1,5 @@
-﻿using System.Security.Principal;
+﻿using System;
+using System.Security.Principal;
 
 namespace Nyan.Core.Modules.Identity
 {
@@ -6,12 +7,9 @@ namespace Nyan.Core.Modules.Identity
     {
         public IPrincipal Principal { get { return null; } }
         public IIdentity Identity { get { return null; } }
-
-        public bool CheckPermission(string pCode)
-        {
-            return true;
-        }
-
+        public string Id { get { return null; } }
+        public string Locator { get { return null; } }
+        public bool CheckPermission(string pCode) { return true; }
         public void Shutdown() { }
     }
 }
