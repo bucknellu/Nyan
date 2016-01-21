@@ -56,7 +56,7 @@ namespace Nyan.Modules.Web.REST
             }
         }
 
-        public virtual bool AuthorizeAction(RequestType pRequestType, AccessType pAccessType, string pidentifier, T pObject, string pContext)
+        public virtual bool AuthorizeAction(RequestType pRequestType, AccessType pAccessType, string pidentifier, ref T pObject, string pContext)
         {
             return true;
         }
@@ -90,7 +90,7 @@ namespace Nyan.Modules.Web.REST
             if (!ret)
                 try
                 {
-                    ret = AuthorizeAction(requestType, accessType, parm, parm2, parm3);
+                    ret = AuthorizeAction(requestType, accessType, parm, ref parm2, parm3);
                 }
                 catch (Exception e) // User may throw a custom error, and that's fine: let's just log it.
                 {
@@ -217,7 +217,6 @@ namespace Nyan.Modules.Web.REST
 
             var sw = new Stopwatch();
 
-
             try
             {
                 sw.Start();
@@ -249,18 +248,18 @@ namespace Nyan.Modules.Web.REST
         {
             //TODO: Capture current user identifier and write to storage.
 
-            //var curPId = Environment.Current.PersonId;
+            var curPId = Current.Authorization.Id;
 
-            //Nyan.Core.Settings.Current.Log.Add("Imprinting Agent " + curPId);
+            Current.Log.Add("Imprinting Agent " + curPId);
 
-            //if (item.IsNew())
-            //{
-            //    var propCreator = item.GetType().GetProperty("CreatorId");
-            //    if (propCreator != null) propCreator.SetValue(item, curPId, null);
-            //}
+            if (item.IsNew())
+            {
+                var propCreator = item.GetType().GetProperty("CreatorId");
+                if (propCreator != null) propCreator.SetValue(item, curPId, null);
+            }
 
-            //var propUpdater = item.GetType().GetProperty("LastUpdaterId");
-            //if (propUpdater != null) propUpdater.SetValue(item, curPId, null);
+            var propUpdater = item.GetType().GetProperty("LastUpdaterId");
+            if (propUpdater != null) propUpdater.SetValue(item, curPId, null);
         }
 
         private static void AuditRequest(string verb, string target, string content = null)
