@@ -43,9 +43,9 @@ namespace Nyan.Core.Settings
             Version = System.Reflection.Assembly.GetCallingAssembly().GetName().Version.ToString();
             Host = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
 
-            Log.Add(@"   |\_/|", Message.EContentType.Info);
-            Log.Add(@"  >(o.O)<           Nyan " + System.Reflection.Assembly.GetCallingAssembly().GetName().Version, Message.EContentType.Info);
-            Log.Add(@"  c(___)", Message.EContentType.Info);
+            Log.Add(@"   |\_/|          |", Message.EContentType.Info);
+            Log.Add(@"  >(o.O)<         | Nyan " + System.Reflection.Assembly.GetCallingAssembly().GetName().Version, Message.EContentType.Info);
+            Log.Add(@"  c(___)          |", Message.EContentType.Info);
 
             Log.Add("Settings          : " + refObj.GetType(), Message.EContentType.StartupSequence);
 

@@ -55,6 +55,8 @@ namespace Nyan.Modules.Cache.Redis
                 try { _currentServer = Core.Settings.Current.Encryption.Decrypt(_currentServer); }
                 catch { }
 
+                Core.Settings.Current.Log.Add("Redis server      : Connecting to " + _currentServer.SafeArray("password"), Message.EContentType.MoreInfo);
+
                 _redis = ConnectionMultiplexer.Connect(_currentServer);
                 OperationalStatus = EOperationalStatus.Operational;
             }
@@ -170,7 +172,7 @@ namespace Nyan.Modules.Cache.Redis
 
                 db.KeyDelete(key);
             }
-            catch{}
+            catch { }
         }
 
         public void RemoveAll(string oSet = null)

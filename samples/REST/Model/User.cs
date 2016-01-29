@@ -68,7 +68,7 @@ namespace Nyan.Samples.REST.Model
             return ret;
         }
 
-        public override bool AuthorizeAction(RequestType pRequestType, AccessType pAccessType, string pidentifier, User pObject, string pContext)
+        public override bool AuthorizeAction(RequestType pRequestType, AccessType pAccessType, string pidentifier, ref User pObject, string pContext)
         {
             if (pAccessType != AccessType.Write) return true;
 

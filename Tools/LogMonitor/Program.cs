@@ -11,7 +11,7 @@ namespace Nyan.Tools.LogMonitor
         private static frmMain _frmMain;
 
         //Multicast test
-        //private static readonly ZeroMqLogProvider MultiCastLog = new ZeroMqLogProvider("pgm://239.255.42.99:5558");
+        //private static readonly ZeroMqLogProvider MultiCastLog = new ZeroMqLogProvider("tcp://127.0.0.1:5002");
 
         /// <summary>
         /// The main entry point for the application.

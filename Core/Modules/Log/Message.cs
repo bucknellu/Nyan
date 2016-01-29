@@ -33,7 +33,6 @@ namespace Nyan.Core.Modules.Log
         public EContentType Type = EContentType.Generic;
         public Guid Id { get; private set; }
         public DateTime CreationTime { get; private set; }
-
         public string Content { get; set; }
         public Guid? ReplyToId { get; set; }
         public TraceInfoContainer TraceInfo { get; set; }

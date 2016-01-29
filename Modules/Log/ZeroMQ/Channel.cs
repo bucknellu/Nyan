@@ -54,7 +54,7 @@ namespace Nyan.Modules.Log.ZeroMQ
 
         private void StartSender()
         {
-            _workerSenderThread = new Thread(SenderWorker) {IsBackground = true};
+            _workerSenderThread = new Thread(SenderWorker) { IsBackground = true };
             _workerSenderThread.Start();
         }
 
@@ -62,7 +62,7 @@ namespace Nyan.Modules.Log.ZeroMQ
         {
             if (!_canReceive) throw new Exception("Channel initialized with CanReceive set to false.");
 
-            _workerReceiverThread = new Thread(ReceiverWorker) {IsBackground = true};
+            _workerReceiverThread = new Thread(ReceiverWorker) { IsBackground = true };
             _workerReceiverThread.Start();
         }
 
@@ -77,9 +77,9 @@ namespace Nyan.Modules.Log.ZeroMQ
             if (Protocol == "pgm") //Multicast
             {
                 _publisherSocket.Options.MulticastHops = 4;
-                _publisherSocket.Options.MulticastRate = 40*1024; // 40 megabit
+                _publisherSocket.Options.MulticastRate = 40 * 1024; // 40 megabit
                 _publisherSocket.Options.MulticastRecoveryInterval = TimeSpan.FromMinutes(10);
-                _publisherSocket.Options.SendBuffer = 1024*10; // 10 megabyte
+                _publisherSocket.Options.SendBuffer = 1024 * 10; // 10 megabyte
                 _publisherSocket.Bind(_address);
             }
 
@@ -124,44 +124,51 @@ namespace Nyan.Modules.Log.ZeroMQ
             using (var context = NetMQContext.Create())
             using (var subscriber = context.CreateSubscriberSocket())
             {
-                subscriber.Options.ReceiveBuffer = 1024*10;
-                subscriber.Bind(_address);
-                subscriber.Subscribe(_topic);
-
-                if (Protocol == "tcp")
+                try
                 {
-                    //_publisherSocket.Connect(_address);
+                    subscriber.Options.ReceiveBuffer = 1024 * 10;
+                    subscriber.Bind(_address);
+                    subscriber.Subscribe(_topic);
+
+                    if (Protocol == "tcp")
+                    {
+                        //_publisherSocket.Connect(_address);
+                    }
+
+                    if (Protocol == "pgm") //Multicast
+                        subscriber.Connect(_address);
+
+                    var prevMsgId = new Guid();
+
+                    while (!_disposed) //Forever loop until Dispose() is called.
+                    {
+                        var topic = subscriber.ReceiveFrameString();
+                        var payload = subscriber.ReceiveFrameBytes();
+
+                        Message message = null;
+
+                        try { message = payload.FromSerializedBytes<Message>(); } catch { }
+
+                        if (message == null)
+                            try { message = payload.GetString().FromJson<Message>(); } catch { }
+
+                        if (message == null) continue;
+
+                        if (message.Id.Equals(prevMsgId)) continue; // Avoid ZeroMQ duplicates
+
+                        if (MessageArrived == null) continue;
+
+                        prevMsgId = message.Id;
+
+                        MessageArrived(message);
+                    }
+
+                    subscriber.Dispose();
                 }
-
-                if (Protocol == "pgm") //Multicast
-                    subscriber.Connect(_address);
-
-                var prevMsgId = new Guid();
-
-                while (!_disposed) //Forever loop until Dispose() is called.
+                catch (Exception e)
                 {
-                    var topic = subscriber.ReceiveFrameString();
-                    var payload = subscriber.ReceiveFrameBytes();
-
-                    Message message = null;
-
-                    try { message = payload.FromSerializedBytes<Message>(); } catch {}
-
-                    if (message == null)
-                        try { message = payload.GetString().FromJson<Message>(); } catch {}
-
-                    if (message == null) continue;
-
-                    if (message.Id.Equals(prevMsgId)) continue; // Avoid ZeroMQ duplicates
-
-                    if (MessageArrived == null) continue;
-
-                    prevMsgId = message.Id;
-
-                    MessageArrived(message);
+                    Core.Settings.Current.Log.Add(e);
                 }
-
-                subscriber.Dispose();
             }
         }
 
