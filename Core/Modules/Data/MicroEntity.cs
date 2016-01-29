@@ -858,6 +858,10 @@ break; */
                         return;
                     }
 
+                    //Then pick Credential sets
+                    Statements.CredentialSet = Factory.GetCredentialSetPerConnectionBundle(Statements.Bundle, TableData.CredentialSetType);
+                    Statements.CredentialCypherKeys = Statements.CredentialSet.CredentialCypherKeys;
+
                     var identifierColumnName = TableData.IdentifierColumnName;
 
                     if (identifierColumnName == null)

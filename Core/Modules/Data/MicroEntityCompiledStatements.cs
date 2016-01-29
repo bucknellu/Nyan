@@ -18,11 +18,13 @@ namespace Nyan.Core.Modules.Data
 
         protected internal DataAdapterPrimitive Adapter;
         protected internal ConnectionBundlePrimitive Bundle;
+        protected internal CredentialSetPrimitive CredentialSet;
 
         public Dictionary<string, string> ConnectionCypherKeys = new Dictionary<string, string>();
         public Dictionary<string, string> CredentialCypherKeys = new Dictionary<string, string>();
 
         public string ConnectionString;
+        public string CredentialsString;
         public string IdColumn;
         public string Label;
         public string IdProperty;
