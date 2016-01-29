@@ -22,6 +22,7 @@ namespace Nyan.Modules.Web.REST
         public Type RESTHeaderClassType = null;
         // ReSharper disable once InconsistentNaming
         public string RESTHeaderQuery = null;
+        public Dictionary<string, object> Metadata = new Dictionary<string, object>();
 
         //Reference resolution cache
         private Dictionary<string, WebApiMicroEntityReferenceAttribute> _entityReferenceAttribute;
@@ -60,6 +61,8 @@ namespace Nyan.Modules.Web.REST
         {
             return true;
         }
+
+        public virtual void PostAction(RequestType pRequestType, AccessType pAccessType, string pidentifier = null, T pObject = null, string pContext = null) { }
 
         private void EvaluateAuthorization(EndpointSecurityAttribute attr, RequestType requestType, AccessType accessType, string parm = null, T parm2 = null, string parm3 = null)
         {
@@ -135,6 +138,8 @@ namespace Nyan.Modules.Web.REST
                     }
                 }
 
+                PostAction(RequestType.GetAll, AccessType.Read);
+
                 sw.Stop();
 
                 if (MicroEntity<T>.TableData.AuditAccess)
@@ -169,6 +174,8 @@ namespace Nyan.Modules.Web.REST
                 sw.Stop();
                 Current.Log.Add("NEW " + typeof(T).FullName + " OK (" + sw.ElapsedMilliseconds + " ms)");
 
+                PostAction(RequestType.New, AccessType.Read);
+
                 return RenderJsonResult(preRet);
             }
             catch (Exception e)
@@ -199,6 +206,8 @@ namespace Nyan.Modules.Web.REST
                     AuditRequest("ACCESS", typeof(T).FullName + ":" + id);
 
                 Current.Log.Add("GET " + typeof(T).FullName + ":" + id + " OK (" + sw.ElapsedMilliseconds + " ms)");
+
+                PostAction(RequestType.Get, AccessType.Read, id, preRet);
 
                 return RenderJsonResult(preRet);
             }
@@ -233,6 +242,8 @@ namespace Nyan.Modules.Web.REST
                     AuditRequest("CHANGE", typeof(T).FullName + ":" + item.GetEntityIdentifier(), item.ToJson());
 
                 Current.Log.Add("UPD " + typeof(T).FullName + ":" + item.GetEntityIdentifier() + " OK (" + sw.ElapsedMilliseconds + " ms)");
+
+                PostAction(RequestType.Post, AccessType.Write, preRet.GetEntityIdentifier() , preRet);
 
                 return RenderJsonResult(preRet);
             }
@@ -289,6 +300,8 @@ namespace Nyan.Modules.Web.REST
                 if (MicroEntity<T>.TableData.AuditChange)
                     AuditRequest("CHANGE", typeof(T).FullName + ":" + item.GetEntityIdentifier(), item.ToJson());
 
+                PostAction(RequestType.Put, AccessType.Write, id, item);
+
                 return Request.CreateResponse(isNew ? HttpStatusCode.Created : HttpStatusCode.OK);
 
             }
@@ -332,6 +345,8 @@ namespace Nyan.Modules.Web.REST
 
                     if (MicroEntity<T>.TableData.AuditChange)
                         AuditRequest("REMOVAL", typeof(T).FullName + ":" + id, probe.ToJson());
+
+                    PostAction(RequestType.Delete, AccessType.Remove, id, probe);
 
                     return Request.CreateResponse(HttpStatusCode.NoContent, "Entity removed successfully.");
                 }
@@ -387,6 +402,9 @@ namespace Nyan.Modules.Web.REST
                             referenceCollection = refType.ReferenceQueryByField(probe.ForeignProperty, id);
                         }
                     }
+
+                    PostAction(RequestType.EntityReference, AccessType.Read, id, null, entityReference);
+
                     ret = Request.CreateResponse(HttpStatusCode.OK, referenceCollection);
                 }
                 catch (Exception ex)
