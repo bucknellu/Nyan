@@ -5,11 +5,88 @@ using System.Diagnostics;
 using System.Dynamic;
 using System.Linq;
 using Nyan.Core.Factories;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Nyan.Core.Extensions
 {
     public static class Transformation
     {
+        public enum ESafeArrayMode
+        {
+            Remove,
+            Allow
+        }
+        public static string SafeArray(this string source, string criteria = "", string keySeparator = "=", string elementSeparator = ",", ESafeArrayMode mode = ESafeArrayMode.Remove)
+        {
+            if (source == null) return "";
+            var lineCol = source.Split(elementSeparator.ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList();
+            var criteriaCol = criteria.ToLower().Split(',').ToList();
+            var ret = new List<string>();
+            var compiledRet = "";
+
+            foreach (var i in lineCol)
+            {
+                var item = i.Split(keySeparator.ToCharArray());
+
+                var key = item[0].Trim().ToLower();
+
+
+                bool allow = false;
+
+                switch (mode)
+                {
+                    case ESafeArrayMode.Remove:
+                        allow = !(criteriaCol.Contains(key));
+                        break;
+                    case ESafeArrayMode.Allow:
+                        allow = (criteriaCol.Contains(key));
+                        break;
+                }
+
+                if (allow) ret.Add(i);
+            }
+
+            foreach (var item in ret)
+            {
+                if (compiledRet != "") compiledRet += elementSeparator;
+                compiledRet += item;
+            }
+
+            return compiledRet;
+        }
+
+        public static string Md5Hash(this string input)
+        {
+            using (MD5 md5Hash = MD5.Create())
+            {
+                byte[] data = md5Hash.ComputeHash(Encoding.UTF8.GetBytes(input));
+
+                // Create a new Stringbuilder to collect the bytes and create a string.
+                StringBuilder sBuilder = new StringBuilder();
+
+                //format each string as hexidecimal 
+                foreach (byte b in data)
+                {
+                    sBuilder.Append(b.ToString("x2"));
+                }
+
+                return sBuilder.ToString();
+            }
+        }
+
+
+        public static bool MD5HashCheck(this string input, string hash)
+        {
+            // Hash the input. 
+            string hashOfInput = Md5Hash(input);
+
+            // Create a StringComparer an compare the hashes.
+            StringComparer comparer = StringComparer.OrdinalIgnoreCase;
+
+            return 0 == comparer.Compare(hashOfInput, hash);
+        }
+
         public static List<string> BlackListedModules = new List<string>
         {
             "System.Linq.Enumerable",
