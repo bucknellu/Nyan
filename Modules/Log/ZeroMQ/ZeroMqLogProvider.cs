@@ -48,8 +48,12 @@ namespace Nyan.Modules.Log.ZeroMQ
                 Debug.WriteLine(payload.Content);
             }
 
+            try { beforeSend(payload); } catch (Exception e) { Core.Settings.Current.Log.Add(e); }
+
             _out.Send(payload);
         }
+
+        public virtual void beforeSend(Message payload) { }
 
         public override void StartListening()
         {
