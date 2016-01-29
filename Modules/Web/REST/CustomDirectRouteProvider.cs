@@ -8,7 +8,7 @@ namespace Nyan.Modules.Web.REST
 {
     public class CustomDirectRouteProvider : DefaultDirectRouteProvider
     {
-        public static readonly Dictionary<string , RouteInfo> Routes = new Dictionary<string, RouteInfo>();
+        public static readonly SortedDictionary<string , RouteInfo> Routes = new SortedDictionary<string, RouteInfo>();
 
         protected override IReadOnlyList<IDirectRouteFactory> GetActionRouteFactories(
             HttpActionDescriptor actionDescriptor)
