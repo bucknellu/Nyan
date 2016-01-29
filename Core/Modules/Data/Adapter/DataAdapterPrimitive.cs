@@ -136,8 +136,9 @@ namespace Nyan.Core.Modules.Data.Adapter
         public virtual void SetConnectionString<T>() where T : MicroEntity<T>
         {
             var statements = MicroEntity<T>.Statements;
+            var tableData = MicroEntity<T>.TableData;
 
-            var envCode = Current.Scope.CurrentCode;
+            var envCode = tableData.PersistentScopeCode ?? Current.Scope.CurrentCode;
 
             if (envCode == "UND") envCode = "DEV";
 
@@ -150,21 +151,37 @@ namespace Nyan.Core.Modules.Data.Adapter
             }
             catch { }
 
+            try
+            {
+                // If it fails to decrypt, no biggie; It may be plain-text. ignore and continue.
+                statements.CredentialsString = Current.Encryption.Decrypt(statements.CredentialsString);
+            }
+            catch { }
+
+
+
             if (statements.ConnectionString == "")
                 throw new ArgumentNullException(@"Connection Cypher Key not set for " + typeof(T).FullName + ". Check class definition/configuration files.");
 
             if (!statements.CredentialCypherKeys.ContainsKey(envCode)) return;
 
-            var creds = statements.CredentialCypherKeys[envCode];
+            //Handling credentials
+
+            if (statements.ConnectionString.IndexOf("{credentials}") == -1)
+            {
+                Current.Log.Add("[{0}] {1}: Credentials set, but no placeholder found on connection string. Skipping.".format(envCode, typeof(T).FullName), Message.EContentType.Warning);
+            }
+
+            statements.CredentialsString = statements.CredentialCypherKeys[envCode];
 
             try
             {
                 // If it fails to decrypt, no biggie; It may be plain-text. ignore and continue.
-                creds = Current.Encryption.Decrypt(creds);
+                statements.CredentialsString = Current.Encryption.Decrypt(statements.CredentialsString);
             }
             catch { }
 
-            statements.ConnectionString = statements.ConnectionString.format(creds);
+            statements.ConnectionString = statements.ConnectionString.Replace("{credentials}", statements.CredentialsString);
         }
 
         public abstract void RenderSchemaEntityNames<T>() where T : MicroEntity<T>;
