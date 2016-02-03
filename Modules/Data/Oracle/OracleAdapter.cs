@@ -222,9 +222,10 @@ namespace Nyan.Modules.Data.Oracle
                 try
                 {
                     Core.Settings.Current.Log.Add(typeof(T).FullName + " : Adding BU Trigger " + MicroEntity<T>.Statements.SchemaElements["BeforeUpdateTrigger"].Value);
+
                     MicroEntity<T>.Execute(string.Format(trigStat,
-                        MicroEntity<T>.Statements.SchemaElements["BeforeUpdateTrigger"].Value, tn, seqName,
-                        MicroEntity<T>.Statements.IdColumn));
+                    MicroEntity<T>.Statements.SchemaElements["BeforeUpdateTrigger"].Value, tn, seqName,
+                    MicroEntity<T>.Statements.IdColumn));
                 }
                 catch (Exception e)
                 {
@@ -234,8 +235,8 @@ namespace Nyan.Modules.Data.Oracle
 
                 //Now, add comments to everything.
 
-                var ocld = "|| CHAR(10) ||";
-                var ocfld = "|| CHAR(10);";
+                var ocld = " - ";
+                var ocfld = ";";
                 var commentStat =
                     "COMMENT ON TABLE " + tn + " IS 'Auto-generated table for Entity " + typeof(T).FullName + ".'" +
                     ocld +
@@ -267,7 +268,8 @@ namespace Nyan.Modules.Data.Oracle
             }
             catch (Exception e)
             {
-                Core.Settings.Current.Log.Add("  Schema render Error: " + e.Message);
+                Core.Settings.Current.Log.Add("  Schema render Error: ", Core.Modules.Log.Message.EContentType.Warning);
+                Core.Settings.Current.Log.Add(e);
                 throw;
             }
         }
@@ -279,8 +281,6 @@ namespace Nyan.Modules.Data.Oracle
 
         public override void RenderSchemaEntityNames<T>()
         {
-            Core.Settings.Current.Log.Add(GetType().FullName + " : Rendering schema element names");
-
             var tn = MicroEntity<T>.TableData.TableName;
 
             if (tn == null) return;
