@@ -814,7 +814,7 @@ break; */
                     var cat = new ColumnAttributeTypeMapper<T>();
                     SqlMapper.SetTypeMap(typeof(T), cat);
 
-                    Current.Log.Add("{0} : INIT{2}".format(typeof(T).FullName, Environment.MachineName, Current.Scope.Current.Code != "UND" ? " (" + Current.Scope.Current + ")" : ""), Message.EContentType.Info);
+                    Current.Log.Add("{0} : INIT START {2}".format(typeof(T).FullName, Environment.MachineName, Current.Scope.Current.Code != "UND" ? " (" + Current.Scope.Current + ")" : ""), Message.EContentType.Info);
 
                     var refBundle = TableData.ConnectionBundleType ?? Current.GlobalConnectionBundleType;
 
@@ -905,24 +905,9 @@ break; */
 
                     using (var conn = Statements.Adapter.Connection(Statements.ConnectionString))
                     {
-                        var prb = conn.GetType().Name + ": [" + conn.Database + "]";
                         try
                         {
-                            var prePrb = Statements.ConnectionString.ToUpper();
-
-                            if (prePrb.IndexOf("SERVICE_NAME", StringComparison.Ordinal) > -1)
-                            {
-                                prePrb = prePrb.Substring(prePrb.IndexOf("SERVICE_NAME", StringComparison.Ordinal)).Split('=')[1].Split(')')[0];
-                                prb = prePrb.ToLower();
-                            }
-
-                            if (prePrb.IndexOf("SERVER=", StringComparison.Ordinal) > -1)
-                            {
-                                prePrb = prePrb.Split(new[] { "SERVER=" }, StringSplitOptions.None)[1].Split(';')[0];
-                                prb = prePrb.ToLower();
-                            }
-
-                            Statements.StatusStep = "Connecting to " + prb;
+                            LogLocal(Statements.ConnectionString.SafeArray("Data Source", "=", ";", Transformation.ESafeArrayMode.Allow), Message.EContentType.MoreInfo);
                         }
                         catch { }
 
@@ -931,8 +916,6 @@ break; */
                         conn.Open();
                         conn.Close();
                         conn.Dispose();
-
-                        LogLocal(prb);
                     }
 
                     if (!TableData.IsReadOnly)
@@ -940,8 +923,7 @@ break; */
                         if (TableData.AutoGenerateMissingSchema)
                         {
                             Statements.StatusStep = "Checking database entities";
-                            LogLocal(Statements.Adapter.GetType().Name + " is checking database entities");
-
+                            LogLocal("schema check [" + Statements.Adapter.GetType().Name + "]");
                             Statements.Adapter.CheckDatabaseEntities<T>();
                         }
                     }
@@ -951,7 +933,7 @@ break; */
 
                     Current.Scope.EnvironmentChanged += Scope_EnvironmentChanged;
 
-                    LogLocal("Initialized");
+                    LogLocal("INIT OK", Message.EContentType.Info);
 
                     Statements.Status = MicroEntityCompiledStatements.EStatus.Operational;
                 }
@@ -967,7 +949,10 @@ break; */
                         Statements.StatusDescription += " / " + refEx.Message;
                     }
 
-                    Current.Log.Add(Statements.StatusDescription, Message.EContentType.Warning);
+                    Current.Log.Add(Statements.StatusDescription, Message.EContentType.Exception);
+
+                    LogLocal("INIT FAIL", Message.EContentType.Warning);
+
                     //throw;
                 }
             }
