@@ -13,6 +13,8 @@ namespace Nyan.Tools.LogMonitor
         private static readonly Dictionary<Message.EContentType, Color> colorDictionary =
             new Dictionary<Message.EContentType, Color>();
 
+        private ListViewItem _lastItem = null;
+
 
         public frmMain()
         {
@@ -90,7 +92,8 @@ namespace Nyan.Tools.LogMonitor
                     }
 
                     lstMain.Items.Add(a);
-                    a.EnsureVisible();
+
+                    _lastItem = a;
 
                     mustUpdate = true;
 
@@ -109,12 +112,10 @@ namespace Nyan.Tools.LogMonitor
 
         private void tmrMaintenance_Tick(object sender, EventArgs e)
         {
-            if (!chkAutoUpd.Checked) return;
             if (!mustUpdate) return;
 
             mustUpdate = false;
-            lstMain.Items[lstMain.Items.Count - 1].EnsureVisible();
-
+            _lastItem.EnsureVisible();
         }
 
         private void btnAdjustColumns_Click(object sender, EventArgs e)
@@ -153,6 +154,11 @@ namespace Nyan.Tools.LogMonitor
                 Clipboard.SetText(s);
             }
             catch { }
+        }
+
+        private void chkAutoUpd_CheckedChanged(object sender, EventArgs e)
+        {
+            tmrMaintenance.Enabled = chkAutoUpd.Checked;
         }
     }
 }

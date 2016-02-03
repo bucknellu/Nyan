@@ -36,11 +36,11 @@
             this.colDescr = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.tmrMaintenance = new System.Windows.Forms.Timer(this.components);
             this.panel1 = new System.Windows.Forms.Panel();
+            this.button1 = new System.Windows.Forms.Button();
             this.btnClear = new System.Windows.Forms.Button();
             this.chkIgGen = new System.Windows.Forms.CheckBox();
             this.btnAdjustColumns = new System.Windows.Forms.Button();
             this.chkAutoUpd = new System.Windows.Forms.CheckBox();
-            this.button1 = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -82,7 +82,7 @@
             // tmrMaintenance
             // 
             this.tmrMaintenance.Enabled = true;
-            this.tmrMaintenance.Interval = 500;
+            this.tmrMaintenance.Interval = 1000;
             this.tmrMaintenance.Tick += new System.EventHandler(this.tmrMaintenance_Tick);
             // 
             // panel1
@@ -99,6 +99,18 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(971, 29);
             this.panel1.TabIndex = 1;
+            // 
+            // button1
+            // 
+            this.button1.BackColor = System.Drawing.SystemColors.ButtonFace;
+            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.button1.Location = new System.Drawing.Point(394, 3);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(164, 23);
+            this.button1.TabIndex = 4;
+            this.button1.Text = "Copy selected to Clipboard";
+            this.button1.UseVisualStyleBackColor = false;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // btnClear
             // 
@@ -138,24 +150,15 @@
             // chkAutoUpd
             // 
             this.chkAutoUpd.AutoSize = true;
+            this.chkAutoUpd.Checked = true;
+            this.chkAutoUpd.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkAutoUpd.Location = new System.Drawing.Point(12, 7);
             this.chkAutoUpd.Name = "chkAutoUpd";
             this.chkAutoUpd.Size = new System.Drawing.Size(87, 17);
             this.chkAutoUpd.TabIndex = 0;
             this.chkAutoUpd.Text = "Auto Update";
             this.chkAutoUpd.UseVisualStyleBackColor = true;
-            // 
-            // button1
-            // 
-            this.button1.BackColor = System.Drawing.SystemColors.ButtonFace;
-            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button1.Location = new System.Drawing.Point(394, 3);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(164, 23);
-            this.button1.TabIndex = 4;
-            this.button1.Text = "Copy selected to Clipboard";
-            this.button1.UseVisualStyleBackColor = false;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.chkAutoUpd.CheckedChanged += new System.EventHandler(this.chkAutoUpd_CheckedChanged);
             // 
             // frmMain
             // 
