@@ -33,6 +33,7 @@ namespace Nyan.Modules.Web.Tools
                 throw;
             }
         }
+
         [Route("convert/xml/json")]
         [HttpGet]
         public object convert([FromUri] string url)
@@ -59,8 +60,6 @@ namespace Nyan.Modules.Web.Tools
                 throw;
             }
         }
-
-
 
         public string getUrlContents(string url)
         {

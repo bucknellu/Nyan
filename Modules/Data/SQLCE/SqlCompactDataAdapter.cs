@@ -169,8 +169,6 @@ namespace Nyan.Modules.Data.SQLCompact
 
         public override void RenderSchemaEntityNames<T>()
         {
-            Current.Log.Add(GetType().FullName + ": Rendering schema element names");
-
             var tn = MicroEntity<T>.TableData.TableName;
 
             if (tn == null) return;
