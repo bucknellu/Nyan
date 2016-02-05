@@ -44,6 +44,9 @@ namespace Nyan.Modules.Log.UDP
 
         private void Initialize(string targetAddress)
         {
+
+            UseScheduler = true;
+
             try
             {
                 _targetAddress = targetAddress;
@@ -52,6 +55,8 @@ namespace Nyan.Modules.Log.UDP
                 var ep = new IPEndPoint(IPAddress.Parse(a.Host), a.Port);
 
                 _sender = new UdpClient();
+                _sender.Client.ReceiveBufferSize = 2048;
+                _sender.Client.SendBufferSize = 32768;
                 _sender.Connect(ep);
             }
             catch (Exception e)
@@ -127,6 +132,10 @@ namespace Nyan.Modules.Log.UDP
 
                 _receiver = new UdpClient();
                 _receiver.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+
+                _receiver.Client.ReceiveBufferSize = 65535;
+                _receiver.Client.SendBufferSize = 2048;
+
                 _receiver.Client.Bind(ep);
 
                 while (!_mustStop)
