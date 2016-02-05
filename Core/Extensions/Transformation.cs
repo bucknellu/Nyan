@@ -96,6 +96,17 @@ namespace Nyan.Core.Extensions
             "Dapper.SqlMapper+<QueryImpl>"
         };
 
+
+        public static string Encrypt(this string value)
+        {
+            return Settings.Current.Encryption.Encrypt(value);
+        }
+
+        public static string Decrypt(this string value)
+        {
+            return Settings.Current.Encryption.Decrypt(value);
+        }
+
         public static string Truncate(this string value, int maxChars)
         {
             return value.Length <= maxChars ? value : value.Substring(0, maxChars) + " ..";
