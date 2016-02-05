@@ -57,7 +57,7 @@ namespace Nyan.Core.Modules.Data
         public string SqlTruncateTable;
         public string SqlUpdateSingle;
 
-        protected internal EStatus Status { get; internal set; }
+        public EStatus Status { get; internal set; }
         protected internal string StatusDescription { get; internal set; }
         protected internal string StatusStep { get; internal set; }
     }
