@@ -22,23 +22,20 @@ namespace Nyan.Modules.Log.UDP
         {
             //tcp://127.0.0.1:5002
             //pgm://239.255.42.99:5558
-            Initialize("tcp://127.0.0.1:5003");
+            Initialize("tcp://127.0.0.1:6000");
         }
 
         public override void Shutdown()
         {
-            Core.Settings.Current.Log.Add("Shutting down Log");
-
             if (_workerThread != null)
             {
-                Core.Settings.Current.Log.Add("Disposing of Listener");
                 _mustStop = true;
                 _workerThread.Abort();
                 _receiver.Close();
                 _receiver = null;
 
             }
-            Core.Settings.Current.Log.Add("Disposing of Sender");
+
             _sender.Close();
             _sender = null;
         }
@@ -47,50 +44,114 @@ namespace Nyan.Modules.Log.UDP
 
         private void Initialize(string targetAddress)
         {
-            _targetAddress = targetAddress;
+            try
+            {
+                _targetAddress = targetAddress;
 
-            var a = new Uri(_targetAddress);
-            var ep = new IPEndPoint(IPAddress.Parse(a.Host), a.Port);
+                var a = new Uri(_targetAddress);
+                var ep = new IPEndPoint(IPAddress.Parse(a.Host), a.Port);
 
-            var client = new UdpClient();
-            client.Connect(ep);
+                _sender = new UdpClient();
+                _sender.Connect(ep);
+            }
+            catch (Exception e)
+            {
+                // Use the system log, since errors here mean that we won't be able to send it remotely.
+                Core.Modules.Log.System.Add(e);
+            }
+
         }
 
         public override void Dispatch(Message payload)
         {
-            if (Environment.UserInteractive)
+            try
             {
-                Console.WriteLine(payload.Content);
-                Debug.WriteLine(payload.Content);
+
+                if (Environment.UserInteractive)
+                {
+                    Console.WriteLine(payload.Content);
+                    Debug.WriteLine(payload.Content);
+                }
+
+                try
+                {
+                    beforeSend(payload);
+                }
+                catch (Exception e)
+                {
+                    // Use the system log, since errors here mean that we won't be able to send it remotely.
+                    Core.Modules.Log.System.Add(e);
+                }
+
+                var bytePayload = payload.ToJson().Encrypt().ToSerializedBytes();
+                //var bytePayload = payload.ToJson().ToSerializedBytes();
+
+                _sender.Send(bytePayload, bytePayload.Length);
             }
-
-            var bytePayload = payload.ToSerializedBytes();
-
-            _sender.Send(bytePayload, bytePayload.Length);
+            catch (Exception e)
+            {
+                // Use the system log, since errors here mean that we won't be able to send it remotely.
+                Core.Modules.Log.System.Add(e);
+            }
         }
+
+        public virtual void beforeSend(Message payload) { }
 
         public override void StartListening()
         {
-            _workerThread = new Thread(ListeningWorker) { IsBackground = true, Priority = ThreadPriority.Lowest };
-            _workerThread.Start();
+            try
+            {
+                if (_receiver != null) return;
+
+                _workerThread = new Thread(ListeningWorker) { IsBackground = true, Priority = ThreadPriority.Lowest };
+                _workerThread.Start();
+            }
+            catch (Exception e)
+            {
+                // Use the system log, since errors here mean that we won't be able to send it remotely.
+                Core.Modules.Log.System.Add(e);
+            }
+
         }
 
         private void ListeningWorker()
         {
-            var a = new Uri(_targetAddress);
-
-            _receiver = new UdpClient(a.Port);
-
-            var remoteEp = new IPEndPoint(IPAddress.Any, a.Port);
-
-            while (!_mustStop)
+            try
             {
-                var data = _receiver.Receive(ref remoteEp); 
-                var payload = data.FromSerializedBytes<Message>();
+                var errPayload = new Message();
+                errPayload.Type = Message.EContentType.Warning;
+                errPayload.Content = "(Encrypted / non-desserializable content received)";
 
-                DoMessageArrived(payload);
+                var a = new Uri(_targetAddress);
+                var ep = new IPEndPoint(IPAddress.Any, a.Port);
+
+                _receiver = new UdpClient();
+                _receiver.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                _receiver.Client.Bind(ep);
+
+                while (!_mustStop)
+                {
+
+                    try
+                    {
+                        var data = _receiver.Receive(ref ep);
+                        var strData = data.FromSerializedBytes<string>();
+                        var payload = strData.Decrypt().FromJson<Message>();
+
+                        DoMessageArrived(payload);
+                    }
+                    catch
+                    {
+                        DoMessageArrived(errPayload);
+                    }
+
+                }
             }
-
+            catch (Exception e)
+            {
+                // Use the system log, since errors here mean that we won't be able to send it remotely.
+                Core.Modules.Log.System.Add(e);
+            }
         }
 
         private void DoMessageArrived(Message message)
