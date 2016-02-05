@@ -35,7 +35,12 @@ namespace Nyan.Core.Modules.Log
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
 
-            _out.WriteLine(DateTime.Now.ToString() + " [" + type.ToString() + "] " + message);
+            var ctn = DateTime.Now.ToString() + " [" + type.ToString() + "] " + message;
+
+            Console.WriteLine(ctn);
+            Debug.Print(ctn);
+
+            _out.WriteLine(ctn);
             _out.Flush();
         }
     }
