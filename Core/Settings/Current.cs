@@ -13,6 +13,7 @@ using Nyan.Core.Modules.Log;
 using Nyan.Core.Modules.Scope;
 using Nyan.Core.Process;
 using Message = Nyan.Core.Modules.Log.Message;
+using Nyan.Core.Diagnostics;
 
 namespace Nyan.Core.Settings
 {
@@ -32,6 +33,11 @@ namespace Nyan.Core.Settings
             } catch {}
 
             var refObj = ResolveSettingsPackage();
+
+            var TraceInfo = new TraceInfoContainer();
+            TraceInfo.Gather();
+
+            Assembly = TraceInfo.BaseAssembly;
 
             Cache = refObj.Cache;
             Scope = refObj.Scope;
@@ -55,6 +61,7 @@ namespace Nyan.Core.Settings
             Log.Add("Encryption        : " + (Encryption == null ? "(none)" : Encryption.ToString()), Message.EContentType.MoreInfo);
             Log.Add("Authorization     : " + (Authorization == null ? "(none)" : Authorization.ToString()), Message.EContentType.MoreInfo);
             Log.Add("Global BundleType : " + (GlobalConnectionBundleType == null ? "(none)" : GlobalConnectionBundleType.ToString()), Message.EContentType.MoreInfo);
+            Log.Add("Application       : " + Assembly, Message.EContentType.MoreInfo);
             Log.Add("App Location      : " + BaseDirectory, Message.EContentType.MoreInfo);
             Log.Add("App Data          : " + DataDirectory, Message.EContentType.MoreInfo);
 
@@ -72,6 +79,7 @@ namespace Nyan.Core.Settings
         public static LogProvider Log { get; private set; }
         public static Type GlobalConnectionBundleType { get; private set; }
         public static string Version { get; private set; }
+        public static string Assembly { get; private set; }
         public static string Host { get; private set; }
 
         public static string BaseDirectory
