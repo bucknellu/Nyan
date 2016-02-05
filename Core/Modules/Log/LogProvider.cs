@@ -75,6 +75,9 @@ namespace Nyan.Core.Modules.Log
                 try
                 {
                     Dispatch(a);
+
+                    if (Settings.replicateLocally)
+                        System.Add(a.Content);
                 }
                 catch (Exception e)
                 {
@@ -142,8 +145,13 @@ namespace Nyan.Core.Modules.Log
                 try
                 {
                     Dispatch(payload);
+
+                    if (Settings.replicateLocally)
+                        System.Add(payload.Content);
                 }
-                catch { }
+                catch (Exception e) {
+                    System.Add(e);
+                }
             }
         }
 

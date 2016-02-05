@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
 using Nyan.Core.Settings;
-using Nyan.Modules.Log.ZeroMQ;
 using Message = Nyan.Core.Modules.Log.Message;
 
 namespace Nyan.Tools.LogMonitor

@@ -110,6 +110,8 @@
     <Compile Include="Modules\Data\Operators\Null.cs" />
     <Compile Include="Modules\Encryption\IEncryptionProvider.cs" />
     <Compile Include="Modules\Encryption\NullEncryptionProvider.cs" />
+    <Compile Include="Modules\Log\Settings.cs" />
+    <Compile Include="Modules\Log\System.cs" />
     <Compile Include="Modules\Scope\DefaultScopeProvider.cs" />
     <Compile Include="Modules\Scope\IScopeDescriptor.cs" />
     <Compile Include="Modules\Scope\IScopeProvider.cs" />
