@@ -64,6 +64,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nyan.Samples.REST", "Sample
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nyan.Modules.Web.Tools", "Modules\Web\Tools\Nyan.Modules.Web.Tools.csproj", "{4EF3C2F6-1E6E-4CFB-ACE2-5896E0A50152}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nyan.Modules.Log.NamedPipes", "Modules\Log\NamedPipes\Nyan.Modules.Log.NamedPipes.csproj", "{5DFF0B79-E5DC-47B8-8793-48781A0BE8DA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -142,6 +144,10 @@ Global
 		{4EF3C2F6-1E6E-4CFB-ACE2-5896E0A50152}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4EF3C2F6-1E6E-4CFB-ACE2-5896E0A50152}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4EF3C2F6-1E6E-4CFB-ACE2-5896E0A50152}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5DFF0B79-E5DC-47B8-8793-48781A0BE8DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5DFF0B79-E5DC-47B8-8793-48781A0BE8DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5DFF0B79-E5DC-47B8-8793-48781A0BE8DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5DFF0B79-E5DC-47B8-8793-48781A0BE8DA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -171,5 +177,6 @@ Global
 		{A1A8F901-B54C-42CA-ABDD-151801F11AD6} = {DB0EFF75-9EB0-49FB-B069-462C3F90DD98}
 		{DBB2710B-D8C2-460B-9F48-C9CD93B1F810} = {0CA1E54C-62A0-44E4-88BE-89519A580F3A}
 		{4EF3C2F6-1E6E-4CFB-ACE2-5896E0A50152} = {0EAA61A0-FDE9-40CC-B2B0-0A8641573DD3}
+		{5DFF0B79-E5DC-47B8-8793-48781A0BE8DA} = {57664FA0-4425-4602-96F3-8C6920105994}
 	EndGlobalSection
 EndGlobal
