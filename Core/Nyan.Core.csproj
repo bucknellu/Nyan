@@ -70,6 +70,9 @@
     <Compile Include="Modules\Data\Connection\CredentialSetPrimitive.cs" />
     <Compile Include="Modules\Data\Connection\Factory.cs" />
     <Compile Include="Modules\Data\Contracts\ISearch.cs" />
+    <Compile Include="Modules\Data\Model\ModelPrimitive.cs" />
+    <Compile Include="Modules\Data\Model\ObjectModel.cs" />
+    <Compile Include="Modules\Data\Model\RelationalModel.cs" />
     <Compile Include="Modules\Identity\IAuthorizationProvider.cs" />
     <Compile Include="Modules\Identity\NullAuthorizationProvider.cs" />
     <Compile Include="Modules\Cache\ICacheConfiguration.cs" />
@@ -132,7 +135,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Modules\Data\Operators\Expressions\" />
-    <Folder Include="Modules\Data\Storage\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

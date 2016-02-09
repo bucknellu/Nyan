@@ -21,7 +21,6 @@ namespace Nyan.Modules.Log.NamedPipes
         {
             Initialize("NYAN_LOG_PIPE");
         }
-
         public NamedPipesLogProvider(string targetAddress) { Initialize(targetAddress); }
 
         public override string Protocol { get { return null; } }
@@ -64,16 +63,12 @@ namespace Nyan.Modules.Log.NamedPipes
                 Debug.WriteLine(payload.Content);
             }
 
-            try { beforeSend(payload); } catch (Exception e) { Core.Settings.Current.Log.Add(e); }
-
             var transformedPayload = payload.ToJson().Encrypt();
 
             _out.PushMessage(transformedPayload);
 
             //there is more than 1 server present
         }
-
-        public virtual void beforeSend(Message payload) { }
 
         public override void StartListening()
         {

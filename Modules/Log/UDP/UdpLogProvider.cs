@@ -71,21 +71,10 @@ namespace Nyan.Modules.Log.UDP
         {
             try
             {
-
                 if (Environment.UserInteractive)
                 {
                     Console.WriteLine(payload.Content);
                     Debug.WriteLine(payload.Content);
-                }
-
-                try
-                {
-                    beforeSend(payload);
-                }
-                catch (Exception e)
-                {
-                    // Use the system log, since errors here mean that we won't be able to send it remotely.
-                    Core.Modules.Log.System.Add(e);
                 }
 
                 var bytePayload = payload.ToJson().Encrypt().ToSerializedBytes();
@@ -99,8 +88,6 @@ namespace Nyan.Modules.Log.UDP
                 Core.Modules.Log.System.Add(e);
             }
         }
-
-        public virtual void beforeSend(Message payload) { }
 
         public override void StartListening()
         {
