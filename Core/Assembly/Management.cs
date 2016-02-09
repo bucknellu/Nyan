@@ -30,8 +30,11 @@ namespace Nyan.Core.Assembly
 
             //2nd cycle: Directories/assemblies referenced by system
 
+            //    First by process-specific variables...
             loadAssembliesFromDirectory(Environment.GetEnvironmentVariable("nyan_ac_net40", EnvironmentVariableTarget.Process));
+            //    then by user-specific variables...
             loadAssembliesFromDirectory(Environment.GetEnvironmentVariable("nyan_ac_net40", EnvironmentVariableTarget.User));
+            //    and finally system-wide variables.
             loadAssembliesFromDirectory(Environment.GetEnvironmentVariable("nyan_ac_net40", EnvironmentVariableTarget.Machine));
 
             //Now try to load:
@@ -68,7 +71,7 @@ namespace Nyan.Core.Assembly
             foreach (var item in _assys)
                 Modules.Log.System.Add("    " + item.Value.Location + " (" + item.Value.ToString() + ")", Modules.Log.Message.EContentType.Info);
 
-            Modules.Log.System.Add("Errors: " + _errCount, Modules.Log.Message.EContentType.Info);
+            Modules.Log.System.Add("Fatal Errors: " + _errCount, Modules.Log.Message.EContentType.Info);
         }
 
         private static System.Reflection.Assembly GetAssemblyByName(string name)
