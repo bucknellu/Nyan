@@ -8,7 +8,6 @@ namespace Nyan.Core.Modules.Log
 {
     public abstract class LogProvider
     {
-        public Message.EContentType VerbosityThreshold = Message.EContentType.Debug;
         private bool _Shutdown;
         private bool _hasMessage = true;
         private Queue<Message> _messageQueue = new Queue<Message>();
@@ -74,14 +73,11 @@ namespace Nyan.Core.Modules.Log
 
                 try
                 {
-                    Dispatch(a);
-
-                    if (Settings.replicateLocally)
-                        System.Add(a.Content);
+                    doDispatchCycle(a);
                 }
                 catch (Exception e)
                 {
-                    //Something very wrong happened: Can't send the messages. What to do...
+                    System.Add(e); // Log locally.
                 }
 
                 _messageQueue.Dequeue();
@@ -127,11 +123,24 @@ namespace Nyan.Core.Modules.Log
 
         public virtual void StartListening() { }
 
+        public virtual void BeforeDispatch(Message payload) { }
+        public virtual void AfterDispatch(Message payload)
+        {
+            if (Settings.replicateLocally)
+                System.Add(payload.Content);
+        }
+        public virtual void doDispatchCycle(Message payload)
+        {
+            BeforeDispatch(payload);
+            Dispatch(payload);
+            AfterDispatch(payload);
+        }
+
         public virtual void Add(string content, Message.EContentType type = Message.EContentType.Generic)
         {
             if (_Shutdown) return;
 
-            if (type > VerbosityThreshold) return;
+            if (type > Settings.VerbosityThreshold) return;
 
             var payload = new Message { Content = content, Subject = type.ToString(), Type = type };
 
@@ -144,12 +153,10 @@ namespace Nyan.Core.Modules.Log
             {
                 try
                 {
-                    Dispatch(payload);
-
-                    if (Settings.replicateLocally)
-                        System.Add(payload.Content);
+                    doDispatchCycle(payload);
                 }
-                catch (Exception e) {
+                catch (Exception e)
+                {
                     System.Add(e);
                 }
             }
