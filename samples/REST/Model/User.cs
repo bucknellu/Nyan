@@ -115,7 +115,8 @@ namespace Nyan.Samples.REST.Model
                 }
                 catch (Exception e)
                 {
-                    Current.Log.Add("Something went wrong while creating a new fake user: " + e.Message, Message.EContentType.Warning);
+                    Current.Log.Add("Something went wrong while creating a new fake user.", Message.EContentType.Warning);
+                    Current.Log.Add(e);
                 }
             }
         }
