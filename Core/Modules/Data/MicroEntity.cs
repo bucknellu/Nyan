@@ -399,7 +399,9 @@ break; */
             if (value.IsNumeric())
                 value = Convert.ToInt64(value);
 
-            GetType().GetProperty(Statements.IdPropertyRaw).SetValue(oRef, value);
+            var refProp = GetType().GetProperty(Statements.IdPropertyRaw);
+
+            refProp.SetValue(oRef, Convert.ChangeType(value, refProp.PropertyType));
         }
 
         public void Remove()
