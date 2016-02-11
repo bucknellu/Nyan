@@ -349,7 +349,7 @@ break; */
             return set;
         }
 
-        public static IEnumerable<T> QueryByWhereClause(string clause, object b)
+        public static IEnumerable<T> QueryByWhereClause(string clause, object b = null)
         {
             var statement = string.Format(Statements.SqlAllFieldsQueryTemplate, clause);
             var set = Query(statement, b);
