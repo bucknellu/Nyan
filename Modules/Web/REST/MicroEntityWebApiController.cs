@@ -243,7 +243,7 @@ namespace Nyan.Modules.Web.REST
 
                 Current.Log.Add("UPD " + typeof(T).FullName + ":" + item.GetEntityIdentifier() + " OK (" + sw.ElapsedMilliseconds + " ms)");
 
-                PostAction(RequestType.Post, AccessType.Write, preRet.GetEntityIdentifier() , preRet);
+                PostAction(RequestType.Post, AccessType.Write, preRet.GetEntityIdentifier(), preRet);
 
                 return RenderJsonResult(preRet);
             }
@@ -251,6 +251,43 @@ namespace Nyan.Modules.Web.REST
             {
                 sw.Stop();
                 Current.Log.Add("POST " + typeof(T).FullName + " ERR (" + sw.ElapsedMilliseconds + " ms): " + e.Message, e);
+                return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e);
+            }
+        }
+
+        [Route("{id}")]
+        [HttpPatch]
+        public virtual HttpResponseMessage WebApiPatch(string id, Dictionary<string, object> patchList)
+        {
+
+            var sw = new Stopwatch();
+            try
+            {
+                sw.Start();
+
+                var item = MicroEntity<T>.Patch(MicroEntity<T>.Get(id), patchList);
+
+                EvaluateAuthorization(ClassSecurity, RequestType.Patch, AccessType.Write, null, item);
+                TryAgentImprinting(ref item);
+
+                if (MicroEntity<T>.TableData.IsReadOnly)
+                    throw new HttpResponseException(HttpStatusCode.MethodNotAllowed);
+
+                var preRet = MicroEntity<T>.Get(item.Save());
+
+                if (MicroEntity<T>.TableData.AuditChange)
+                    AuditRequest("CHANGE", typeof(T).FullName + ":" + item.GetEntityIdentifier(), item.ToJson());
+
+                Current.Log.Add("PATCH " + typeof(T).FullName + ":" + item.GetEntityIdentifier() + " OK (" + sw.ElapsedMilliseconds + " ms)");
+
+                PostAction(RequestType.Patch, AccessType.Write, preRet.GetEntityIdentifier(), preRet);
+
+                return RenderJsonResult(preRet);
+            }
+            catch (Exception e)
+            {
+                sw.Stop();
+                Current.Log.Add("PATCH " + typeof(T).FullName + " ERR (" + sw.ElapsedMilliseconds + " ms): " + e.Message, e);
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e);
             }
         }

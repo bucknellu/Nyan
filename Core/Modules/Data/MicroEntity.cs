@@ -258,6 +258,16 @@ break; */
             }
         }
 
+        public static T Patch(T preRet, Dictionary<string, object> patchList)
+        {
+            var oOriginal = preRet.ToDictionary();
+
+            foreach (var item in patchList)
+                oOriginal[item.Key] = item.Value;
+
+            return oOriginal.ToJson().FromJson<T>();
+        }
+
         /// <summary>
         ///     Get all entity entries. 
         /// </summary>

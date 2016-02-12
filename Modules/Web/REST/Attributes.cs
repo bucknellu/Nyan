@@ -8,6 +8,7 @@ namespace Nyan.Modules.Web.REST
         New,
         Get,
         Post,
+        Patch,
         Put,
         Delete,
         EntityReference
