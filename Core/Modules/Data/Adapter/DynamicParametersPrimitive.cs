@@ -47,9 +47,24 @@ namespace Nyan.Core.Modules.Data.Adapter
 
         private string _sqlInClause;
         private string _sqlWhereClause;
+        private bool _raw = false;
+
+        public void SetRaw(bool pRaw)
+        {
+            _raw = pRaw;
+        }
 
         public DynamicParametersPrimitive() { }
-        public DynamicParametersPrimitive(object template) { AddDynamicParams(template); }
+
+        public DynamicParametersPrimitive(bool pRaw)
+        {
+            _raw = pRaw;
+        }
+        public DynamicParametersPrimitive(object template, bool pRaw = false)
+        {
+            _raw = pRaw;
+            AddDynamicParams(template);
+        }
 
         public virtual IEnumerable<string> ParameterNames { get { return _internalParameters.Select(p => p.Key); } }
 
@@ -211,6 +226,11 @@ namespace Nyan.Core.Modules.Data.Adapter
             _sqlWhereClause = null; // Always reset WHERE clause.
             _sqlInClause = null; // Always reset IN clause.
 
+            if (value == null)
+            {
+                value = DBNull.Value;
+            }
+
             if (dbType == null)
             {
                 if (value.IsNumeric())
@@ -227,7 +247,9 @@ namespace Nyan.Core.Modules.Data.Adapter
                 Size = size
             });
 
-            _internalParameters[ParameterDefinition.Prefix + name] = ret;
+
+
+            _internalParameters[(_raw ? "" : ParameterDefinition.Prefix) + name] = ret;
         }
 
         public virtual ParameterInformation CustomizeParameterInformation(ParameterInformation parameterInformation)
@@ -238,7 +260,7 @@ namespace Nyan.Core.Modules.Data.Adapter
 
         public virtual T Get<T>(string name)
         {
-            var val = Parameters[ParameterDefinition.Prefix + name].AttachedParameter.Value;
+            var val = Parameters[(_raw ? "" : ParameterDefinition.Prefix) + name].AttachedParameter.Value;
             if (val != DBNull.Value) return (T)val;
             if (default(T) == null) return default(T);
 
@@ -254,7 +276,7 @@ namespace Nyan.Core.Modules.Data.Adapter
             foreach (var parameter in _internalParameters)
             {
                 if (ret != "") ret += ", ";
-                ret += parameter.Value.Name + ":" + parameter.Value.Value;
+                ret += parameter.Value.Name + "=" + parameter.Value.Value;
             }
 
             return ret;

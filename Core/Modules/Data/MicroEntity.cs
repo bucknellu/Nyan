@@ -374,7 +374,10 @@ break; */
             }
         }
 
-        public static DynamicParametersPrimitive GetNewDynamicParameterBag() { return Statements.Adapter.Parameters<T>(null); }
+        public static DynamicParametersPrimitive GetNewDynamicParameterBag(bool pRaw = false)
+        {
+            return Statements.Adapter.Parameters<T>(null, pRaw);
+        }
 
         public static bool IsCached(long identifier) { return IsCached(identifier.ToString(CultureInfo.InvariantCulture)); }
 
@@ -606,12 +609,12 @@ break; */
             }
             catch (Exception e)
             {
-                DumpQuery(sqlStatement, dbConn, e.Message);
-                throw new DataException(GetTypeName() + "Entity/Dapper Query: Error while issuing statements to the database. Error:  [" + e.Message + "].", e);
+                DumpQuery(sqlStatement, dbConn, sqlParameters, e);
+                throw new DataException(GetTypeName() + " Entity/Dapper Query: Error while issuing statements to the database. Error:  [" + e.Message + "].", e);
             }
         }
 
-        private static void DumpQuery(string sqlStatement, string dbConnection, string message)
+        private static void DumpQuery(string sqlStatement, string dbConnection, object parms, Exception e)
         {
             var sguid = Identifier.MiniGuid();
 
@@ -621,8 +624,17 @@ break; */
                 sqlStatement = sqlStatement.Replace("  ", " ");
 
             Current.Log.Add(sguid + " Qy [" + sqlStatement + "]", Message.EContentType.Warning);
+            Current.Log.Add(sguid + " Pr [" + parms.ToString() + "]", Message.EContentType.Warning);
             Current.Log.Add(sguid + " DB [" + dbConnection + "]", Message.EContentType.Warning);
-            Current.Log.Add(sguid + " EX [" + message + "]", Message.EContentType.Warning);
+
+            var errRef = e;
+
+            while (errRef != null)
+            {
+                Current.Log.Add(sguid + " EX [" + e.Message + "]", Message.EContentType.Warning);
+                errRef = e.InnerException;
+
+            }
         }
 
         public static void Execute(string sqlStatement, object sourceObj)
@@ -646,9 +658,13 @@ break; */
             }
             catch (Exception e)
             {
-                DumpQuery(sqlStatement, dbConn, e.Message);
+                DumpQuery(sqlStatement, dbConn, sqlParameters, e);
 
-                throw new DataException("Entity/Dapper Execute: Error while issuing statements to the database. " +
+
+
+
+                throw new DataException(GetTypeName() + 
+                                        " Entity /Dapper Execute: Error while issuing statements to the database. " +
                                         "Error: [" + e.Message + "]." +
                                         "Statement: [" + sqlStatement + "]. ", e);
             }

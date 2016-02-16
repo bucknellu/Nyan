@@ -190,12 +190,13 @@ namespace Nyan.Core.Modules.Data.Adapter
 
         public abstract DbConnection Connection(string connectionString);
 
-        public virtual DynamicParametersPrimitive Parameters<T>(object obj) where T : MicroEntity<T>
+        public virtual DynamicParametersPrimitive Parameters<T>(object obj, bool pRaw = false) where T : MicroEntity<T>
         {
-
             if (obj is DynamicParametersPrimitive) return (DynamicParametersPrimitive)obj;
 
             var ret = (DynamicParametersPrimitive)Activator.CreateInstance(dynamicParameterType);
+
+            ret.SetRaw(pRaw);
 
             if (obj == null) return ret;
 
