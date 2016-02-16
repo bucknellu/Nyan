@@ -169,6 +169,8 @@ namespace Nyan.Core.Assembly
             }
         }
 
+        private static Dictionary<Type, List<Type>> InterfaceClassesCache = new Dictionary<Type, List<Type>>();
+
         /// <summary>
         /// Gets a list of classes by implemented interface/base class.
         /// </summary>
@@ -180,6 +182,10 @@ namespace Nyan.Core.Assembly
             var type = typeof(T);
             var preRet = new List<Type>();
             var ret = new List<Type>();
+
+
+            if (InterfaceClassesCache.ContainsKey(type))
+                return InterfaceClassesCache[type];
 
             Modules.Log.System.Add("Scanning for " + type.ToString());
 
@@ -227,7 +233,6 @@ namespace Nyan.Core.Assembly
 
             Modules.Log.System.Add("    " + preRet.Count + " items");
 
-
             foreach (var item in preRet)
             {
                 var level = 0;
@@ -246,6 +251,8 @@ namespace Nyan.Core.Assembly
             {
                 ret.Add(item.Value);
             }
+
+            InterfaceClassesCache.Add(type, ret); // Caching results, so future queries will return form cache
 
             return ret;
         }
