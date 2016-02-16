@@ -223,7 +223,6 @@ namespace Nyan.Modules.Web.REST
         [HttpPost]
         public virtual HttpResponseMessage WebApiPost(T item)
         {
-
             var sw = new Stopwatch();
 
             try
@@ -257,7 +256,8 @@ namespace Nyan.Modules.Web.REST
 
         [Route("{id}")]
         [HttpPatch]
-        public virtual HttpResponseMessage WebApiPatch(string id, Dictionary<string, object> patchList)
+        [HttpPut]
+        public virtual HttpResponseMessage WebApiPatch(string id, [FromBody] Dictionary<string, object> patchList)
         {
 
             var sw = new Stopwatch();
@@ -313,40 +313,6 @@ namespace Nyan.Modules.Web.REST
         private static void AuditRequest(string verb, string target, string content = null)
         {
             //TODO: Create Audit entry here.
-        }
-
-        [Route("")]
-        [HttpPut]
-        public virtual HttpResponseMessage WebApiPut(string id, T item)
-        {
-            var sw = new Stopwatch();
-
-            if (MicroEntity<T>.TableData.IsReadOnly)
-                return Request.CreateErrorResponse(HttpStatusCode.MethodNotAllowed, "This entity is market as read-only.");
-
-            try
-            {
-                sw.Start();
-
-                EvaluateAuthorization(ClassSecurity, RequestType.Put, AccessType.Write, id, item);
-
-                TryAgentImprinting(ref item);
-
-                var isNew = (item.GetEntityIdentifier() == null);
-
-                if (MicroEntity<T>.TableData.AuditChange)
-                    AuditRequest("CHANGE", typeof(T).FullName + ":" + item.GetEntityIdentifier(), item.ToJson());
-
-                PostAction(RequestType.Put, AccessType.Write, id, item);
-
-                return Request.CreateResponse(isNew ? HttpStatusCode.Created : HttpStatusCode.OK);
-
-            }
-            catch (Exception e)
-            {
-                Current.Log.Add("PUT " + typeof(T).FullName + ":" + item.GetEntityIdentifier() + " ERR (" + sw.ElapsedMilliseconds + " ms): " + e.Message, e);
-                return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e);
-            }
         }
 
         [HttpDelete]
