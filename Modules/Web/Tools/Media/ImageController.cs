@@ -48,16 +48,21 @@ namespace Nyan.Modules.Web.Tools.Media
 
             var outtype = MimeMapping.GetMimeMapping(url);
 
+            if (outtype == "application/octet-stream") outtype = "image/png";
+
             var md5Url = url.Md5Hash();
             var preCompName = cacheDir + "\\media-external-" + md5Url + "-" + dimensionsPart + ".png";
 
-            Current.Log.Add("Filename: " + preCompName);
+            Current.Log.Add(outtype + " : " + preCompName);
 
             if (!Directory.Exists(cacheDir))
                 Directory.CreateDirectory(cacheDir);
 
             if (File.Exists(preCompName))
+            {
                 image = new Bitmap(preCompName);
+                outtype = "image/png";
+            }
             else
             {
                 //connect via web client and get the photo at the specified url
@@ -92,7 +97,6 @@ namespace Nyan.Modules.Web.Tools.Media
                             image = Utilities.ResizeImage(image, (int)width, (int)height);
                             Current.Log.Add("Caching compiled image: " + preCompName);
                             image.Save(preCompName, ImageFormat.Png);
-                            outtype = "image/png";
                         }
                     }
                 }
