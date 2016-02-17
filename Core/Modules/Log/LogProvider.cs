@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using Nyan.Core.Extensions;
+using Nyan.Core.Factories;
 
 namespace Nyan.Core.Modules.Log
 {
@@ -104,22 +105,29 @@ namespace Nyan.Core.Modules.Log
 
         public virtual void Add(string pattern, params object[] replacementStrings) { Add(string.Format(pattern, replacementStrings)); }
 
-        public virtual void Add(Exception e) { Add(e, null); }
+        public virtual void Add(Exception e) { Add(e, null, null); }
 
-        public virtual void Add(Exception e, string message)
+        public virtual void Add(Exception e, string message, string token = null)
         {
+            if (token == null)
+                token = Identifier.MiniGuid();
+
             if (message == null)
                 message = e.Message;
 
-            var msg = message;
+            var ctx = token + " : " + message;
 
-            try { msg = message + " " + new StackTrace(e, true).FancyString(); }
+
+            try { ctx += " @ " + new StackTrace(e, true).FancyString(); }
             catch { }
 
-            Add(msg, Message.EContentType.Exception);
+            Add(ctx, Message.EContentType.Exception);
+
+            if (e.InnerException != null)
+                Add(e.InnerException, null, token);
         }
 
-        public virtual void Add(string pMessage, Exception e) { Add(e, pMessage); }
+        public virtual void Add(string pMessage, Exception e) { Add(e, pMessage, null); }
 
         public virtual void StartListening() { }
 
