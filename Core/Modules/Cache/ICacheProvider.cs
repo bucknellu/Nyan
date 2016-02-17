@@ -16,7 +16,7 @@ namespace Nyan.Core.Modules.Cache
     {
         // Standard cache timeout: 10m (600 secs)
         string this[string key, string oSet = null, int cacheTimeOutSeconds = 600] { get; set; }
-        Dictionary<string, ICacheConfiguration> ScopeConfiguration { get; set; }
+        Dictionary<string, ICacheConfiguration> EnvironmentConfiguration { get; set; }
         string ServerName { get; }
 
         EOperationalStatus OperationalStatus { get; }

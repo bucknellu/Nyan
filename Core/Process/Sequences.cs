@@ -23,8 +23,8 @@ namespace Nyan.Core.Process
             Current.Log.Add("Shutting down " + Current.Cache.GetType().Name, Message.EContentType.MoreInfo);
             Current.Cache.Shutdown();
 
-            Current.Log.Add("Shutting down " + Current.Scope.GetType().Name, Message.EContentType.MoreInfo);
-            Current.Scope.Shutdown();
+            Current.Log.Add("Shutting down " + Current.Environment.GetType().Name, Message.EContentType.MoreInfo);
+            Current.Environment.Shutdown();
 
             Current.Log.Add("Shutting down " + Current.Encryption.GetType().Name, Message.EContentType.MoreInfo);
             Current.Encryption.Shutdown();

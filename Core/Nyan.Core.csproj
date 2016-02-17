@@ -107,10 +107,10 @@
     <Compile Include="Modules\Encryption\NullEncryptionProvider.cs" />
     <Compile Include="Modules\Log\Settings.cs" />
     <Compile Include="Modules\Log\System.cs" />
-    <Compile Include="Modules\Scope\DefaultScopeProvider.cs" />
-    <Compile Include="Modules\Scope\IScopeDescriptor.cs" />
-    <Compile Include="Modules\Scope\IScopeProvider.cs" />
-    <Compile Include="Modules\Scope\DefaultScopeDescriptor.cs" />
+    <Compile Include="Modules\Environment\DefaultScopeProvider.cs" />
+    <Compile Include="Modules\Environment\IEnvironmentDescriptor.cs" />
+    <Compile Include="Modules\Environment\IEnvironmentProvider.cs" />
+    <Compile Include="Modules\Environment\DefaultEnvironmentDescriptor.cs" />
     <Compile Include="Modules\Log\LogProvider.cs" />
     <Compile Include="Modules\Log\Message.cs" />
     <Compile Include="Modules\Log\NullLogProvider.cs" />

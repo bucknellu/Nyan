@@ -1,18 +1,18 @@
 ﻿using System;
 
-namespace Nyan.Core.Modules.Scope
+namespace Nyan.Core.Modules.Environment
 {
-    public class DefaultScopeProvider : IScopeProvider
+    public class DefaultEnvironmentProvider : IEnvironmentProvider
     {
-        public IScopeDescriptor Current
+        public IEnvironmentDescriptor Current
         {
-            get { return DefaultScopeDescriptor.Standard; }
+            get { return DefaultEnvironmentDescriptor.Standard; }
             set { throw new NotImplementedException(); }
         }
 
         public string CurrentCode
         {
-            get { return DefaultScopeDescriptor.Standard.Code; }
+            get { return DefaultEnvironmentDescriptor.Standard.Code; }
         }
 
         public string Probe { get; private set; }
@@ -24,7 +24,7 @@ namespace Nyan.Core.Modules.Scope
 
         public void Shutdown() {  }
 
-        public IScopeDescriptor Get(string serverName)
+        public IEnvironmentDescriptor Get(string serverName)
         {
             throw new NotImplementedException();
         }

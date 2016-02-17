@@ -27,7 +27,7 @@ namespace Nyan.Core.Modules.Data
         /// When set, allows a basic corresponding schema to be created on the database, based on the current class' properties.
         /// </summary>
         public bool AutoGenerateMissingSchema { get; set; }
-        public string PersistentScopeCode { get; set; }
+        public string PersistentEnvironmentCode { get; set; }
         /// <summary>
         /// When set, it supersedes the individual AdapterType and ConnectionCypherKey settings, including environment-dependent values.
         /// </summary>

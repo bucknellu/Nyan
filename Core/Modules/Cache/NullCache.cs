@@ -18,7 +18,7 @@ namespace Nyan.Core.Modules.Cache
             set { throw new NotImplementedException(); }
         }
 
-        public Dictionary<string, ICacheConfiguration> ScopeConfiguration { get; set; }
+        public Dictionary<string, ICacheConfiguration> EnvironmentConfiguration { get; set; }
 
         public string ServerName { get; private set; }
         public EOperationalStatus OperationalStatus { get; set; }

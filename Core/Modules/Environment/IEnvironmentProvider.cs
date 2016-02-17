@@ -1,15 +1,15 @@
 ﻿using System;
 
-namespace Nyan.Core.Modules.Scope
+namespace Nyan.Core.Modules.Environment
 {
-    public interface IScopeProvider
+    public interface IEnvironmentProvider
     {
-        IScopeDescriptor Current { get; set; }
+        IEnvironmentDescriptor Current { get; set; }
         string CurrentCode { get; }
         string Probe { get; }
         void ResetToDefault();
         void Shutdown();
-        IScopeDescriptor Get(string serverName);
+        IEnvironmentDescriptor Get(string serverName);
         event EventHandler EnvironmentChanged;
     }
 }

@@ -618,7 +618,7 @@ break; */
         {
             var sguid = Identifier.MiniGuid();
 
-            sqlStatement = sqlStatement.Replace(Environment.NewLine, " ").Replace("\t", " ").Trim();
+            sqlStatement = sqlStatement.Replace(System.Environment.NewLine, " ").Replace("\t", " ").Trim();
 
             while (sqlStatement.IndexOf("  ", StringComparison.Ordinal) != -1)
                 sqlStatement = sqlStatement.Replace("  ", " ");
@@ -842,7 +842,7 @@ break; */
                     var cat = new ColumnAttributeTypeMapper<T>();
                     SqlMapper.SetTypeMap(typeof(T), cat);
 
-                    Current.Log.Add("{0} : INIT START {2}".format(typeof(T).FullName, Environment.MachineName, Current.Scope.Current.Code != "UND" ? " (" + Current.Scope.Current + ")" : ""), Message.EContentType.Info);
+                    Current.Log.Add("{0} : INIT START {2}".format(typeof(T).FullName, System.Environment.MachineName, Current.Environment.Current.Code != "UND" ? " (" + Current.Environment.Current + ")" : ""), Message.EContentType.Info);
 
                     var refBundle = TableData.ConnectionBundleType ?? Current.GlobalConnectionBundleType;
 
@@ -959,7 +959,7 @@ break; */
                     Statements.StatusStep = "Calling initialization hooks";
                     OnEntityInitializationHook();
 
-                    Current.Scope.EnvironmentChanged += Scope_EnvironmentChanged;
+                    Current.Environment.EnvironmentChanged += Environment_EnvironmentChanged;
 
                     LogLocal("INIT OK", Message.EContentType.Info);
 
@@ -998,7 +998,7 @@ break; */
             }
         }
 
-        private static void Scope_EnvironmentChanged(object sender, EventArgs e)
+        private static void Environment_EnvironmentChanged(object sender, EventArgs e)
         {
             //Target environment changed; pick the proper connection strings.
 

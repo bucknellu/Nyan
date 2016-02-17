@@ -10,7 +10,7 @@ using Nyan.Core.Modules.Data.Connection;
 using Nyan.Core.Modules.Encryption;
 using Nyan.Core.Modules.Identity;
 using Nyan.Core.Modules.Log;
-using Nyan.Core.Modules.Scope;
+using Nyan.Core.Modules.Environment;
 using Nyan.Core.Process;
 using Message = Nyan.Core.Modules.Log.Message;
 using Nyan.Core.Diagnostics;
@@ -40,7 +40,7 @@ namespace Nyan.Core.Settings
             Assembly = TraceInfo.BaseAssembly;
 
             Cache = refObj.Cache;
-            Scope = refObj.Scope;
+            Environment = refObj.Environment;
             Log = refObj.Log;
             Encryption = refObj.Encryption;
             GlobalConnectionBundleType = refObj.GlobalConnectionBundleType;
@@ -56,7 +56,7 @@ namespace Nyan.Core.Settings
             Log.Add("Settings          : " + refObj.GetType(), Message.EContentType.StartupSequence);
 
             Log.Add("Cache             : " + (Cache == null ? "(none)" : Cache.ToString()), Message.EContentType.MoreInfo);
-            Log.Add("Environment       : " + (Scope == null ? "(none)" : Scope.ToString()), Message.EContentType.MoreInfo);
+            Log.Add("Environment       : " + (Environment == null ? "(none)" : Environment.ToString()), Message.EContentType.MoreInfo);
             Log.Add("Log               : " + (Log == null ? "(none)" : Log.ToString()), Message.EContentType.MoreInfo);
             Log.Add("Encryption        : " + (Encryption == null ? "(none)" : Encryption.ToString()), Message.EContentType.MoreInfo);
             Log.Add("Authorization     : " + (Authorization == null ? "(none)" : Authorization.ToString()), Message.EContentType.MoreInfo);
@@ -73,7 +73,7 @@ namespace Nyan.Core.Settings
         }
 
         public static ICacheProvider Cache { get; private set; }
-        public static IScopeProvider Scope { get; private set; }
+        public static IEnvironmentProvider Environment { get; private set; }
         public static IEncryptionProvider Encryption { get; private set; }
         public static IAuthorizationProvider Authorization { get; private set; }
         public static LogProvider Log { get; private set; }
@@ -155,8 +155,8 @@ namespace Nyan.Core.Settings
                 var encryptionModules = Management.GetClassesByInterface<IEncryptionProvider>();
                 if (encryptionModules.Any()) package.Encryption = encryptionModules[0].CreateInstance<IEncryptionProvider>();
 
-                var scopeModules = Management.GetClassesByInterface<IScopeProvider>();
-                if (scopeModules.Any()) package.Scope = scopeModules[0].CreateInstance<IScopeProvider>();
+                var environmentModules = Management.GetClassesByInterface<IEnvironmentProvider>();
+                if (environmentModules.Any()) package.Environment = environmentModules[0].CreateInstance<IEnvironmentProvider>();
 
                 var authorizationModules = Management.GetClassesByInterface<IAuthorizationProvider>();
                 if (authorizationModules.Any()) package.Authorization = authorizationModules[0].CreateInstance<IAuthorizationProvider>();

@@ -12,7 +12,7 @@ namespace Nyan.Modules.Cache.Redis
     [Priority(Level = -1)]
     public class RedisCacheProvider : ICacheProvider
     {
-        public Dictionary<string, ICacheConfiguration> ScopeConfiguration { get; set; }
+        public Dictionary<string, ICacheConfiguration> EnvironmentConfiguration { get; set; }
 
         private static ConnectionMultiplexer _redis;
 
@@ -29,14 +29,14 @@ namespace Nyan.Modules.Cache.Redis
         public void Initialize()
         {
             //In the case nothing is defined, a standard environment setup is provided.
-            if (ScopeConfiguration == null)
-                ScopeConfiguration = new Dictionary<string, ICacheConfiguration>
+            if (EnvironmentConfiguration == null)
+                EnvironmentConfiguration = new Dictionary<string, ICacheConfiguration>
                 {
                     {"STD", new RedisCacheConfiguration {DatabaseIndex = 5, ConnectionString = "localhost"}}
                 };
 
 
-            var probe = (RedisCacheConfiguration)ScopeConfiguration[Core.Settings.Current.Scope.CurrentCode];
+            var probe = (RedisCacheConfiguration)EnvironmentConfiguration[Core.Settings.Current.Environment.CurrentCode];
             _dbIdx = probe.DatabaseIndex;
             _currentServer = probe.ConnectionString;
 

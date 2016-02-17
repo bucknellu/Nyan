@@ -138,7 +138,7 @@ namespace Nyan.Core.Modules.Data.Adapter
             var statements = MicroEntity<T>.Statements;
             var tableData = MicroEntity<T>.TableData;
 
-            var envCode = tableData.PersistentScopeCode ?? Current.Scope.CurrentCode;
+            var envCode = tableData.PersistentEnvironmentCode ?? Current.Environment.CurrentCode;
 
             if (envCode == "UND") envCode = "DEV";
 
