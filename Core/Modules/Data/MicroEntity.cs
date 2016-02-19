@@ -20,6 +20,7 @@ using Nyan.Core.Modules.Data.Operators;
 using Nyan.Core.Modules.Data.Operators.AnsiSql;
 using Nyan.Core.Modules.Log;
 using Nyan.Core.Settings;
+using System.Diagnostics;
 
 namespace Nyan.Core.Modules.Data
 {
@@ -55,7 +56,12 @@ namespace Nyan.Core.Modules.Data
             return _typeName;
         }
 
-        private static void LogLocal(string pMessage, Message.EContentType pType = Message.EContentType.Generic) { Current.Log.Add(typeof(T).FullName + " : " + pMessage, pType); }
+        private static void LogLocal(string pMessage, Message.EContentType pType = Message.EContentType.Generic)
+        {
+
+            Debug.Print(pMessage);
+            Current.Log.Add(typeof(T).FullName + " : " + pMessage, pType);
+        }
 
         /// <summary>
         ///     Gets an object instance of T, using the identifier to search the Primary Key.
@@ -516,7 +522,7 @@ break; */
         public static List<IDictionary<string, object>> QueryObject(string sqlStatement)
         {
             if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
-                throw new InvalidOperationException(typeof(T).FullName + " - state is not operational: " + Statements.StatusDescription);
+                throw new OperationCanceledException("Entity {0} in {1} state: {2}".format(GetTypeName(), Statements.Status.ToString(), Statements.StatusDescription));
 
             using (var conn = Statements.Adapter.Connection(Statements.ConnectionString))
             {
@@ -536,7 +542,7 @@ break; */
         public static List<List<Dictionary<string, object>>> QueryMultiple(string sqlStatement, object sqlParameters = null, CommandType pCommandType = CommandType.Text)
         {
             if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
-                throw new InvalidOperationException(typeof(T).FullName + " - state is not operational: " + Statements.StatusDescription);
+                throw new OperationCanceledException("Entity {0} in {1} state: {2}".format(GetTypeName(), Statements.Status.ToString(), Statements.StatusDescription));
 
             var cDebug = "";
 
@@ -586,7 +592,7 @@ break; */
         public static List<T> Query(string sqlStatement, DynamicParametersPrimitive sqlParameters, CommandType pCommandType)
         {
             if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
-                throw new InvalidOperationException(typeof(T).FullName + " - state is not operational: " + Statements.StatusDescription);
+                throw new OperationCanceledException("Entity {0} in {1} state: {2}".format(GetTypeName(), Statements.Status.ToString(), Statements.StatusDescription));
 
             var dbConn = "";
 
@@ -616,6 +622,9 @@ break; */
 
         private static void DumpQuery(string sqlStatement, string dbConnection, object parms, Exception e)
         {
+            if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
+                throw new OperationCanceledException("Entity {0} in {1} state: {2}".format(GetTypeName(), Statements.Status.ToString(), Statements.StatusDescription));
+
             var sguid = Identifier.MiniGuid();
 
             sqlStatement = sqlStatement.Replace(System.Environment.NewLine, " ").Replace("\t", " ").Trim();
@@ -644,6 +653,9 @@ break; */
 
         public static void Execute(string sqlStatement, DynamicParametersPrimitive sqlParameters = null, CommandType pCommandType = CommandType.Text)
         {
+            if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
+                throw new OperationCanceledException("Entity {0} in {1} state: {2}".format(GetTypeName(), Statements.Status.ToString(), Statements.StatusDescription));
+
             var dbConn = "";
 
             try
@@ -660,10 +672,7 @@ break; */
             {
                 DumpQuery(sqlStatement, dbConn, sqlParameters, e);
 
-
-
-
-                throw new DataException(GetTypeName() + 
+                throw new DataException(GetTypeName() +
                                         " Entity /Dapper Execute: Error while issuing statements to the database. " +
                                         "Error: [" + e.Message + "]." +
                                         "Statement: [" + sqlStatement + "]. ", e);
@@ -701,7 +710,7 @@ break; */
         public static List<TU> Query<TU>(string sqlStatement, object sqlParameters = null, CommandType pCommandType = CommandType.Text)
         {
             if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
-                throw new InvalidOperationException(typeof(T).FullName + " - state is not operational: " + Statements.StatusDescription);
+                throw new OperationCanceledException("Entity {0} in {1} state: {2}".format(GetTypeName(), Statements.Status.ToString(), Statements.StatusDescription));
 
             try
             {
@@ -878,6 +887,8 @@ break; */
                             if (refType.ConnectionCypherKeys != null)
                                 Statements.CredentialCypherKeys = refType.ConnectionCypherKeys;
                         }
+
+                        LogLocal(Statements.CredentialCypherKeys.Count + " CyperKeys");
                     }
                     else
                     {
@@ -898,13 +909,22 @@ break; */
                             probeType.GetProperties()
                                 .Where(prop => Attribute.IsDefined(prop, typeof(KeyAttribute)))
                                 .ToList();
-                        if (props.Count > 0)
-                            identifierColumnName = props[0].Name;
+
+                        LogLocal(props.ToJson());
+
+                        if (props != null)
+                            if (props.Count > 0)
+                                identifierColumnName = props[0].Name;
                     }
 
                     if (identifierColumnName != null)
                     {
+
+                        Statements.StatusStep = "Resolving Identifier";
+
                         var mapEntry = Statements.PropertyFieldMap.FirstOrDefault(p => p.Value.ToLower().Equals(identifierColumnName.ToLower()));
+
+                        LogLocal(mapEntry.ToJson());
 
                         Statements.IdProperty = Statements.Adapter.ParameterDefinition + mapEntry.Key;
                         Statements.IdPropertyRaw = mapEntry.Key;
