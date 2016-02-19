@@ -21,16 +21,18 @@ namespace Nyan.Core.Settings
     {
         private static string _baseDirectory;
         private static string _dataDirectory;
+        private static string _WebApiCORSDomains;
 
         static Current()
         {
-            try { Application.ApplicationExit += Application_ApplicationExit; } catch {}
+            try { Application.ApplicationExit += Application_ApplicationExit; } catch { }
 
             try
             {
                 AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
                 //AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-            } catch {}
+            }
+            catch { }
 
             var refObj = ResolveSettingsPackage();
 
@@ -45,6 +47,7 @@ namespace Nyan.Core.Settings
             Encryption = refObj.Encryption;
             GlobalConnectionBundleType = refObj.GlobalConnectionBundleType;
             Authorization = refObj.Authorization;
+            WebApiCORSDomains = refObj.WebApiCORSDomains;
 
             Version = System.Reflection.Assembly.GetCallingAssembly().GetName().Version.ToString();
             Host = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
@@ -110,7 +113,8 @@ namespace Nyan.Core.Settings
                     {
                         if (!Directory.Exists(_dataDirectory))
                             Directory.CreateDirectory(_dataDirectory);
-                    } catch
+                    }
+                    catch
                     {
                         _dataDirectory = null;
                     }
@@ -124,9 +128,15 @@ namespace Nyan.Core.Settings
             internal set { _dataDirectory = value; }
         }
 
+        public static string WebApiCORSDomains
+        {
+            get { return _WebApiCORSDomains; }
+            private set { _WebApiCORSDomains = value; }
+        }
+
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            Log.Add((Exception) e.ExceptionObject);
+            Log.Add((Exception)e.ExceptionObject);
             Sequences.End("Unhandled Exception");
         }
 
@@ -138,7 +148,7 @@ namespace Nyan.Core.Settings
         {
             var packages = Management.GetClassesByInterface<IPackage>();
 
-            if (packages.Any()) return (IPackage) Activator.CreateInstance(packages[0]);
+            if (packages.Any()) return (IPackage)Activator.CreateInstance(packages[0]);
 
             //No package defined? not to worry; let's create one with the provided pieces.
 
@@ -163,7 +173,8 @@ namespace Nyan.Core.Settings
 
                 var connectionBundles = Management.GetClassesByInterface<ConnectionBundlePrimitive>();
                 if (connectionBundles.Any()) package.GlobalConnectionBundleType = connectionBundles[0];
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 //It's OK to ignore errors here.
             }

@@ -19,6 +19,7 @@ namespace Nyan.Core.Settings
             Environment = new DefaultEnvironmentProvider();
             Authorization = new NullAuthorizationProvider();
             GlobalConnectionBundleType = null;
+            WebApiCORSDomains = null;
         }
 
         public LogProvider Log { get; internal set; }
@@ -27,5 +28,7 @@ namespace Nyan.Core.Settings
         public IEncryptionProvider Encryption { get; internal set; }
         public IAuthorizationProvider Authorization { get; internal set; }
         public Type GlobalConnectionBundleType { get; internal set; }
+
+        public string WebApiCORSDomains { get; internal set; }
     }
 }

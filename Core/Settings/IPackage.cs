@@ -15,5 +15,6 @@ namespace Nyan.Core.Settings
         IEncryptionProvider Encryption { get; }
         IAuthorizationProvider Authorization { get; }
         Type GlobalConnectionBundleType { get; }
+        string WebApiCORSDomains { get; }
     }
 }

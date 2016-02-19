@@ -4,6 +4,7 @@ using System.Web;
 using System.Web.Http;
 using Nyan.Core.Modules.Log;
 using Nyan.Core.Settings;
+using System.Web.Http.Cors;
 
 namespace Nyan.Modules.Web.REST
 {

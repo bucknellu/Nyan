@@ -3,6 +3,7 @@ using System.Web.Http;
 using Nyan.Core.Modules.Log;
 using Nyan.Core.Settings;
 using Nyan.Modules.Web.REST.auth;
+using System.Web.Http.Cors;
 
 namespace Nyan.Modules.Web.REST
 {
@@ -20,7 +21,12 @@ namespace Nyan.Modules.Web.REST
 
         public static void Register(HttpConfiguration config)
         {
-            config.EnableCors();
+            if (Current.WebApiCORSDomains != null)
+            {
+                var corsAttr = new EnableCorsAttribute(Current.WebApiCORSDomains, "*", "*");
+                corsAttr.SupportsCredentials = true;
+                config.EnableCors(corsAttr);
+            }
 
             config.SuppressHostPrincipal(); //Isolates WebApi Auth form Host (IIS) Auth
 
