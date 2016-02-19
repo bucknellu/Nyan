@@ -362,7 +362,7 @@ namespace Nyan.Modules.Web.REST
             }
         }
 
-        [Route("{id}/{entityReference:alpha}")]
+        [Route("{id}/reference/{entityReference:alpha}")]
         [HttpGet]
         public virtual HttpResponseMessage GetReference(string id, string entityReference)
         {
