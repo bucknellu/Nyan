@@ -144,14 +144,14 @@ namespace Nyan.Core.Assembly
 
             try
             {
-                var assy = System.Reflection.Assembly.LoadFile(path);
+                var assy = System.Reflection.Assembly.LoadFrom(path);
 
                 if (!_assys.ContainsKey(assy.ToString()))
                     _assys.Add(assy.ToString(), assy);
             }
             catch (Exception e)
             {
-                if (e is System.Reflection.ReflectionTypeLoadException)
+                if (e is ReflectionTypeLoadException)
                 {
                     var typeLoadException = e as ReflectionTypeLoadException;
                     var loaderExceptions = typeLoadException.LoaderExceptions.ToList();
