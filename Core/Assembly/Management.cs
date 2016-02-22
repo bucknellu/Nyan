@@ -13,65 +13,78 @@ namespace Nyan.Core.Assembly
     /// </summary>
     public static class Management
     {
-        private static readonly Dictionary<string, System.Reflection.Assembly> _assys = new Dictionary<string, System.Reflection.Assembly>();
+        private static readonly Dictionary<string, System.Reflection.Assembly> AssemblyCache = new Dictionary<string, System.Reflection.Assembly>();
+        private static readonly Dictionary<Type, List<Type>> InterfaceClassesCache = new Dictionary<Type, List<Type>>();
+
+        private static readonly object Lock = new object();
+
 
         static Management()
         {
+
+#pragma warning disable 618
+            AppDomain.CurrentDomain.SetCachePath(Current.DataDirectory + "\\sc");
+            AppDomain.CurrentDomain.SetShadowCopyPath(AppDomain.CurrentDomain.BaseDirectory);
+            AppDomain.CurrentDomain.SetShadowCopyFiles();
+#pragma warning restore 618
+
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+
+
 
             var self = System.Reflection.Assembly.GetEntryAssembly();
 
             if (self != null)
-                _assys.Add(self.ToString(), self);
+                AssemblyCache.Add(self.ToString(), self);
 
             // 1st cycle: Local (base directory) assemblies
 
-            loadAssembliesFromDirectory(Current.BaseDirectory);
+            LoadAssembliesFromDirectory(Current.BaseDirectory);
 
             //2nd cycle: Directories/assemblies referenced by system
 
             //    First by process-specific variables...
-            loadAssembliesFromDirectory(Environment.GetEnvironmentVariable("nyan_ac_net40", EnvironmentVariableTarget.Process));
+            LoadAssembliesFromDirectory(Environment.GetEnvironmentVariable("nyan_ac_net40", EnvironmentVariableTarget.Process));
             //    then by user-specific variables...
-            loadAssembliesFromDirectory(Environment.GetEnvironmentVariable("nyan_ac_net40", EnvironmentVariableTarget.User));
+            LoadAssembliesFromDirectory(Environment.GetEnvironmentVariable("nyan_ac_net40", EnvironmentVariableTarget.User));
             //    and finally system-wide variables.
-            loadAssembliesFromDirectory(Environment.GetEnvironmentVariable("nyan_ac_net40", EnvironmentVariableTarget.Machine));
+            LoadAssembliesFromDirectory(Environment.GetEnvironmentVariable("nyan_ac_net40", EnvironmentVariableTarget.Machine));
 
             //Now try to load:
 
-            int _lastErrCount = -1;
-            int _errCount = 0;
+            var lastErrCount = -1;
+            var errCount = 0;
 
-            while (_errCount != _lastErrCount)
+            while (errCount != lastErrCount)
             {
-                _lastErrCount = _errCount;
+                lastErrCount = errCount;
 
-                foreach (var item in _assys)
+                foreach (var item in AssemblyCache)
                 {
-                    Modules.Log.System.Add("   LOAD " + item.Value.ToString().Split(',')[0], Modules.Log.Message.EContentType.Info);
+                    Modules.Log.System.Add("   LOAD " + item.Value.ToString().Split(',')[0]);
 
-                    _errCount = 0;
+                    errCount = 0;
 
                     try
                     {
-                        var i = item.Value.GetTypes();
+                        item.Value.GetTypes();
                     }
                     catch (Exception)
                     {
-                        Modules.Log.System.Add("    ERR " + item.Value.ToString(), Modules.Log.Message.EContentType.Info);
-                        _errCount++;
+                        Modules.Log.System.Add("    ERR " + item.Value);
+                        errCount++;
                     }
                 }
 
-                Modules.Log.System.Add("    Previous " + _lastErrCount + ", current " + _errCount + " errors", Modules.Log.Message.EContentType.Info);
+                Modules.Log.System.Add("    Previous " + lastErrCount + ", current " + errCount + " errors");
 
             }
-            Modules.Log.System.Add("Loaded modules: ", Modules.Log.Message.EContentType.Info);
+            Modules.Log.System.Add("Loaded modules: ");
 
-            foreach (var item in _assys)
-                Modules.Log.System.Add("    " + item.Value.Location + " (" + item.Value.ToString() + ")", Modules.Log.Message.EContentType.Info);
+            foreach (var item in AssemblyCache)
+                Modules.Log.System.Add("    " + item.Value.Location + " (" + item.Value + ")");
 
-            Modules.Log.System.Add("Fatal Errors: " + _errCount, Modules.Log.Message.EContentType.Info);
+            Modules.Log.System.Add("Fatal Errors: " + errCount);
         }
 
         private static System.Reflection.Assembly GetAssemblyByName(string name)
@@ -83,39 +96,37 @@ namespace Nyan.Core.Assembly
         private static System.Reflection.Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
 
+            if (args.RequestingAssembly != null)
+                Modules.Log.System.Add("        " + args.RequestingAssembly.FullName + ": Resolution request");
 
-            Modules.Log.System.Add("        " + args.RequestingAssembly.FullName + ": Resolution request");
             Modules.Log.System.Add("            Resolving " + args.Name);
             var shortName = args.Name.Split(',')[0];
-            var name = new AssemblyName();
+
             var probe = GetAssemblyByName(shortName);
 
             if (probe == null)
                 Modules.Log.System.Add("            ERROR");
             else
-                Modules.Log.System.Add("            OK      : " + probe.ToString());
+                Modules.Log.System.Add("            OK      : " + probe);
             return probe;
         }
 
-        private static void loadAssembliesFromDirectory(string path)
+        private static void LoadAssembliesFromDirectory(string path)
         {
             if (path == null) return;
 
 
-            if (path.IndexOf(";") > -1) //Semicolon-split list. Parse and process one by one.
+            if (path.IndexOf(";", StringComparison.Ordinal) > -1) //Semicolon-split list. Parse and process one by one.
             {
                 var list = path.Split(";".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList();
 
                 foreach (var item in list)
                 {
-                    loadAssembliesFromDirectory(item);
+                    LoadAssembliesFromDirectory(item);
                 }
             }
-            else {
-
-
-                Modules.Log.System.Add("Loading assemblies from [" + path + "]", Modules.Log.Message.EContentType.StartupSequence);
-
+            else
+            {
                 FileAttributes attr = File.GetAttributes(path);
 
                 //detect whether its a directory or file
@@ -127,33 +138,42 @@ namespace Nyan.Core.Assembly
 
                     foreach (var dll in assylist)
                     {
-                        loadAssemblyFromPath(dll);
+                        LoadAssemblyFromPath(dll);
                     }
                 }
                 else
                 {
                     //It's a file: Load it directly.
-                    loadAssemblyFromPath(path);
+                    LoadAssemblyFromPath(path);
                 }
             }
         }
 
-        private static void loadAssemblyFromPath(string path)
+        private static readonly Dictionary<string, string> UniqueAssemblies = new Dictionary<string, string>();
+
+        private static void LoadAssemblyFromPath(string path)
         {
             if (path == null) return;
 
             try
             {
-                var assy = System.Reflection.Assembly.LoadFrom(path);
+                var p = Path.GetFileName(path);
 
-                if (!_assys.ContainsKey(assy.ToString()))
-                    _assys.Add(assy.ToString(), assy);
+                if (UniqueAssemblies.ContainsKey(p)) return;
+
+                UniqueAssemblies.Add(p, path);
+
+                var assy = System.Reflection.Assembly.LoadFrom(path);
+                if (!AssemblyCache.ContainsKey(assy.ToString()))
+                    AssemblyCache.Add(assy.ToString(), assy);
             }
             catch (Exception e)
             {
-                if (e is ReflectionTypeLoadException)
+                var exception = e as ReflectionTypeLoadException;
+
+                if (exception != null)
                 {
-                    var typeLoadException = e as ReflectionTypeLoadException;
+                    var typeLoadException = exception;
                     var loaderExceptions = typeLoadException.LoaderExceptions.ToList();
 
                     if (loaderExceptions.Count > 0)
@@ -165,11 +185,8 @@ namespace Nyan.Core.Assembly
                 }
                 else
                     Modules.Log.System.Add("    Fail " + path + ": " + e.Message);
-
             }
         }
-
-        private static Dictionary<Type, List<Type>> InterfaceClassesCache = new Dictionary<Type, List<Type>>();
 
         /// <summary>
         /// Gets a list of classes by implemented interface/base class.
@@ -179,82 +196,81 @@ namespace Nyan.Core.Assembly
         /// <returns>The list of classes.</returns>
         public static List<Type> GetClassesByInterface<T>(bool excludeCoreNullDefinitions = true)
         {
-            var type = typeof(T);
-            var preRet = new List<Type>();
-            var ret = new List<Type>();
-
-
-            if (InterfaceClassesCache.ContainsKey(type))
-                return InterfaceClassesCache[type];
-
-            Modules.Log.System.Add("Scanning for " + type.ToString());
-
-            foreach (var item in _assys.Values)
+            lock (Lock)
             {
-                if (excludeCoreNullDefinitions && (item == System.Reflection.Assembly.GetExecutingAssembly())) continue;
 
-                Type[] preTypes;
+                var type = typeof(T);
+                var preRet = new List<Type>();
 
-                try
+                if (InterfaceClassesCache.ContainsKey(type))
+                    return InterfaceClassesCache[type];
+
+                Modules.Log.System.Add("Scanning for " + type);
+
+                foreach (var item in AssemblyCache.Values)
                 {
-                    preTypes = item.GetTypes();
-                }
-                catch (Exception e)
-                {
+                    if (excludeCoreNullDefinitions && (item == System.Reflection.Assembly.GetExecutingAssembly())) continue;
 
-                    if (e is System.Reflection.ReflectionTypeLoadException)
+                    Type[] preTypes;
+
+                    try
                     {
-                        var typeLoadException = e as ReflectionTypeLoadException;
-                        var loaderExceptions = typeLoadException.LoaderExceptions.ToList();
-
-                        if (loaderExceptions.Count > 0)
-                            Modules.Log.System.Add("    Fail " + item.ToString() + ": " + loaderExceptions[0].Message);
-                        else
-
-                            Modules.Log.System.Add("    Fail " + item.ToString() + ": Undefined.");
-
+                        preTypes = item.GetTypes();
                     }
-                    else
-                        Modules.Log.System.Add("    Fail " + item.ToString() + ": " + e.Message);
-                    // Well, this loading can fail by a (long) variety of reasons. 
-                    // It's not a real problem not to catch exceptions here. 
-                    continue;
+                    catch (Exception e)
+                    {
+
+                        if (e is ReflectionTypeLoadException)
+                        {
+                            var typeLoadException = e as ReflectionTypeLoadException;
+                            var loaderExceptions = typeLoadException.LoaderExceptions.ToList();
+
+                            if (loaderExceptions.Count > 0)
+                                Modules.Log.System.Add("    Fail " + item + ": " + loaderExceptions[0].Message);
+                            else
+
+                                Modules.Log.System.Add("    Fail " + item + ": Undefined.");
+
+                        }
+                        else
+                            Modules.Log.System.Add("    Fail " + item + ": " + e.Message);
+                        // Well, this loading can fail by a (long) variety of reasons. 
+                        // It's not a real problem not to catch exceptions here. 
+                        continue;
+                    }
+
+                    foreach (var item3 in preTypes)
+                    {
+                        if (item3.IsInterface) continue;
+                        if (!type.IsAssignableFrom(item3)) continue;
+                        if (type != item3) preRet.Add(item3);
+                    }
                 }
 
-                foreach (var item3 in preTypes)
+                var priorityList = new List<KeyValuePair<int, Type>>();
+
+                Modules.Log.System.Add("    " + preRet.Count + " [" + type + "] items");
+
+                foreach (var item in preRet)
                 {
-                    if (item3.IsInterface) continue;
-                    if (!type.IsAssignableFrom(item3)) continue;
-                    if (type != item3) preRet.Add(item3);
+                    var level = 0;
+
+                    var attrs = item.GetCustomAttributes(typeof(PriorityAttribute), true);
+
+                    if (attrs.Length > 0)
+                        level = ((PriorityAttribute)attrs[0]).Level;
+
+                    priorityList.Add(new KeyValuePair<int, Type>(level, item));
                 }
+
+                priorityList.Sort((firstPair, nextPair) => (nextPair.Key - firstPair.Key));
+
+                var ret = priorityList.Select(item => item.Value).ToList();
+
+                InterfaceClassesCache.Add(type, ret); // Caching results, so similar queries will return from cache
+
+                return ret;
             }
-
-            var priorityList = new List<KeyValuePair<int, Type>>();
-
-            Modules.Log.System.Add("    " + preRet.Count + " items");
-
-            foreach (var item in preRet)
-            {
-                var level = 0;
-
-                var attrs = item.GetCustomAttributes(typeof(PriorityAttribute), true);
-
-                if (attrs.Length > 0)
-                    level = ((PriorityAttribute)attrs[0]).Level;
-
-                priorityList.Add(new KeyValuePair<int, Type>(level, item));
-            }
-
-            priorityList.Sort((firstPair, nextPair) => (nextPair.Key - firstPair.Key));
-
-            foreach (var item in priorityList)
-            {
-                ret.Add(item.Value);
-            }
-
-            InterfaceClassesCache.Add(type, ret); // Caching results, so future queries will return form cache
-
-            return ret;
         }
     }
 }
