@@ -43,6 +43,27 @@ namespace Nyan.Modules.Data.Oracle
             }
         }
 
+        //private static OracleDbType ConvertGenericTypeToCustomType(DbGenericType type)
+        //{
+        //    switch (type)
+        //    {
+        //        case DbGenericType.String:
+        //            return OracleDbType.NVarchar2;
+        //        case DbGenericType.Fraction:
+        //            return OracleDbType.Decimal;
+        //        case DbGenericType.Number:
+        //            return OracleDbType.Int64;
+        //        case DbGenericType.Bool:
+        //            return OracleDbType.Int64; //Silly, I know, but Oracle doesn't support Boolean types.
+        //        case DbGenericType.DateTime:
+        //            return OracleDbType.TimeStamp;
+        //        case DbGenericType.LargeObject:
+        //            return OracleDbType.Blob;
+        //        default:
+        //            return OracleDbType.NVarchar2;
+        //    }
+        //}
+
         public override ParameterInformation CustomizeParameterInformation(ParameterInformation p)
         {
             p.TargetDatabaseType = ConvertGenericTypeToCustomType(p.Type);

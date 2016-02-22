@@ -174,7 +174,7 @@ namespace Nyan.Core.Extensions
 
                 if (vf.GetFileColumnNumber() != 0)
 
-                    ret += "[{0},{1}]".format(vf.GetFileColumnNumber(), vf.GetFileLineNumber());
+                    ret += "[L{1} C{0}]".format(vf.GetFileColumnNumber(), vf.GetFileLineNumber());
             }
 
             return ret;

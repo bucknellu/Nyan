@@ -21,7 +21,7 @@ namespace Nyan.Core.Settings
     {
         private static string _baseDirectory;
         private static string _dataDirectory;
-        private static string _WebApiCORSDomains;
+        private static string _webApiCorsDomains;
 
         static Current()
         {
@@ -35,11 +35,9 @@ namespace Nyan.Core.Settings
             catch { }
 
             var refObj = ResolveSettingsPackage();
-
-            var TraceInfo = new TraceInfoContainer();
-            TraceInfo.Gather();
-
-            Assembly = TraceInfo.BaseAssembly;
+            var traceInfo = new TraceInfoContainer();
+            traceInfo.Gather();
+            Assembly = traceInfo.BaseAssembly;
 
             Cache = refObj.Cache;
             Environment = refObj.Environment;
@@ -130,8 +128,8 @@ namespace Nyan.Core.Settings
 
         public static string WebApiCORSDomains
         {
-            get { return _WebApiCORSDomains; }
-            private set { _WebApiCORSDomains = value; }
+            get { return _webApiCorsDomains; }
+            private set { _webApiCorsDomains = value; }
         }
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)

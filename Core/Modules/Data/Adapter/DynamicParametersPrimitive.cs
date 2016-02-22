@@ -226,10 +226,10 @@ namespace Nyan.Core.Modules.Data.Adapter
             _sqlWhereClause = null; // Always reset WHERE clause.
             _sqlInClause = null; // Always reset IN clause.
 
-            if (value == null)
-            {
-                value = DBNull.Value;
-            }
+            //if (value == null)
+            //{
+            //    value = DBNull.Value;
+            //}
 
             if (dbType == null)
             {
@@ -292,7 +292,21 @@ namespace Nyan.Core.Modules.Data.Adapter
             public virtual object TargetDatabaseType { get; set; }
             public IDbDataParameter AttachedParameter { get; set; }
 
-            public override string ToString() { return "[{0}] : {1} ({2}=>{3})".format(Name, Value, Type, TargetDatabaseType); }
+            public override string ToString()
+            {
+
+                var _sign = "";
+
+                switch (ParameterDirection)
+                {
+                    case ParameterDirection.Input: _sign = "=>"; break;
+                    case ParameterDirection.Output: _sign = "<="; break;
+                    case ParameterDirection.InputOutput: _sign = "<>"; break;
+                    case ParameterDirection.ReturnValue: _sign = "<-"; break;
+                }
+
+                return "[{0}] : {1} (SYS:{2}{4}DB:{3})".format(Name, Value, Type, TargetDatabaseType, _sign);
+            }
         }
     }
 }
