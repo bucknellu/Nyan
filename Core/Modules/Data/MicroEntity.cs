@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
-using System.Data.SqlClient;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -144,14 +143,15 @@ namespace Nyan.Core.Modules.Data
             return ret;
         }
 
+
+
         /// <summary>
         ///     Search for a condition in database.
         /// </summary>
         /// <param name="predicate">A lambda expression.</param>
         public static IEnumerable<T> Where(Expression<Func<T, bool>> predicate)
         {
-            if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
-                throw new InvalidDataException("Class is not operational: {0}, {1}".format(Statements.Status.ToString(), Statements.StatusDescription));
+            ValidateEntityState();
 
             var body = predicate.Body as BinaryExpression;
 
@@ -175,6 +175,12 @@ namespace Nyan.Core.Modules.Data
             foreach (var o in ret) Current.Cache[CacheKey(o.GetEntityIdentifier())] = o.ToJson();
 
             return ret;
+        }
+
+        private static void ValidateEntityState()
+        {
+            if (Statements.State.Status != MicroEntityCompiledStatements.EStatus.Operational)
+                throw new InvalidDataException("Class is not operational: {0}, {1} ({2})".format(Statements.State.Status.ToString(), Statements.State.Description, Statements.State.Stack));
         }
 
         /// <summary>
@@ -280,8 +286,7 @@ break; */
         /// <returns>An enumeration with all the entries from database.</returns>
         public static IEnumerable<T> Get()
         {
-            if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
-                throw new InvalidDataException("Class is not operational: {0}, {1}".format(Statements.Status.ToString(), Statements.StatusDescription));
+            ValidateEntityState();
 
             //GetAll should never use cache, always hitting the DB.
             var ret = Query(Statements.SqlGetAll);
@@ -521,8 +526,7 @@ break; */
 
         public static List<IDictionary<string, object>> QueryObject(string sqlStatement)
         {
-            if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
-                throw new OperationCanceledException("Entity {0} in {1} state: {2}".format(GetTypeName(), Statements.Status.ToString(), Statements.StatusDescription));
+            ValidateEntityState();
 
             using (var conn = Statements.Adapter.Connection(Statements.ConnectionString))
             {
@@ -541,8 +545,7 @@ break; */
 
         public static List<List<Dictionary<string, object>>> QueryMultiple(string sqlStatement, object sqlParameters = null, CommandType pCommandType = CommandType.Text)
         {
-            if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
-                throw new OperationCanceledException("Entity {0} in {1} state: {2}".format(GetTypeName(), Statements.Status.ToString(), Statements.StatusDescription));
+            ValidateEntityState();
 
             var cDebug = "";
 
@@ -591,8 +594,7 @@ break; */
 
         public static List<T> Query(string sqlStatement, DynamicParametersPrimitive sqlParameters, CommandType pCommandType)
         {
-            if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
-                throw new OperationCanceledException("Entity {0} in {1} state: {2}".format(GetTypeName(), Statements.Status.ToString(), Statements.StatusDescription));
+            ValidateEntityState();
 
             var dbConn = "";
 
@@ -622,8 +624,7 @@ break; */
 
         private static void DumpQuery(string sqlStatement, string dbConnection, object parms, Exception e)
         {
-            if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
-                throw new OperationCanceledException("Entity {0} in {1} state: {2}".format(GetTypeName(), Statements.Status.ToString(), Statements.StatusDescription));
+            ValidateEntityState();
 
             var sguid = Identifier.MiniGuid();
 
@@ -640,7 +641,14 @@ break; */
 
             while (errRef != null)
             {
-                Current.Log.Add(sguid + " EX [" + e.Message + "]", Message.EContentType.Warning);
+
+                var errStatement = e.Message
+                    .Replace(System.Environment.NewLine, " | ")
+                    .Replace("\t", " | ")
+                    .Replace("\n", " | ")
+                    .Trim();
+
+                Current.Log.Add(sguid + " EX [" + errStatement + "]", Message.EContentType.Warning);
                 errRef = e.InnerException;
 
             }
@@ -653,8 +661,7 @@ break; */
 
         public static void Execute(string sqlStatement, DynamicParametersPrimitive sqlParameters = null, CommandType pCommandType = CommandType.Text)
         {
-            if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
-                throw new OperationCanceledException("Entity {0} in {1} state: {2}".format(GetTypeName(), Statements.Status.ToString(), Statements.StatusDescription));
+            ValidateEntityState();
 
             var dbConn = "";
 
@@ -709,8 +716,7 @@ break; */
 
         public static List<TU> Query<TU>(string sqlStatement, object sqlParameters = null, CommandType pCommandType = CommandType.Text)
         {
-            if (Statements.Status != MicroEntityCompiledStatements.EStatus.Operational)
-                throw new OperationCanceledException("Entity {0} in {1} state: {2}".format(GetTypeName(), Statements.Status.ToString(), Statements.StatusDescription));
+            ValidateEntityState();
 
             try
             {
@@ -838,8 +844,8 @@ break; */
                 try
                 {
                     ClassRegistration.TryAdd(typeof(T), new MicroEntityCompiledStatements());
-                    Statements.Status = MicroEntityCompiledStatements.EStatus.Initializing;
-                    Statements.StatusStep = "Instantiating ColumnAttributeTypeMapper";
+                    Statements.State.Status = MicroEntityCompiledStatements.EStatus.Initializing;
+                    Statements.State.Step = "Instantiating ColumnAttributeTypeMapper";
 
                     if (TableData.Label != null)
                         Statements.Label = TableData.Label;
@@ -877,7 +883,7 @@ break; */
                         refType.ValidateDatabase();
                         LogLocal("Reading Connection bundle [" + refType.GetType().Name + "]");
 
-                        Statements.StatusStep = "Transferring configuration settings from Bundle to Entity Statements";
+                        Statements.State.Step = "Transferring configuration settings from Bundle to Entity Statements";
 
                         Statements.Adapter = (DataAdapterPrimitive)Activator.CreateInstance(refType.AdapterType);
                         Statements.ConnectionCypherKeys = refType.ConnectionCypherKeys;
@@ -887,17 +893,24 @@ break; */
                             if (refType.ConnectionCypherKeys != null)
                                 Statements.CredentialCypherKeys = refType.ConnectionCypherKeys;
                         }
+                        else
+                        {
+                            Statements.CredentialCypherKeys = new Dictionary<string, string>();
+                        }
 
-                        LogLocal(Statements.CredentialCypherKeys.Count + " CyperKeys");
+                        LogLocal(Statements.CredentialCypherKeys.Count + " CypherKeys");
                     }
                     else
                     {
-                        Statements.Status = MicroEntityCompiledStatements.EStatus.CriticalFailure;
-                        Statements.StatusDescription = "No connection bundle specified.";
+                        Statements.State.Status = MicroEntityCompiledStatements.EStatus.CriticalFailure;
+                        Statements.State.Description = "No connection bundle specified.";
                         return;
                     }
 
                     //Then pick Credential sets
+
+                    Statements.State.Step = "determining CredentialSets to use";
+
                     Statements.CredentialSet = Factory.GetCredentialSetPerConnectionBundle(Statements.Bundle, TableData.CredentialSetType);
                     Statements.CredentialCypherKeys = Statements.CredentialSet.CredentialCypherKeys;
 
@@ -920,7 +933,7 @@ break; */
                     if (identifierColumnName != null)
                     {
 
-                        Statements.StatusStep = "Resolving Identifier";
+                        Statements.State.Step = "Resolving Identifier";
 
                         var mapEntry = Statements.PropertyFieldMap.FirstOrDefault(p => p.Value.ToLower().Equals(identifierColumnName.ToLower()));
 
@@ -935,20 +948,20 @@ break; */
                         if (TableData.TableName != null)
                         {
                             LogLocal("Missing [Key] definition", Message.EContentType.Warning);
-                            throw new ConfigurationErrorsException("Entity is missing a [Key] definition.");
+                            throw new ConfigurationErrorsException(GetTypeName() + ": Entity (with Table name {0}) is missing a [Key] definition.".format(TableData.TableName));
                         }
                     }
 
-                    Statements.StatusStep = "Preparing Schema entities";
+                    Statements.State.Step = "Preparing Schema entities";
                     Statements.Adapter.RenderSchemaEntityNames<T>();
 
                     if (TableData.TableName != null)
                     {
-                        Statements.StatusStep = "Setting SQL statements";
+                        Statements.State.Step = "Setting SQL statements";
                         Statements.Adapter.SetSqlStatements<T>();
                     }
 
-                    Statements.StatusStep = "Checking Connection";
+                    Statements.State.Step = "Checking Connection";
                     Statements.Adapter.SetConnectionString<T>();
 
                     using (var conn = Statements.Adapter.Connection(Statements.ConnectionString))
@@ -970,34 +983,38 @@ break; */
                     {
                         if (TableData.AutoGenerateMissingSchema)
                         {
-                            Statements.StatusStep = "Checking database entities";
+                            Statements.State.Step = "Checking database entities";
                             LogLocal("schema check [" + Statements.Adapter.GetType().Name + "]");
                             Statements.Adapter.CheckDatabaseEntities<T>();
                         }
                     }
 
-                    Statements.StatusStep = "Calling initialization hooks";
+                    Statements.State.Step = "Calling initialization hooks";
                     OnEntityInitializationHook();
 
                     Current.Environment.EnvironmentChanged += Environment_EnvironmentChanged;
 
                     LogLocal("INIT OK", Message.EContentType.Info);
 
-                    Statements.Status = MicroEntityCompiledStatements.EStatus.Operational;
+                    Statements.State.Status = MicroEntityCompiledStatements.EStatus.Operational;
                 }
                 catch (Exception e)
                 {
-                    Statements.Status = MicroEntityCompiledStatements.EStatus.CriticalFailure;
-                    Statements.StatusDescription = typeof(T).FullName + " : Error while " + Statements.StatusStep + " - " + e.Message;
+                    Statements.State.Status = MicroEntityCompiledStatements.EStatus.CriticalFailure;
+                    Statements.State.Description = typeof(T).FullName + " : Error while " + Statements.State.Step + " - " + e.Message;
+                    Statements.State.Stack = new StackTrace(e, true).FancyString();
+
+                    Log.System.Add(Statements.State.Description);
+                    Log.System.Add("    " + Statements.State.Stack);
 
                     var refEx = e;
                     while (refEx.InnerException != null)
                     {
                         refEx = e.InnerException;
-                        Statements.StatusDescription += " / " + refEx.Message;
+                        Statements.State.Description += " / " + refEx.Message;
                     }
 
-                    Current.Log.Add(Statements.StatusDescription, Message.EContentType.Exception);
+                    Current.Log.Add(Statements.State.Description, Message.EContentType.Exception);
 
                     LogLocal("INIT FAIL", Message.EContentType.Warning);
 
