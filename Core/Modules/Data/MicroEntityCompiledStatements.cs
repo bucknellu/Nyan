@@ -16,6 +16,16 @@ namespace Nyan.Core.Modules.Data
             CriticalFailure
         }
 
+        public class MicroEntityState
+        {
+            public EStatus Status { get; internal set; }
+            protected internal string Description { get; internal set; }
+            protected internal string Step { get; internal set; }
+            protected internal string Stack { get; internal set; }
+
+            public MicroEntityState() { Status = EStatus.Undefined; }
+        }
+
         protected internal DataAdapterPrimitive Adapter;
         protected internal ConnectionBundlePrimitive Bundle;
         protected internal CredentialSetPrimitive CredentialSet;
@@ -57,8 +67,7 @@ namespace Nyan.Core.Modules.Data
         public string SqlTruncateTable;
         public string SqlUpdateSingle;
 
-        public EStatus Status { get; internal set; }
-        protected internal string StatusDescription { get; internal set; }
-        protected internal string StatusStep { get; internal set; }
+        public MicroEntityState State = new MicroEntityState();
+
     }
 }
