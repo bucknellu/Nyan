@@ -143,6 +143,7 @@ namespace Nyan.Core.Assembly
                     var watcher = new FileSystemWatcher
                     {
                         Path = path,
+                        IncludeSubdirectories = false,
                         NotifyFilter = NotifyFilters.LastWrite,
                         Filter = "*.*"
                     };
