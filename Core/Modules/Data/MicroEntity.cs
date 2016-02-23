@@ -882,23 +882,9 @@ break; */
 
                         refType.ValidateDatabase();
                         LogLocal("Reading Connection bundle [" + refType.GetType().Name + "]");
-
                         Statements.State.Step = "Transferring configuration settings from Bundle to Entity Statements";
-
                         Statements.Adapter = (DataAdapterPrimitive)Activator.CreateInstance(refType.AdapterType);
                         Statements.ConnectionCypherKeys = refType.ConnectionCypherKeys;
-
-                        if (Statements.CredentialCypherKeys.Count == 0)
-                        {
-                            if (refType.ConnectionCypherKeys != null)
-                                Statements.CredentialCypherKeys = refType.ConnectionCypherKeys;
-                        }
-                        else
-                        {
-                            Statements.CredentialCypherKeys = new Dictionary<string, string>();
-                        }
-
-                        LogLocal(Statements.CredentialCypherKeys.Count + " CypherKeys");
                     }
                     else
                     {
@@ -910,7 +896,6 @@ break; */
                     //Then pick Credential sets
 
                     Statements.State.Step = "determining CredentialSets to use";
-
                     Statements.CredentialSet = Factory.GetCredentialSetPerConnectionBundle(Statements.Bundle, TableData.CredentialSetType);
                     Statements.CredentialCypherKeys = Statements.CredentialSet.CredentialCypherKeys;
 
