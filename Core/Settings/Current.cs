@@ -118,7 +118,13 @@ namespace Nyan.Core.Settings
                     }
                 }
 
-                if (_dataDirectory == null) _dataDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                if (_dataDirectory == null)
+                {
+                    _dataDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location ) + "\\data";
+                    
+                    if (!Directory.Exists(_dataDirectory))
+                        Directory.CreateDirectory(_dataDirectory);
+                }
 
                 return _dataDirectory;
             }
