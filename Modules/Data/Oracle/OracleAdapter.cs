@@ -1,12 +1,15 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
 using System.Reflection;
 using System.Text;
 using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Data;
 using Nyan.Core.Modules.Data.Adapter;
-using System;
-using System.Data.Common;
+using Nyan.Core.Modules.Log;
+using Nyan.Core.Settings;
 using Oracle.ManagedDataAccess.Client;
 
 namespace Nyan.Modules.Data.Oracle
@@ -21,7 +24,7 @@ namespace Nyan.Modules.Data.Oracle
             sqlTemplateInsertSingleWithReturn = "INSERT INTO {0} ({1}) VALUES ({2}) RETURNING CAST({3} AS VARCHAR2(38) ) INTO {4}newid";
             sqlTemplateTableTruncate = "TRUNCATE TABLE {0}"; //No such thing as TRUNCATE on SQLite, but open DELETE works the same way.
 
-            dynamicParameterType = typeof(OracleDynamicParameters);
+            dynamicParameterType = typeof (OracleDynamicParameters);
         }
 
         public override void CheckDatabaseEntities<T>()
@@ -38,7 +41,7 @@ namespace Nyan.Modules.Data.Oracle
 
                 if (tableCount != 0) return;
 
-                Core.Settings.Current.Log.Add(typeof(T).FullName + " : Initializing schema");
+                Current.Log.Add(typeof (T).FullName + " : Initializing schema");
 
                 //Create sequence.
                 var seqName = MicroEntity<T>.Statements.SchemaElements["Sequence"].Value;
@@ -54,7 +57,7 @@ namespace Nyan.Modules.Data.Oracle
                 //bool isRCTSFound = false;
                 //bool isRUTSFound = false;
 
-                foreach (var prop in typeof(T).GetProperties())
+                foreach (var prop in typeof (T).GetProperties())
                 {
                     var pType = prop.PropertyType;
                     var pDestinyType = "VARCHAR2(255)";
@@ -64,13 +67,12 @@ namespace Nyan.Modules.Data.Oracle
                     if (pType.IsPrimitiveType())
                     {
                         if (pType.IsArray) continue;
-                        if (!(typeof(string) == pType) && typeof(IEnumerable).IsAssignableFrom(pType)) continue;
-                        if (typeof(ICollection).IsAssignableFrom(pType)) continue;
-                        if (typeof(IList).IsAssignableFrom(pType)) continue;
-                        if (typeof(IDictionary).IsAssignableFrom(pType)) continue;
+                        if (!(typeof (string) == pType) && typeof (IEnumerable).IsAssignableFrom(pType)) continue;
+                        if (typeof (ICollection).IsAssignableFrom(pType)) continue;
+                        if (typeof (IList).IsAssignableFrom(pType)) continue;
+                        if (typeof (IDictionary).IsAssignableFrom(pType)) continue;
 
-                        if (pType.BaseType != null &&
-                            (typeof(IList).IsAssignableFrom(pType.BaseType) && pType.BaseType.IsGenericType)) continue;
+                        if (pType.BaseType != null && typeof (IList).IsAssignableFrom(pType.BaseType) && pType.BaseType.IsGenericType) continue;
 
                         var isNullable = false;
 
@@ -84,14 +86,14 @@ namespace Nyan.Modules.Data.Oracle
                             pType = nullProbe;
                         }
 
-                        if (pType == typeof(long)) pDestinyType = "NUMBER (20)";
-                        if (pType == typeof(int)) pDestinyType = "NUMBER (20)";
-                        if (pType == typeof(DateTime)) pDestinyType = "TIMESTAMP";
-                        if (pType == typeof(bool)) pDestinyType = "NUMBER (1) DEFAULT 0";
-                        if (pType == typeof(object)) pDestinyType = "BLOB";
+                        if (pType == typeof (long)) pDestinyType = "NUMBER (20)";
+                        if (pType == typeof (int)) pDestinyType = "NUMBER (20)";
+                        if (pType == typeof (DateTime)) pDestinyType = "TIMESTAMP";
+                        if (pType == typeof (bool)) pDestinyType = "NUMBER (1) DEFAULT 0";
+                        if (pType == typeof (object)) pDestinyType = "BLOB";
                         if (pType.IsEnum) pDestinyType = "NUMBER (10)";
 
-                        if (pType == typeof(string)) isNullable = true;
+                        if (pType == typeof (string)) isNullable = true;
 
                         if (MicroEntity<T>.Statements.PropertyFieldMap.ContainsKey(pSourceName))
                             pSourceName = MicroEntity<T>.Statements.PropertyFieldMap[pSourceName];
@@ -138,12 +140,11 @@ namespace Nyan.Modules.Data.Oracle
 
                 try
                 {
-                    Core.Settings.Current.Log.Add(typeof(T).FullName + " : Creating table " + tn);
+                    Current.Log.Add(typeof (T).FullName + " : Creating table " + tn);
                     MicroEntity<T>.Execute(tableRender.ToString());
-                }
-                catch (Exception e)
+                } catch (Exception e)
                 {
-                    Core.Settings.Current.Log.Add(e);
+                    Current.Log.Add(e);
                 }
 
                 if (MicroEntity<T>.Statements.IdColumn != null)
@@ -151,19 +152,15 @@ namespace Nyan.Modules.Data.Oracle
                     try
                     {
                         MicroEntity<T>.Execute("DROP SEQUENCE " + seqName);
-                    }
-                    catch
-                    {
-                    }
+                    } catch {}
 
                     try
                     {
-                        Core.Settings.Current.Log.Add(typeof(T).FullName + " : Creating Sequence " + seqName);
+                        Current.Log.Add(typeof (T).FullName + " : Creating Sequence " + seqName);
                         MicroEntity<T>.Execute("CREATE SEQUENCE " + seqName);
-                    }
-                    catch (Exception e)
+                    } catch (Exception e)
                     {
-                        Core.Settings.Current.Log.Add(e);
+                        Current.Log.Add(e);
                     }
 
                     //Primary Key
@@ -172,12 +169,11 @@ namespace Nyan.Modules.Data.Oracle
 
                     try
                     {
-                        Core.Settings.Current.Log.Add(typeof(T).FullName + " : Adding Primary Key constraint " + pkName + " (" + MicroEntity<T>.Statements.IdColumn + ")");
+                        Current.Log.Add(typeof (T).FullName + " : Adding Primary Key constraint " + pkName + " (" + MicroEntity<T>.Statements.IdColumn + ")");
                         MicroEntity<T>.Execute(pkStat);
-                    }
-                    catch (Exception e)
+                    } catch (Exception e)
                     {
-                        Core.Settings.Current.Log.Add(e);
+                        Current.Log.Add(e);
                     }
                 }
                 //Trigger
@@ -201,14 +197,15 @@ namespace Nyan.Modules.Data.Oracle
 
                 try
                 {
-                    Core.Settings.Current.Log.Add(typeof(T).FullName + " : Adding BI Trigger " + MicroEntity<T>.Statements.SchemaElements["BeforeInsertTrigger"].Value);
-                    MicroEntity<T>.Execute(string.Format(trigStat,
-                        MicroEntity<T>.Statements.SchemaElements["BeforeInsertTrigger"].Value, tn, seqName,
-                        MicroEntity<T>.Statements.IdColumn));
-                }
-                catch (Exception e)
+                    Current.Log.Add(typeof (T).FullName + " : Adding BI Trigger " + MicroEntity<T>.Statements.SchemaElements["BeforeInsertTrigger"].Value);
+                    MicroEntity<T>.Execute(
+                        string.Format(trigStat,
+                            MicroEntity<T>.Statements.SchemaElements["BeforeInsertTrigger"].Value, tn, seqName,
+                            MicroEntity<T>.Statements.IdColumn));
+
+                } catch (Exception e)
                 {
-                    Core.Settings.Current.Log.Add(e);
+                    Current.Log.Add(e);
                 }
 
                 trigStat =
@@ -221,24 +218,22 @@ namespace Nyan.Modules.Data.Oracle
 
                 try
                 {
-                    Core.Settings.Current.Log.Add(typeof(T).FullName + " : Adding BU Trigger " + MicroEntity<T>.Statements.SchemaElements["BeforeUpdateTrigger"].Value);
+                    Current.Log.Add(typeof (T).FullName + " : Adding BU Trigger " + MicroEntity<T>.Statements.SchemaElements["BeforeUpdateTrigger"].Value);
 
                     MicroEntity<T>.Execute(string.Format(trigStat,
-                    MicroEntity<T>.Statements.SchemaElements["BeforeUpdateTrigger"].Value, tn, seqName,
-                    MicroEntity<T>.Statements.IdColumn));
-                }
-                catch (Exception e)
+                        MicroEntity<T>.Statements.SchemaElements["BeforeUpdateTrigger"].Value, tn, seqName,
+                        MicroEntity<T>.Statements.IdColumn));
+                } catch (Exception e)
                 {
-                    Core.Settings.Current.Log.Add(e);
+                    Current.Log.Add(e);
                 }
-
 
                 //Now, add comments to everything.
 
                 var ocld = " - ";
                 var ocfld = ";";
                 var commentStat =
-                    "COMMENT ON TABLE " + tn + " IS 'Auto-generated table for Entity " + typeof(T).FullName + ".'" +
+                    "COMMENT ON TABLE " + tn + " IS 'Auto-generated table for Entity " + typeof (T).FullName + ".'" +
                     ocld +
                     "'Supporting structures:' " + ocld +
                     "'    Sequence: " + seqName + "'" + ocld +
@@ -251,33 +246,23 @@ namespace Nyan.Modules.Data.Oracle
                 try
                 {
                     MicroEntity<T>.Execute(commentStat);
-                }
-                catch
-                {
-                }
+                } catch {}
 
                 //'Event' hook for post-schema initialization procedure:
                 try
                 {
-                    typeof(T).GetMethod("OnSchemaInitialization", BindingFlags.Public | BindingFlags.Static)
+                    typeof (T).GetMethod("OnSchemaInitialization", BindingFlags.Public | BindingFlags.Static)
                         .Invoke(null, null);
-                }
-                catch
-                {
-                }
-            }
-            catch (Exception e)
+                } catch {}
+            } catch (Exception e)
             {
-                Core.Settings.Current.Log.Add("  Schema render Error: ", Core.Modules.Log.Message.EContentType.Warning);
-                Core.Settings.Current.Log.Add(e);
+                Current.Log.Add("  Schema render Error: ", Message.EContentType.Warning);
+                Current.Log.Add(e);
                 throw;
             }
         }
 
-        public override DbConnection Connection(string connectionString)
-        {
-            return new OracleConnection(connectionString);
-        }
+        public override DbConnection Connection(string connectionString) { return new OracleConnection(connectionString); }
 
         public override void RenderSchemaEntityNames<T>()
         {
