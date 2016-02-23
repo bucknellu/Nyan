@@ -13,35 +13,9 @@ namespace Nyan.Core.Modules.Data.Adapter
 {
     public abstract class DataAdapterPrimitive
     {
-        // ReSharper disable InconsistentNaming
-        private DynamicParametersPrimitive ParameterSourceType;
-        protected internal Type dynamicParameterType = null;
-        protected internal string sqlTemplateAllFieldsQuery = "SELECT * FROM {0} WHERE ({1})";
-        protected internal string sqlTemplateCustomSelectQuery = "SELECT {0} FROM {2} WHERE ({1})";
-        protected internal string sqlTemplateGetAll = "SELECT * FROM {0}";
-        protected internal string sqlTemplateGetSingle = "SELECT * FROM {0} WHERE {1} = {2}Id";
-        protected internal string sqlTemplateInsertSingle = "INSERT INTO {0} ({1}) VALUES ({2})";
-        protected internal string sqlTemplateInsertSingleWithReturn = "INSERT INTO {0} ({1}) VALUES ({2}); select last_insert_rowid() as {4}newid";
-        protected internal string sqlTemplateRemoveSingleParametrized = "DELETE FROM {0} WHERE {1} = {2}Id";
-        protected internal string sqlTemplateReturnNewIdentifier = "select last_insert_rowid() as newid";
-        protected internal string sqlTemplateTableTruncate = "TRUNCATE TABLE {0}";
-        protected internal string sqlTemplateUpdateSingle = "UPDATE {0} SET {1} WHERE {2} = {3}";
+        public bool UseOutputParameterForInsertedKeyExtraction { get { return useOutputParameterForInsertedKeyExtraction; } }
 
-        protected internal bool useIndependentStatementsForKeyExtraction = false;
-        protected internal bool useNumericPrimaryKeyOnly = false;
-        protected internal bool useOutputParameterForInsertedKeyExtraction = false;
-
-        // ReSharper restore InconsistentNaming
-
-        public bool UseOutputParameterForInsertedKeyExtraction
-        {
-            get { return useOutputParameterForInsertedKeyExtraction; }
-        }
-
-        public ParameterDefinition ParameterDefinition
-        {
-            get { return ParameterSource.ParameterDefinition; }
-        }
+        public ParameterDefinition ParameterDefinition { get { return ParameterSource.ParameterDefinition; } }
 
         private DynamicParametersPrimitive ParameterSource
         {
@@ -97,13 +71,15 @@ namespace Nyan.Core.Modules.Data.Adapter
                             canAddField = tableData.IsInsertableIdentifier;
 
                         if (!canAddField)
+                        {
                             if (field.Key.ToLower().Equals(statements.IdPropertyRaw.ToLower()))
                                 canAddField = tableData.IsInsertableIdentifier;
+                        }
                     }
 
                     if (!canAddField) continue;
 
-                    var canInsField = (!banList.Exists(t => t.ToLower().Equals(field.Value.ToLower())));
+                    var canInsField = !banList.Exists(t => t.ToLower().Equals(field.Value.ToLower()));
 
                     if (canInsField)
                     {
@@ -142,6 +118,14 @@ namespace Nyan.Core.Modules.Data.Adapter
 
             if (envCode == "UND") envCode = "DEV";
 
+            if (!statements.ConnectionCypherKeys.ContainsKey(envCode))
+            {
+                if (statements.ConnectionCypherKeys.ContainsKey("STD")) //There is a standard code available.
+                    envCode = "STD";
+                else
+                    throw new ArgumentException("No connection key provided for environment [{0}]".format(envCode));
+            }
+
             statements.ConnectionString = statements.ConnectionCypherKeys[envCode];
 
             try
@@ -158,8 +142,6 @@ namespace Nyan.Core.Modules.Data.Adapter
             }
             catch { }
 
-
-
             if (statements.ConnectionString == "")
                 throw new ArgumentNullException(@"Connection Cypher Key not set for " + typeof(T).FullName + ". Check class definition/configuration files.");
 
@@ -167,10 +149,8 @@ namespace Nyan.Core.Modules.Data.Adapter
 
             //Handling credentials
 
-            if (statements.ConnectionString.IndexOf("{credentials}") == -1)
-            {
+            if (statements.ConnectionString.IndexOf("{credentials}", StringComparison.Ordinal) == -1)
                 Current.Log.Add("[{0}] {1}: Credentials set, but no placeholder found on connection string. Skipping.".format(envCode, typeof(T).FullName), Message.EContentType.Warning);
-            }
 
             statements.CredentialsString = statements.CredentialCypherKeys[envCode];
 
@@ -216,8 +196,7 @@ namespace Nyan.Core.Modules.Data.Adapter
                 {
                     if (typeof(IList).IsAssignableFrom(type) && type.IsGenericType) continue;
                     if (typeof(IDictionary<,>).IsAssignableFrom(type)) continue;
-                    if (type.BaseType != null &&
-                        (typeof(IList).IsAssignableFrom(type.BaseType) && type.BaseType.IsGenericType))
+                    if (type.BaseType != null && typeof(IList).IsAssignableFrom(type.BaseType) && type.BaseType.IsGenericType)
                         continue;
 
                     var nullProbe = Nullable.GetUnderlyingType(type);
@@ -282,8 +261,7 @@ namespace Nyan.Core.Modules.Data.Adapter
                     if (typeof(IList).IsAssignableFrom(type) && type.IsGenericType) continue;
                     if (typeof(IDictionary<,>).IsAssignableFrom(type)) continue;
 
-                    if (type.BaseType != null &&
-                        (typeof(IList).IsAssignableFrom(type.BaseType) && type.BaseType.IsGenericType))
+                    if (type.BaseType != null && typeof(IList).IsAssignableFrom(type.BaseType) && type.BaseType.IsGenericType)
                         continue;
 
                     var nullProbe = Nullable.GetUnderlyingType(type);
@@ -305,7 +283,7 @@ namespace Nyan.Core.Modules.Data.Adapter
                     else if (type == typeof(bool))
                         pTargetCustomType = DynamicParametersPrimitive.DbGenericType.Bool;
                     else if (type == typeof(Guid))
-                        pSourceValue = (pSourceValue == null ? null : pSourceValue.ToString());
+                        pSourceValue = pSourceValue == null ? null : pSourceValue.ToString();
 
                     ret.Add(pSourceName, pSourceValue, pTargetCustomType, ParameterDirection.Input);
                 }
@@ -319,5 +297,25 @@ namespace Nyan.Core.Modules.Data.Adapter
             }
             return ret;
         }
+
+        // ReSharper disable InconsistentNaming
+        private DynamicParametersPrimitive ParameterSourceType;
+        protected internal Type dynamicParameterType = null;
+        protected internal string sqlTemplateAllFieldsQuery = "SELECT * FROM {0} WHERE ({1})";
+        protected internal string sqlTemplateCustomSelectQuery = "SELECT {0} FROM {2} WHERE ({1})";
+        protected internal string sqlTemplateGetAll = "SELECT * FROM {0}";
+        protected internal string sqlTemplateGetSingle = "SELECT * FROM {0} WHERE {1} = {2}Id";
+        protected internal string sqlTemplateInsertSingle = "INSERT INTO {0} ({1}) VALUES ({2})";
+        protected internal string sqlTemplateInsertSingleWithReturn = "INSERT INTO {0} ({1}) VALUES ({2}); select last_insert_rowid() as {4}newid";
+        protected internal string sqlTemplateRemoveSingleParametrized = "DELETE FROM {0} WHERE {1} = {2}Id";
+        protected internal string sqlTemplateReturnNewIdentifier = "select last_insert_rowid() as newid";
+        protected internal string sqlTemplateTableTruncate = "TRUNCATE TABLE {0}";
+        protected internal string sqlTemplateUpdateSingle = "UPDATE {0} SET {1} WHERE {2} = {3}";
+
+        protected internal bool useIndependentStatementsForKeyExtraction = false;
+        protected internal bool useNumericPrimaryKeyOnly = false;
+        protected internal bool useOutputParameterForInsertedKeyExtraction = false;
+
+        // ReSharper restore InconsistentNaming
     }
 }
