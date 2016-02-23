@@ -1,8 +1,10 @@
-﻿using Nyan.Core.Assembly;
-using Nyan.Core.Extensions;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Nyan.Core.Assembly;
+using Nyan.Core.Extensions;
+using Nyan.Core.Modules.Log;
+using Nyan.Core.Settings;
 
 namespace Nyan.Core.Modules.Data.Connection
 {
@@ -10,13 +12,13 @@ namespace Nyan.Core.Modules.Data.Connection
     {
         public static CredentialSetPrimitive GetCredentialSetPerConnectionBundle(ConnectionBundlePrimitive pConn, Type pPrefCredSetType = null)
         {
-            CredentialSetPrimitive ret = new CredentialSetPrimitive();
-            ret.CredentialCypherKeys = new Dictionary<string, string>();
-            ret.AssociatedBundleType = pConn.GetType();
+            var ret = new CredentialSetPrimitive
+            {
+                CredentialCypherKeys = new Dictionary<string, string>(),
+                AssociatedBundleType = pConn.GetType()
+            };
 
-            List<Type> probeTypes = new List<Type>();
-            List<CredentialSetPrimitive> creds = new List<CredentialSetPrimitive>();
-            List<CredentialSetPrimitive> tmpCreds = new List<CredentialSetPrimitive>();
+            var probeTypes = new List<Type>();
 
             if (pPrefCredSetType != null)
                 probeTypes.Add(pPrefCredSetType);
@@ -26,32 +28,21 @@ namespace Nyan.Core.Modules.Data.Connection
             probeTypes = probeTypes.Concat(scanModules).ToList();
 
             // Create instances for all probed Credential types;
-            foreach (var i in probeTypes)
-            {
-                var a = i.CreateInstance<CredentialSetPrimitive>();
-                creds.Add(a);
-            }
+            var creds = probeTypes.Select(i => i.CreateInstance<CredentialSetPrimitive>()).ToList();
 
             // Filter Instances out, based on target Connection Bundle:
 
-
-            foreach (var i in creds)
-            {
-                if (i.AssociatedBundleType.ToString() == ret.AssociatedBundleType.ToString())
-                    tmpCreds.Add(i);
-            }
+            var tmpCreds = creds.Where(i => i.AssociatedBundleType.ToString() == ret.AssociatedBundleType.ToString()).ToList();
 
             creds = tmpCreds;
 
             // now, compile all entries, using definition order;
 
             if (creds.Count > 0)
-                Settings.Current.Log.Add("    Credential set(s) found for " + ret.AssociatedBundleType.ToString(), Log.Message.EContentType.Info);
+                Current.Log.Add("[" + ret.AssociatedBundleType + "] Credential sets: " + string.Join(",", creds.Select(i=> "[" + i.GetType().Name + "]")), Message.EContentType.Info);
 
             foreach (var i in creds)
             {
-                Settings.Current.Log.Add("        " + i.GetType().ToString(), Log.Message.EContentType.MoreInfo);
-
                 foreach (var ii in i.CredentialCypherKeys)
                 {
                     if (!ret.CredentialCypherKeys.ContainsKey(ii.Key))
