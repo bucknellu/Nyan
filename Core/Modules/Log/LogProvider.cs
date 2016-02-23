@@ -81,7 +81,8 @@ namespace Nyan.Core.Modules.Log
                     System.Add(e); // Log locally.
                 }
 
-                _messageQueue.Dequeue();
+                if (_messageQueue.Count != 0)
+                    _messageQueue.Dequeue();
 
             }
         }
@@ -139,9 +140,9 @@ namespace Nyan.Core.Modules.Log
         }
         public virtual void doDispatchCycle(Message payload)
         {
-            BeforeDispatch(payload);
-            Dispatch(payload);
-            AfterDispatch(payload);
+            try { BeforeDispatch(payload); } catch { }
+            try { Dispatch(payload); } catch { }
+            try { AfterDispatch(payload); } catch { }
         }
 
         public virtual void Add(string content, Message.EContentType type = Message.EContentType.Generic)
