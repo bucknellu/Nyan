@@ -17,9 +17,10 @@ using Nyan.Core.Modules.Data.Adapter;
 using Nyan.Core.Modules.Data.Connection;
 using Nyan.Core.Modules.Data.Operators;
 using Nyan.Core.Modules.Data.Operators.AnsiSql;
-using Nyan.Core.Modules.Log;
 using Nyan.Core.Settings;
 using System.Diagnostics;
+using System.Windows.Forms;
+using Message = Nyan.Core.Modules.Log.Message;
 
 namespace Nyan.Core.Modules.Data
 {
@@ -179,7 +180,8 @@ namespace Nyan.Core.Modules.Data
 
         private static void ValidateEntityState()
         {
-            if (Statements.State.Status != MicroEntityCompiledStatements.EStatus.Operational)
+            if (Statements.State.Status != MicroEntityCompiledStatements.EStatus.Operational &&
+                Statements.State.Status != MicroEntityCompiledStatements.EStatus.Initializing)
                 throw new InvalidDataException("Class is not operational: {0}, {1} ({2})".format(Statements.State.Status.ToString(), Statements.State.Description, Statements.State.Stack));
         }
 
@@ -839,6 +841,8 @@ break; */
 
         static MicroEntity()
         {
+            var si = new Dictionary<string, string>();
+
             lock (AccessLock)
             {
                 try
@@ -846,6 +850,7 @@ break; */
                     ClassRegistration.TryAdd(typeof(T), new MicroEntityCompiledStatements());
                     Statements.State.Status = MicroEntityCompiledStatements.EStatus.Initializing;
                     Statements.State.Step = "Instantiating ColumnAttributeTypeMapper";
+
 
                     if (TableData.Label != null)
                         Statements.Label = TableData.Label;
@@ -857,7 +862,13 @@ break; */
                     var cat = new ColumnAttributeTypeMapper<T>();
                     SqlMapper.SetTypeMap(typeof(T), cat);
 
-                    Current.Log.Add("{0} : INIT START {2}".format(typeof(T).FullName, System.Environment.MachineName, Current.Environment.Current.Code != "UND" ? " (" + Current.Environment.Current + ")" : ""), Message.EContentType.Info);
+                    si["Machine"] = System.Environment.MachineName;
+                    si["Environment"] = Current.Environment.Current.Code;
+
+                    if (TableData.PersistentEnvironmentCode != null)
+                        si["Environment"] = TableData.PersistentEnvironmentCode + " (overriding [" + Current.Environment.Current.Code + "])";
+
+                    //LogLocal("INIT START", Message.EContentType.Info);
 
                     var refBundle = TableData.ConnectionBundleType ?? Current.GlobalConnectionBundleType;
 
@@ -881,7 +892,7 @@ break; */
                         Statements.Bundle = refType;
 
                         refType.ValidateDatabase();
-                        LogLocal("Reading Connection bundle [" + refType.GetType().Name + "]");
+                        si["Connection bundle"] = refType.GetType().Name;
                         Statements.State.Step = "Transferring configuration settings from Bundle to Entity Statements";
                         Statements.Adapter = (DataAdapterPrimitive)Activator.CreateInstance(refType.AdapterType);
                         Statements.ConnectionCypherKeys = refType.ConnectionCypherKeys;
@@ -908,8 +919,6 @@ break; */
                                 .Where(prop => Attribute.IsDefined(prop, typeof(KeyAttribute)))
                                 .ToList();
 
-                        LogLocal(props.ToJson());
-
                         if (props != null)
                             if (props.Count > 0)
                                 identifierColumnName = props[0].Name;
@@ -922,8 +931,6 @@ break; */
 
                         var mapEntry = Statements.PropertyFieldMap.FirstOrDefault(p => p.Value.ToLower().Equals(identifierColumnName.ToLower()));
 
-                        LogLocal(mapEntry.ToJson());
-
                         Statements.IdProperty = Statements.Adapter.ParameterDefinition + mapEntry.Key;
                         Statements.IdPropertyRaw = mapEntry.Key;
                         Statements.IdColumn = mapEntry.Value;
@@ -932,6 +939,7 @@ break; */
                     {
                         if (TableData.TableName != null)
                         {
+                            si["Key"] = "(missing)";
                             LogLocal("Missing [Key] definition", Message.EContentType.Warning);
                             throw new ConfigurationErrorsException(GetTypeName() + ": Entity (with Table name {0}) is missing a [Key] definition.".format(TableData.TableName));
                         }
@@ -951,14 +959,7 @@ break; */
 
                     using (var conn = Statements.Adapter.Connection(Statements.ConnectionString))
                     {
-                        try
-                        {
-                            LogLocal(Statements.ConnectionString.SafeArray("Data Source", "=", ";", Transformation.ESafeArrayMode.Allow), Message.EContentType.MoreInfo);
-                        }
-                        catch { }
-
                         //Test Connectivity
-
                         conn.Open();
                         conn.Close();
                         conn.Dispose();
@@ -969,7 +970,7 @@ break; */
                         if (TableData.AutoGenerateMissingSchema)
                         {
                             Statements.State.Step = "Checking database entities";
-                            LogLocal("schema check [" + Statements.Adapter.GetType().Name + "]");
+                            si["Database Adapter"] = Statements.Adapter.GetType().Name;
                             Statements.Adapter.CheckDatabaseEntities<T>();
                         }
                     }
@@ -979,7 +980,7 @@ break; */
 
                     Current.Environment.EnvironmentChanged += Environment_EnvironmentChanged;
 
-                    LogLocal("INIT OK", Message.EContentType.Info);
+                    LogLocal("INIT OK " + si.ToJson(), Message.EContentType.Info);
 
                     Statements.State.Status = MicroEntityCompiledStatements.EStatus.Operational;
                 }
@@ -1001,7 +1002,7 @@ break; */
 
                     Current.Log.Add(Statements.State.Description, Message.EContentType.Exception);
 
-                    LogLocal("INIT FAIL", Message.EContentType.Warning);
+                    LogLocal("INIT FAIL " + si.ToJson(), Message.EContentType.Warning);
 
                     //throw;
                 }
