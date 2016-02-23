@@ -6,16 +6,15 @@ namespace Nyan.Core.Process
 {
     public static class Sequences
     {
-
-        private static bool _endStartedAlready = false;
+        public static bool IsShuttingDown { get; private set; } = false;
 
         public static void End(string pReason = "(None)")
         {
             Current.Log.Add("Stack shutdown initiated: " + pReason, Message.EContentType.ShutdownSequence);
 
-            if (_endStartedAlready) return;
+            if (IsShuttingDown) return;
 
-            _endStartedAlready = true;
+            IsShuttingDown = true;
 
             Current.Log.Add("Shutting down " + Current.Authorization.GetType().Name, Message.EContentType.MoreInfo);
             Current.Authorization.Shutdown();
