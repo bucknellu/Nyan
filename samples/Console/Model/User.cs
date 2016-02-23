@@ -1,9 +1,12 @@
 ﻿using Nyan.Core.Modules.Data;
 using System;
+using Nyan.Modules.Data.SQLCompact;
 
 namespace Nyan.Samples.Console.Model
 {
-    [MicroEntitySetup(TableName = "Users")]
+    [MicroEntitySetup(TableName = "Users", 
+        AdapterType = typeof(SqlCompactDataAdapter),
+        ConnectionBundleType = typeof(SqlCompactBundle))]
     public class User : MicroEntity<User>
     {
         [Key]
