@@ -32,7 +32,7 @@ namespace Nyan.Modules.Web.Tools.Media
             if (!isUrl)
                 throw new ArgumentException("Parameter is invalid: url");
 
-            var cacheDir = Current.DataDirectory + "\\cache";
+            var cacheDir = Core.Configuration.DataDirectory + "\\cache";
 
             Image image;
 

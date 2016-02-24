@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Data.SqlServerCe;
 using System.IO;
+using Nyan.Core;
 using Nyan.Core.Modules.Data.Connection;
 using Nyan.Core.Settings;
 
@@ -27,15 +28,15 @@ namespace Nyan.Modules.Data.SQLCompact
             AdapterType = typeof (SqlCompactDataAdapter);
             ConnectionCypherKeys = new Dictionary<string, string>
             {
-                {"STD", "Data Source='" + Current.DataDirectory + "\\" + _dbName + "';"}
+                {"STD", "Data Source='" + Configuration.DataDirectory + "\\" + _dbName + "';"}
             };
         }
 
         public override void ValidateDatabase()
         {
-            if (File.Exists(Current.DataDirectory + "\\" + _dbName)) return;
+            if (File.Exists(Configuration.DataDirectory + "\\" + _dbName)) return;
 
-            var connString = "Data Source='" + Current.DataDirectory + "\\" + _dbName + "';";
+            var connString = "Data Source='" + Configuration.DataDirectory + "\\" + _dbName + "';";
             var engine = new SqlCeEngine(connString);
             engine.CreateDatabase();
         }
