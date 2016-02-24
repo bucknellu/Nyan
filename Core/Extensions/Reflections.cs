@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
 using Nyan.Core.Settings;
+using Nyan.Core.Wrappers;
 
 namespace Nyan.Core.Extensions
 {
@@ -191,6 +192,11 @@ namespace Nyan.Core.Extensions
             }
 
             return false;
+        }
+
+        public static dynamic StaticMembersDynamicWrapper(this Type type)
+        {
+            return new StaticMembersDynamicWrapper(type);
         }
 
         public static bool IsNumericType(object obj)
