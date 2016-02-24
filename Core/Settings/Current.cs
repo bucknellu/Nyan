@@ -19,8 +19,6 @@ namespace Nyan.Core.Settings
 {
     public static class Current
     {
-        private static string _baseDirectory;
-        private static string _dataDirectory;
         private static string _webApiCorsDomains;
 
         static Current()
@@ -35,9 +33,6 @@ namespace Nyan.Core.Settings
             catch { }
 
             var refObj = ResolveSettingsPackage();
-            var traceInfo = new TraceInfoContainer();
-            traceInfo.Gather();
-            Assembly = traceInfo.BaseAssembly;
 
             Cache = refObj.Cache;
             Environment = refObj.Environment;
@@ -47,8 +42,6 @@ namespace Nyan.Core.Settings
             Authorization = refObj.Authorization;
             WebApiCORSDomains = refObj.WebApiCORSDomains;
 
-            Version = System.Reflection.Assembly.GetCallingAssembly().GetName().Version.ToString();
-            Host = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
 
             Log.Add(@"   |\_/|          |", Message.EContentType.Info);
             Log.Add(@"  >(o.O)<         | Nyan " + System.Reflection.Assembly.GetCallingAssembly().GetName().Version, Message.EContentType.Info);
@@ -62,9 +55,9 @@ namespace Nyan.Core.Settings
             Log.Add("Encryption        : " + (Encryption == null ? "(none)" : Encryption.ToString()), Message.EContentType.MoreInfo);
             Log.Add("Authorization     : " + (Authorization == null ? "(none)" : Authorization.ToString()), Message.EContentType.MoreInfo);
             Log.Add("Global BundleType : " + (GlobalConnectionBundleType == null ? "(none)" : GlobalConnectionBundleType.ToString()), Message.EContentType.MoreInfo);
-            Log.Add("Application       : " + Assembly, Message.EContentType.MoreInfo);
-            Log.Add("App Location      : " + BaseDirectory, Message.EContentType.MoreInfo);
-            Log.Add("App Data          : " + DataDirectory, Message.EContentType.MoreInfo);
+            Log.Add("Application       : " + Configuration.Assembly, Message.EContentType.MoreInfo);
+            Log.Add("App Location      : " + Configuration.BaseDirectory, Message.EContentType.MoreInfo);
+            Log.Add("App Data          : " + Configuration.DataDirectory, Message.EContentType.MoreInfo);
 
             Log.Add("Stack status      : Operational", Message.EContentType.StartupSequence);
 
@@ -79,58 +72,7 @@ namespace Nyan.Core.Settings
         public static IAuthorizationProvider Authorization { get; private set; }
         public static LogProvider Log { get; private set; }
         public static Type GlobalConnectionBundleType { get; private set; }
-        public static string Version { get; private set; }
-        public static string Assembly { get; private set; }
-        public static string Host { get; private set; }
 
-        public static string BaseDirectory
-        {
-            get
-            {
-                if (_baseDirectory != null) return _baseDirectory;
-
-                _baseDirectory = HostingEnvironment.MapPath("~/bin") ?? Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-
-                return _baseDirectory;
-            }
-
-            internal set { _baseDirectory = value; }
-        }
-
-        public static string DataDirectory
-        {
-            get
-            {
-                if (_dataDirectory != null) return _dataDirectory;
-
-                _dataDirectory = HostingEnvironment.MapPath("~/App_Data");
-
-                if (_dataDirectory != null)
-                {
-                    try
-                    {
-                        if (!Directory.Exists(_dataDirectory))
-                            Directory.CreateDirectory(_dataDirectory);
-                    }
-                    catch
-                    {
-                        _dataDirectory = null;
-                    }
-                }
-
-                if (_dataDirectory == null)
-                {
-                    _dataDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location ) + "\\data";
-                    
-                    if (!Directory.Exists(_dataDirectory))
-                        Directory.CreateDirectory(_dataDirectory);
-                }
-
-                return _dataDirectory;
-            }
-
-            internal set { _dataDirectory = value; }
-        }
 
         public static string WebApiCORSDomains
         {

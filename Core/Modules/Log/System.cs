@@ -16,7 +16,7 @@ namespace Nyan.Core.Modules.Log
 
         static System()
         {
-            var dir = Nyan.Core.Settings.Current.DataDirectory + "\\log";
+            var dir = Configuration.DataDirectory + "\\log";
 
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
@@ -30,7 +30,7 @@ namespace Nyan.Core.Modules.Log
         }
         public static void Add(string message, Log.Message.EContentType type = Message.EContentType.Info)
         {
-            var dir = Nyan.Core.Settings.Current.DataDirectory + "\\log";
+            var dir = Configuration.DataDirectory + "\\log";
 
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);

@@ -55,6 +55,8 @@
     <Compile Include="Diagnostics\TraceInfoContainer.cs" />
     <Compile Include="Extensions\Reflections.cs" />
     <Compile Include="Extensions\Serialization.cs" />
+    <Compile Include="Configuration.cs" />
+    <Compile Include="Wrappers\StaticMembersDynamicWrapper.cs" />
     <Compile Include="Extensions\Transformation.cs" />
     <Compile Include="Factories\Identifier.cs" />
     <Compile Include="Factories\ShortGuid.cs" />
@@ -62,6 +64,7 @@
     <Compile Include="Modules\Data\Connection\CredentialSetPrimitive.cs" />
     <Compile Include="Modules\Data\Connection\Factory.cs" />
     <Compile Include="Modules\Data\Contracts\ISearch.cs" />
+    <Compile Include="Modules\Data\Maintenance\Definition.cs" />
     <Compile Include="Modules\Data\Model\ModelPrimitive.cs" />
     <Compile Include="Modules\Data\Model\ObjectModel.cs" />
     <Compile Include="Modules\Data\Model\RelationalModel.cs" />

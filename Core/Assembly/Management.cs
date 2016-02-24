@@ -28,7 +28,7 @@ namespace Nyan.Core.Assembly
         static Management()
         {
 #pragma warning disable 618
-            AppDomain.CurrentDomain.SetCachePath(Current.DataDirectory + "\\sc");
+            AppDomain.CurrentDomain.SetCachePath(Configuration.DataDirectory + "\\sc");
             AppDomain.CurrentDomain.SetShadowCopyPath(AppDomain.CurrentDomain.BaseDirectory);
             AppDomain.CurrentDomain.SetShadowCopyFiles();
 #pragma warning restore 618
@@ -42,7 +42,7 @@ namespace Nyan.Core.Assembly
 
             // 1st cycle: Local (base directory) assemblies
 
-            LoadAssembliesFromDirectory(Current.BaseDirectory);
+            LoadAssembliesFromDirectory(Configuration.BaseDirectory);
 
             //2nd cycle: Directories/assemblies referenced by system
 
@@ -152,7 +152,7 @@ namespace Nyan.Core.Assembly
 
                     FsMonitors.Add(watcher);
 
-                    Modules.Log.System.Add("[" + path + "]: Monitoring", Message.EContentType.StartupSequence);
+                    Modules.Log.System.Add("Monitoring [" + path + "]", Message.EContentType.StartupSequence);
                 }
                 else
                 {
@@ -224,6 +224,22 @@ namespace Nyan.Core.Assembly
                 else
                     Modules.Log.System.Add("    Fail " + path + ": " + e.Message);
             }
+        }
+
+        public static List<Type> GetClassesByBaseClass(Type refType)
+        {
+            var classCol = new List<Type>();
+
+            foreach (var asy in AssemblyCache.Values)
+            {
+                classCol.AddRange(asy
+                    .GetTypes()
+                    .Where(type => type.BaseType != null)
+                    .Where(type => type.BaseType.IsGenericType)
+                    .Where(type => type.BaseType.GetGenericTypeDefinition() == refType));
+            }
+
+            return classCol;
         }
 
         /// <summary>
@@ -309,6 +325,8 @@ namespace Nyan.Core.Assembly
 
                 return ret;
             }
+
+
         }
     }
 }
