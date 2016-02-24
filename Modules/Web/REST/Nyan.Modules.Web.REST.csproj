@@ -80,7 +80,6 @@
     <Compile Include="CustomDirectRouteProvider.cs" />
     <Compile Include="MicroEntityWebApiController.cs" />
     <Compile Include="Attributes.cs" />
-    <Compile Include="StaticMembersDynamicWrapper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
