@@ -12,6 +12,7 @@ using Nyan.Core.Modules.Data;
 using Nyan.Core.Modules.Data.Adapter;
 using Nyan.Core.Modules.Log;
 using Nyan.Core.Settings;
+using Nyan.Core.Wrappers;
 
 namespace Nyan.Modules.Web.REST
 {
