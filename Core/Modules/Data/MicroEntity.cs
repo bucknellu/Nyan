@@ -20,6 +20,7 @@ using Nyan.Core.Modules.Data.Operators.AnsiSql;
 using Nyan.Core.Settings;
 using System.Diagnostics;
 using System.Windows.Forms;
+using Nyan.Core.Modules.Data.Maintenance;
 using Message = Nyan.Core.Modules.Log.Message;
 
 namespace Nyan.Core.Modules.Data
@@ -865,6 +866,8 @@ break; */
                     si["Machine"] = System.Environment.MachineName;
                     si["Environment"] = Current.Environment.Current.Code;
 
+                    Statements.EnvironmentCode = TableData.PersistentEnvironmentCode ?? Current.Environment.Current.Code;
+
                     if (TableData.PersistentEnvironmentCode != null)
                         si["Environment"] = TableData.PersistentEnvironmentCode + " (overriding [" + Current.Environment.Current.Code + "])";
 
@@ -1039,6 +1042,12 @@ break; */
             // ReSharper disable once EmptyGeneralCatchClause
             catch { }
         }
+
+        #endregion
+
+        #region Maintenance
+
+        public static DataAdapterPrimitive.ModelDefinition ModelDefinition => Statements.Adapter.GetModel<T>(Definition.DdlContent.All);
 
         #endregion
 

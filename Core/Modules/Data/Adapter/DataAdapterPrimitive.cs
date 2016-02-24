@@ -4,10 +4,13 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.Common;
+using System.Diagnostics;
 using System.Text;
 using Nyan.Core.Extensions;
+using Nyan.Core.Modules.Data.Maintenance;
 using Nyan.Core.Modules.Log;
 using Nyan.Core.Settings;
+using Nyan.Core.Wrappers;
 
 namespace Nyan.Core.Modules.Data.Adapter
 {
@@ -298,6 +301,8 @@ namespace Nyan.Core.Modules.Data.Adapter
             return ret;
         }
 
+        public virtual ModelDefinition GetModelfromStatements<T>(MicroEntityCompiledStatements refs, Definition.DdlContent scope) { return new ModelDefinition(); }
+
         // ReSharper disable InconsistentNaming
         private DynamicParametersPrimitive ParameterSourceType;
         protected internal Type dynamicParameterType = null;
@@ -315,6 +320,53 @@ namespace Nyan.Core.Modules.Data.Adapter
         protected internal bool useIndependentStatementsForKeyExtraction = false;
         protected internal bool useNumericPrimaryKeyOnly = false;
         protected internal bool useOutputParameterForInsertedKeyExtraction = false;
+
+        public class ModelDefinition
+        {
+            public Type Type { get; set; }
+            public bool Available { get; set; }
+            public string Schema { get; set; }
+            public string Data { get; set; }
+            public string AdapterType { get; set; }
+            public string EnvironmentCode { get; set; }
+            public string ExceptionMessage { get; set; }
+
+            public override string ToString()
+            {
+                return (Type != null ? Type.FullName : "(Undefined)") + (Available ? " " + (Schema != null ? "[Schema]" : "") + (Data != null ? "[Data]" : "") : "");
+            }
+        }
+
+        public ModelDefinition GetModel<T>(Definition.DdlContent scope = Definition.DdlContent.Schema) where T : MicroEntity<T>
+        {
+            // Let's determine the target MicroEntity.
+            dynamic refType = new StaticMembersDynamicWrapper(typeof(T));
+
+            var ret = new ModelDefinition() {Type = typeof (T), Available = false};
+
+            // ReadOnly? Too bad. Ignore.
+            if (refType.TableData.IsReadOnly)
+                return ret;
+
+            // Pick Statements...
+            var refs = (MicroEntityCompiledStatements)refType.Statements;
+
+            // And call the specific Adapter implementation.
+            try
+            {
+                ret = GetModelfromStatements<T>(refs, scope);
+
+            }
+            catch (Exception e)
+            {
+                ret.Available = false;
+                ret.ExceptionMessage = e.Message + " " + new StackTrace(e, true).FancyString();
+            }
+            ret.Type = typeof(T);
+            ret.EnvironmentCode = refs.EnvironmentCode;
+
+            return ret;
+        }
 
         // ReSharper restore InconsistentNaming
     }

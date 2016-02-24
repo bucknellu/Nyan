@@ -69,5 +69,6 @@ namespace Nyan.Core.Modules.Data
 
         public MicroEntityState State = new MicroEntityState();
 
+        public string EnvironmentCode;
     }
 }

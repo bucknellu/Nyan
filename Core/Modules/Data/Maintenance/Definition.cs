@@ -1,0 +1,73 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.NetworkInformation;
+using System.Text;
+using System.Threading.Tasks;
+using Nyan.Core.Extensions;
+using Nyan.Core.Modules.Data.Adapter;
+using Nyan.Core.Modules.Log;
+using Nyan.Core.Settings;
+using Nyan.Core.Wrappers;
+
+namespace Nyan.Core.Modules.Data.Maintenance
+{
+    public static class Definition
+    {
+        [Flags]
+        public enum DdlContent
+        {
+            None = 0,
+            Schema = 1,
+            Data = 2,
+            All = Schema | Data
+        }
+
+        public static List<DataAdapterPrimitive.ModelDefinition> GetModels()
+        {
+            var ret = new List<DataAdapterPrimitive.ModelDefinition>();
+
+            var probe = typeof (MicroEntity<>);
+
+            var objCol = Assembly.Management.GetClassesByBaseClass(probe);
+
+            foreach (var obj in objCol)
+            {
+                dynamic dynObj = new StaticMembersDynamicWrapper(obj);
+                ret.Add(dynObj.ModelDefinition);
+            }
+
+            return ret;
+        }
+
+        public static string RenderModelsToDisk(string path = null)
+        {
+            if (path == null)
+                path = Configuration.DataDirectory + "\\model\\";
+
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+
+            Array.ForEach(Directory.GetFiles(path), File.Delete);
+
+            foreach (var md in GetModels().Where(md => md.Available))
+            {
+                Current.Log.Add("[" + md.Type.Name + "]: Rendering model to disk", Message.EContentType.Maintenance);
+
+                if (md.Schema != null)
+                    File.WriteAllText(path + "{1}-{0}-{2}-schema.sql".format(md.EnvironmentCode, md.AdapterType, md.Type.Name), md.Schema);
+
+                if (md.Data != null)
+                        File.WriteAllText(path + "{1}-{0}-{2}-data.sql".format(md.EnvironmentCode, md.AdapterType, md.Type.Name), md.Data);
+            }
+
+            Current.Log.Add("[RenderModelsToDisk]: Models available at " + path, Message.EContentType.Maintenance);
+
+
+            return path;
+
+        }
+    }
+
+}
