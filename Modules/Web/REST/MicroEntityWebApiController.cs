@@ -422,7 +422,7 @@ namespace Nyan.Modules.Web.REST
         public virtual object ReferenceQueryByField(string field, string id)
         {
             var entbag = MicroEntity<T>.GetNewDynamicParameterBag();
-            entbag.Add(field, id, DynamicParametersPrimitive.DbGenericType.String, ParameterDirection.Input);
+            entbag.Add(field, id);
 
             //var statement = RESTHeaderQuery + " WHERE a." + b.SqlWhereClause;
 
