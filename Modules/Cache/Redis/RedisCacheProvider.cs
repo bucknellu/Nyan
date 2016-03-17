@@ -32,7 +32,7 @@ namespace Nyan.Modules.Cache.Redis
             if (EnvironmentConfiguration == null)
                 EnvironmentConfiguration = new Dictionary<string, ICacheConfiguration>
                 {
-                    {"STD", new RedisCacheConfiguration {DatabaseIndex = 5, ConnectionString = "localhost"}}
+                    {"STA", new RedisCacheConfiguration {DatabaseIndex = 5, ConnectionString = "localhost"}}
                 };
 
 

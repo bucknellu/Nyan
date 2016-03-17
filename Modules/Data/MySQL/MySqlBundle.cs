@@ -24,7 +24,7 @@ namespace Nyan.Modules.Data.MySql
             AdapterType = typeof (MySqlDataAdapter);
             ConnectionCypherKeys = new Dictionary<string, string>
             {
-                {"STD", "server=localhost;user id=root;persistsecurityinfo=True;database=nyan;password=123"}
+                {"STA", "server=localhost;user id=root;persistsecurityinfo=True;database=nyan;password=123"}
             };
         }
     }

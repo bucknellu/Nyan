@@ -3,7 +3,7 @@
     public sealed class DefaultEnvironmentDescriptor : IEnvironmentDescriptor
     {
         //The default Descriptor handles only one environment.
-        public static readonly IEnvironmentDescriptor Standard = new DefaultEnvironmentDescriptor(0, "STD", "Standard");
+        public static readonly IEnvironmentDescriptor Standard = new DefaultEnvironmentDescriptor(0, "STA", "Standard");
 
         private DefaultEnvironmentDescriptor(int value, string code, string name)
         {

@@ -28,7 +28,7 @@ namespace Nyan.Modules.Data.SQLCompact
             AdapterType = typeof (SqlCompactDataAdapter);
             ConnectionCypherKeys = new Dictionary<string, string>
             {
-                {"STD", "Data Source='" + Configuration.DataDirectory + "\\" + _dbName + "';"}
+                {"STA", "Data Source='" + Configuration.DataDirectory + "\\" + _dbName + "';"}
             };
         }
 

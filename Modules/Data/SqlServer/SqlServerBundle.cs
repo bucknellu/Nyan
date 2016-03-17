@@ -22,7 +22,7 @@ namespace Nyan.Modules.Data.SqlServer
             _dbName = dbName;
 
             AdapterType = typeof(SqlServerDataAdapter);
-            ConnectionCypherKeys = new Dictionary<string, string> { { "STD", "Data Source=.\\SQLEXPRESS;Initial Catalog=Nyan;Integrated Security=True" } };
+            ConnectionCypherKeys = new Dictionary<string, string> { { "STA", "Data Source=.\\SQLEXPRESS;Initial Catalog=Nyan;Integrated Security=True" } };
         }
 
         public override void ValidateDatabase()
