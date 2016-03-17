@@ -6,7 +6,7 @@ namespace Nyan.Core.Process
 {
     public static class Sequences
     {
-        public static bool IsShuttingDown { get; private set; } = false;
+        public static bool IsShuttingDown { get; private set; }
 
         public static void End(string pReason = "(None)")
         {

@@ -12,7 +12,7 @@ namespace Nyan.Core.Modules.Environment
 
         public string CurrentCode { get { return DefaultEnvironmentDescriptor.Standard.Code; } }
 
-        ProbeItem IEnvironmentProvider.Probe { get; }
+        ProbeItem IEnvironmentProvider.Probe { get; set; }
 
         public void ResetToDefault()
         {
