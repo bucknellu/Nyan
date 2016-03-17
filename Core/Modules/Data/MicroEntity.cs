@@ -366,7 +366,7 @@ break; */
         public static IEnumerable<T> ReferenceQueryByField(string field, string id)
         {
             var b = GetNewDynamicParameterBag();
-            b.Add(field, id, DynamicParametersPrimitive.DbGenericType.String, ParameterDirection.Input);
+            b.Add(field, id);
 
             var statement = string.Format(Statements.SqlAllFieldsQueryTemplate, b.SqlWhereClause);
             var set = Query(statement, b);
@@ -376,6 +376,13 @@ break; */
         public static IEnumerable<T> QueryByWhereClause(string clause, object b = null)
         {
             var statement = string.Format(Statements.SqlAllFieldsQueryTemplate, clause);
+            var set = Query(statement, b);
+            return set;
+        }
+
+        public static IEnumerable<T> Query(DynamicParametersPrimitive b)
+        {
+            var statement = string.Format(Statements.SqlAllFieldsQueryTemplate, b.SqlWhereClause);
             var set = Query(statement, b);
             return set;
         }
@@ -966,6 +973,8 @@ break; */
                         conn.Open();
                         conn.Close();
                         conn.Dispose();
+
+                        LogLocal(Statements.ConnectionString.SafeArray("Data Source", "=", ";", Transformation.ESafeArrayMode.Allow), Message.EContentType.MoreInfo);
                     }
 
                     if (!TableData.IsReadOnly)
@@ -1047,7 +1056,8 @@ break; */
 
         #region Maintenance
 
-        public static DataAdapterPrimitive.ModelDefinition ModelDefinition => Statements.Adapter.GetModel<T>(Definition.DdlContent.All);
+        public static DataAdapterPrimitive.ModelDefinition ModelDefinition
+        { get { return Statements.Adapter.GetModel<T>(Definition.DdlContent.All); } }
 
         #endregion
 
