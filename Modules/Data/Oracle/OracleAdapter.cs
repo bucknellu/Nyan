@@ -371,12 +371,12 @@ namespace Nyan.Modules.Data.Oracle
 
                 var canBuffer = cols.All(o => (string)o["DATA_TYPE"] != "CLOB");
 
-                var ctsSql =
-                    "SELECT c.owner O, c.constraint_name N FROM user_constraints c, user_tables t WHERE c.table_name = t.table_name AND c.table_name = '" +
-                    refs.SchemaElements["Table"].Value +
-                    "' AND c.status = 'ENABLED' ORDER BY c.constraint_type DESC";
+                //var ctsSql =
+                //    "SELECT c.owner O, c.constraint_name N FROM user_constraints c, user_tables t WHERE c.table_name = t.table_name AND c.table_name = '" +
+                //    refs.SchemaElements["Table"].Value +
+                //    "' AND c.status = 'ENABLED' ORDER BY c.constraint_type DESC";
 
-                List<IDictionary<string, object>> constraints = refType.QueryObject(ctsSql);
+                //List<IDictionary<string, object>> constraints = refType.QueryObject(ctsSql);
 
                 var colList = cols.Select(a => a["COLUMN_NAME"]).ToList();
 
@@ -416,7 +416,7 @@ namespace Nyan.Modules.Data.Oracle
                     {
                         rc++;
 
-                        if ((rc % 128) == 0)
+                        if ((rc % 64) == 0)
                         {
                             var stepLabel = "{0} / {1} ({2}%)".format(rc, rows.Count,
                                 Convert.ToInt64((rc / (double)rows.Count) * 100));
@@ -492,8 +492,8 @@ namespace Nyan.Modules.Data.Oracle
                         data.AppendLine("ALTER TRIGGER \"" + refs.SchemaElements["BeforeInsertTrigger"].Value + "\" DISABLE;");
                         data.AppendLine("ALTER TRIGGER \"" + refs.SchemaElements["BeforeUpdateTrigger"].Value + "\" DISABLE;");
 
-                        foreach (var constraint in constraints)
-                            data.AppendLine("ALTER TABLE " + refs.SchemaElements["Table"].Value + " DISABLE CONSTRAINT " + constraint["N"] + ";");
+                        //foreach (var constraint in constraints)
+                        //    data.AppendLine("ALTER TABLE " + refs.SchemaElements["Table"].Value + " DISABLE CONSTRAINT " + constraint["N"] + ";");
 
                         data.AppendLine(Environment.NewLine);
 
@@ -505,8 +505,8 @@ namespace Nyan.Modules.Data.Oracle
                         data.AppendLine("COMMIT;");
                         data.AppendLine("SET DEFINE ON;");
 
-                        foreach (var constraint in constraints)
-                            data.AppendLine("ALTER TABLE " + refs.SchemaElements["Table"].Value + " ENABLE CONSTRAINT " + constraint["N"] + ";");
+                        //foreach (var constraint in constraints)
+                        //    data.AppendLine("ALTER TABLE " + refs.SchemaElements["Table"].Value + " ENABLE CONSTRAINT " + constraint["N"] + ";");
 
                         data.AppendLine("ALTER TRIGGER \"" + refs.SchemaElements["BeforeInsertTrigger"].Value + "\" ENABLE;");
                         data.AppendLine("ALTER TRIGGER \"" + refs.SchemaElements["BeforeUpdateTrigger"].Value + "\" ENABLE;");
