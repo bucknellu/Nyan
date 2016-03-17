@@ -20,10 +20,10 @@ namespace Nyan.Modules.Web.REST
         {
             GlobalConfiguration.Configure(Initialization.Register);
 
-            foreach (var item in CustomDirectRouteProvider.Routes)
-            {
-                Current.Log.Add(item.Value.Method.PadLeft(17) + " : " + item.Key, Message.EContentType.MoreInfo);
-            }
+            //foreach (var item in CustomDirectRouteProvider.Routes)
+            //{
+            //    Current.Log.Add(item.Value.Method.PadLeft(17) + " : " + item.Key, Message.EContentType.MoreInfo);
+            //}
         }
 
         /// <summary>
