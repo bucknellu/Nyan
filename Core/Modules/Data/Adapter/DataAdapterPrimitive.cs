@@ -123,8 +123,8 @@ namespace Nyan.Core.Modules.Data.Adapter
 
             if (!statements.ConnectionCypherKeys.ContainsKey(envCode))
             {
-                if (statements.ConnectionCypherKeys.ContainsKey("STD")) //There is a standard code available.
-                    envCode = "STD";
+                if (statements.ConnectionCypherKeys.ContainsKey("STA")) //There is a standard code available.
+                    envCode = "STA";
                 else
                     throw new ArgumentException("No connection key provided for environment [{0}]".format(envCode));
             }
