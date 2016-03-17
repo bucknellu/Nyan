@@ -17,7 +17,11 @@ namespace Nyan.Samples.Console
             var s = new Stopwatch();
             Current.Log.Add("Fetching all records...");
 
-            var allUsers = User.Get();
+            try { var allUsers = User.Get(); } catch (Exception e )
+            {
+                
+            }
+
 
             Current.Log.Add(s.ElapsedMilliseconds + " ms");
 
