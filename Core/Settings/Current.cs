@@ -55,7 +55,7 @@ namespace Nyan.Core.Settings
             Log.Add("Encryption        : " + (Encryption == null ? "(none)" : Encryption.ToString()), Message.EContentType.MoreInfo);
             Log.Add("Authorization     : " + (Authorization == null ? "(none)" : Authorization.ToString()), Message.EContentType.MoreInfo);
             Log.Add("Global BundleType : " + (GlobalConnectionBundleType == null ? "(none)" : GlobalConnectionBundleType.ToString()), Message.EContentType.MoreInfo);
-            Log.Add("Application       : " + Configuration.Assembly, Message.EContentType.MoreInfo);
+            Log.Add("Application       : " + Configuration.ApplicationAssemblyName, Message.EContentType.MoreInfo);
             Log.Add("App Location      : " + Configuration.BaseDirectory, Message.EContentType.MoreInfo);
             Log.Add("App Data          : " + Configuration.DataDirectory, Message.EContentType.MoreInfo);
 
