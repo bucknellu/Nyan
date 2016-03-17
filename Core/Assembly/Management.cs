@@ -28,9 +28,15 @@ namespace Nyan.Core.Assembly
         static Management()
         {
 #pragma warning disable 618
-            AppDomain.CurrentDomain.SetCachePath(Configuration.DataDirectory + "\\sc");
-            AppDomain.CurrentDomain.SetShadowCopyPath(AppDomain.CurrentDomain.BaseDirectory);
             AppDomain.CurrentDomain.SetShadowCopyFiles();
+
+            var targetScDir = Configuration.DataDirectory + "\\sc";
+
+            if (!Directory.Exists(targetScDir))
+                Directory.CreateDirectory(targetScDir);
+
+            AppDomain.CurrentDomain.SetCachePath(Configuration.DataDirectory + "\\sc");
+
 #pragma warning restore 618
 
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
@@ -128,6 +134,8 @@ namespace Nyan.Core.Assembly
                 if (WatchedSources.Contains(path)) return;
                 WatchedSources.Add(path);
 
+                AppDomain.CurrentDomain.SetShadowCopyPath(path);
+
                 var attr = File.GetAttributes(path);
 
                 //detect whether its a directory or file
@@ -187,7 +195,8 @@ namespace Nyan.Core.Assembly
             try
             {
                 //Application.Restart(); Environment.Exit(0);
-            } catch { }
+            }
+            catch { }
         }
 
         private static void LoadAssemblyFromPath(string path)
@@ -226,17 +235,27 @@ namespace Nyan.Core.Assembly
             }
         }
 
-        public static List<Type> GetClassesByBaseClass(Type refType)
+        public static List<Type> GetClassesByBaseClass(Type refType, bool limitToMainAssembly = false)
         {
             var classCol = new List<Type>();
 
-            foreach (var asy in AssemblyCache.Values)
+            var assySource = new List<System.Reflection.Assembly>();
+
+            if (limitToMainAssembly)
+            {
+                assySource.Add(Configuration.ApplicationAssembly);
+            }
+            else
+            {
+                assySource = AssemblyCache.Values.ToList();
+            }
+
+            foreach (var asy in assySource)
             {
                 classCol.AddRange(asy
                     .GetTypes()
                     .Where(type => type.BaseType != null)
-                    .Where(type => type.BaseType.IsGenericType)
-                    .Where(type => type.BaseType.GetGenericTypeDefinition() == refType));
+                    .Where(type => (type.BaseType.IsGenericType && type.BaseType.GetGenericTypeDefinition() == refType) || type.BaseType == refType));
             }
 
             return classCol;
