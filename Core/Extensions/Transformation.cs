@@ -4,9 +4,10 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Dynamic;
 using System.Linq;
-using Nyan.Core.Factories;
 using System.Security.Cryptography;
 using System.Text;
+using Nyan.Core.Factories;
+using Nyan.Core.Settings;
 
 namespace Nyan.Core.Extensions
 {
@@ -17,6 +18,16 @@ namespace Nyan.Core.Extensions
             Remove,
             Allow
         }
+
+        public static List<string> BlackListedModules = new List<string>
+        {
+            "System.Linq.Enumerable",
+            "System.Collections.Generic.List",
+            "System.Data.Common.DbCommand",
+            "Oracle.DataAccess.Client.OracleCommand",
+            "Dapper.SqlMapper+<QueryImpl>"
+        };
+
         public static string SafeArray(this string source, string criteria = "", string keySeparator = "=", string elementSeparator = ",", ESafeArrayMode mode = ESafeArrayMode.Remove)
         {
             if (source == null) return "";
@@ -31,16 +42,15 @@ namespace Nyan.Core.Extensions
 
                 var key = item[0].Trim().ToLower();
 
-
-                bool allow = false;
+                var allow = false;
 
                 switch (mode)
                 {
                     case ESafeArrayMode.Remove:
-                        allow = !(criteriaCol.Contains(key));
+                        allow = !criteriaCol.Contains(key);
                         break;
                     case ESafeArrayMode.Allow:
-                        allow = (criteriaCol.Contains(key));
+                        allow = criteriaCol.Contains(key);
                         break;
                 }
 
@@ -58,59 +68,37 @@ namespace Nyan.Core.Extensions
 
         public static string Md5Hash(this string input)
         {
-            using (MD5 md5Hash = MD5.Create())
+            using (var md5Hash = MD5.Create())
             {
-                byte[] data = md5Hash.ComputeHash(Encoding.UTF8.GetBytes(input));
+                var data = md5Hash.ComputeHash(Encoding.UTF8.GetBytes(input));
 
                 // Create a new Stringbuilder to collect the bytes and create a string.
-                StringBuilder sBuilder = new StringBuilder();
+                var sBuilder = new StringBuilder();
 
                 //format each string as hexidecimal 
-                foreach (byte b in data)
-                {
+                foreach (var b in data)
                     sBuilder.Append(b.ToString("x2"));
-                }
 
                 return sBuilder.ToString();
             }
         }
 
-
         public static bool MD5HashCheck(this string input, string hash)
         {
             // Hash the input. 
-            string hashOfInput = Md5Hash(input);
+            var hashOfInput = Md5Hash(input);
 
             // Create a StringComparer an compare the hashes.
-            StringComparer comparer = StringComparer.OrdinalIgnoreCase;
+            var comparer = StringComparer.OrdinalIgnoreCase;
 
             return 0 == comparer.Compare(hashOfInput, hash);
         }
 
-        public static List<string> BlackListedModules = new List<string>
-        {
-            "System.Linq.Enumerable",
-            "System.Collections.Generic.List",
-            "System.Data.Common.DbCommand",
-            "Oracle.DataAccess.Client.OracleCommand",
-            "Dapper.SqlMapper+<QueryImpl>"
-        };
+        public static string Encrypt(this string value) { return Current.Encryption.Encrypt(value); }
 
+        public static string Decrypt(this string value) { return Current.Encryption.Decrypt(value); }
 
-        public static string Encrypt(this string value)
-        {
-            return Settings.Current.Encryption.Encrypt(value);
-        }
-
-        public static string Decrypt(this string value)
-        {
-            return Settings.Current.Encryption.Decrypt(value);
-        }
-
-        public static string Truncate(this string value, int maxChars)
-        {
-            return value.Length <= maxChars ? value : value.Substring(0, maxChars) + " ..";
-        }
+        public static string Truncate(this string value, int maxChars) { return value.Length <= maxChars ? value : value.Substring(0, maxChars) + " .."; }
 
         public static bool IsNumeric(this object refObj)
         {
@@ -119,7 +107,6 @@ namespace Nyan.Core.Extensions
             long n;
             var isNumeric = long.TryParse(refObj.ToString(), out n);
             return isNumeric;
-
         }
 
         public static IEnumerable<string> SplitInChunksUpTo(this string str, int maxChunkSize)
@@ -128,10 +115,7 @@ namespace Nyan.Core.Extensions
                 yield return str.Substring(i, Math.Min(maxChunkSize, str.Length - i));
         }
 
-        public static ShortGuid ToShortGuid(this Guid oRef)
-        {
-            return new ShortGuid(oRef);
-        }
+        public static ShortGuid ToShortGuid(this Guid oRef) { return new ShortGuid(oRef); }
 
         public static string FancyString(this StackTrace source)
         {
@@ -208,7 +192,7 @@ namespace Nyan.Core.Extensions
             var result = new T?();
             try
             {
-                if (!String.IsNullOrEmpty(s) && s.Trim().Length > 0)
+                if (!string.IsNullOrEmpty(s) && s.Trim().Length > 0)
                 {
                     var conv = TypeDescriptor.GetConverter(typeof(T));
                     result = (T)conv.ConvertFrom(s);
@@ -235,35 +219,25 @@ namespace Nyan.Core.Extensions
             IDictionary<string, object> result = new Dictionary<string, object>();
             var properties = TypeDescriptor.GetProperties(obj);
             foreach (PropertyDescriptor property in properties)
-            {
                 result.Add(property.Name, property.GetValue(obj));
-            }
             return result;
         }
 
         public static T ToObject<T>(this IDictionary<string, object> source)
-               where T : class, new()
+            where T : class, new()
         {
-            T someObject = new T();
-            Type someObjectType = someObject.GetType();
+            var someObject = new T();
+            var someObjectType = someObject.GetType();
 
-            foreach (KeyValuePair<string, object> item in source)
-            {
+            foreach (var item in source)
                 someObjectType.GetProperty(item.Key).SetValue(someObject, item.Value, null);
-            }
 
             return someObject;
         }
 
-        public static string ToCommaSeparatedString(this List<string> obj)
-        {
-            return obj.Aggregate((i, j) => i + ", " + j);
-        }
+        public static string ToCommaSeparatedString(this List<string> obj) { return obj.Aggregate((i, j) => i + ", " + j); }
 
-        public static string format(this string source, params object[] parms)
-        {
-            return String.Format(source, parms);
-        }
+        public static string format(this string source, params object[] parms) { return string.Format(source, parms); }
 
         public static List<List<T>> Split<T>(this List<T> items, int sliceSize = 30)
         {
@@ -276,18 +250,13 @@ namespace Nyan.Core.Extensions
         public static bool TryCast<T>(ref T t, object o)
         {
             if (!(o is T))
-            {
                 return false;
-            }
 
             t = (T)o;
             return true;
         }
 
-        public static T ConvertTo<T>(ref object input)
-        {
-            return (T)Convert.ChangeType(input, typeof(T));
-        }
+        public static T ConvertTo<T>(ref object input) { return (T)Convert.ChangeType(input, typeof(T)); }
 
         public static object ToConcrete<T>(this ExpandoObject dynObject)
         {
@@ -299,9 +268,7 @@ namespace Nyan.Core.Extensions
             {
                 object propVal;
                 if (dict.TryGetValue(property.Name, out propVal))
-                {
                     property.SetValue(instance, propVal, null);
-                }
             }
 
             return instance;
@@ -314,11 +281,101 @@ namespace Nyan.Core.Extensions
             var properties = staticObject.GetType().GetProperties();
 
             foreach (var property in properties)
-            {
                 dict[property.Name] = property.GetValue(staticObject, null);
-            }
 
             return expando;
         }
+
+        public static bool StringsAreSimilar(string baseStr, string compareTo)
+        {
+            if (baseStr == compareTo)
+                return true;
+
+            var s1Words = baseStr.Split(' ');
+            var s2Words = compareTo.Split(' ');
+
+            if (s1Words.Length != s2Words.Length)
+                return false;
+
+            //This is needed to protect against typos and inconsistencies in data such as grill vs grille
+            for (var i = 0; i < s1Words.Length; i++)
+            {
+                try
+                {
+                    if (s1Words[i].SoundEx() != s2Words[i].SoundEx())
+                        return false;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static string SoundEx(this string str)
+        {
+            var result = new StringBuilder();
+            if (!string.IsNullOrEmpty(str))
+            {
+                string previousCode = "", currentCode = "", currentLetter = "";
+                result.Append(str.Substring(0, 1));
+
+                for (var i = 1; i < str.Length; i++)
+                {
+                    currentLetter = str.Substring(i, 1).ToLower();
+                    currentCode = "";
+
+                    if ("bfpv".IndexOf(currentLetter, StringComparison.Ordinal) > -1)
+                        currentCode = "1";
+                    else if ("cgjkqsxz".IndexOf(currentLetter, StringComparison.Ordinal) > -1)
+                        currentCode = "2";
+                    else if ("dt".IndexOf(currentLetter, StringComparison.Ordinal) > -1)
+                        currentCode = "3";
+                    else if (currentLetter == "l")
+                        currentCode = "4";
+                    else if ("mn".IndexOf(currentLetter, StringComparison.Ordinal) > -1)
+                        currentCode = "5";
+                    else if (currentLetter == "r")
+                        currentCode = "6";
+
+                    if (currentCode != previousCode)
+                        result.Append(currentCode);
+                }
+            }
+
+            if (result.Length < 4) result.Append(new string('0', 4 - result.Length));
+
+            return result.ToString().ToUpper();
+        }
+
+        public static bool IgnoreCaseContains(this IEnumerable<string> list, string lookupStr)
+        {
+            lookupStr = lookupStr.ToLower();
+            foreach (string str in list)
+            {
+                string s = str.ToLower();
+                if (s.Equals(lookupStr))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static string ProperCase(this string str)
+        {
+            string[] words = str.Split(' ');
+            for (int i = 0; i < words.Length; i++)
+            {
+                words[i] = words[i].Substring(0, 1).ToUpper() + words[i].ToLower().Substring(1, words[i].Length - 1);
+            }
+
+            return String.Join(" ", words);
+        }
+
+        public static string ToString(this Newtonsoft.Json.Linq.JValue val) { return val.ToObject<string>(); }
     }
 }
