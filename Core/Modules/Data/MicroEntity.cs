@@ -728,11 +728,17 @@ break; */
         {
             ValidateEntityState();
 
+            var dbConn = "";
+
             try
             {
                 using (var conn = Statements.Adapter.Connection(Statements.ConnectionString))
                 {
+
+                    dbConn = conn.DataSource;
+
                     conn.Open();
+
                     var ret = pCommandType == CommandType.StoredProcedure
                         ? conn.Query<TU>(sqlStatement, sqlParameters, null, true, null, pCommandType).ToList()
                         : conn.Query<TU>(sqlStatement, sqlParameters, null, true, null, pCommandType).ToList<TU>();
@@ -743,6 +749,9 @@ break; */
             }
             catch (Exception e)
             {
+
+                DumpQuery(sqlStatement, dbConn, sqlParameters, e);
+
                 throw new DataException(
                     "Entity/Dapper Query: Error while issuing statements to the database. " +
                     "Statement: [" + sqlStatement + "]. " +
@@ -1004,6 +1013,8 @@ break; */
 
                     Log.System.Add(Statements.State.Description);
                     Log.System.Add("    " + Statements.State.Stack);
+
+                    LogLocal(Statements.ConnectionString.SafeArray("Data Source", "=", ";", Transformation.ESafeArrayMode.Allow), Message.EContentType.Warning);
 
                     var refEx = e;
                     while (refEx.InnerException != null)
