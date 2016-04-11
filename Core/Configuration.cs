@@ -16,8 +16,10 @@ namespace Nyan.Core
 
         static Configuration()
         {
+            var isWeb = HostingEnvironment.MapPath("~/bin") != null;
+
             BaseDirectory = HostingEnvironment.MapPath("~/bin") ?? Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-            DataDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\data";
+            DataDirectory = isWeb ? HostingEnvironment.MapPath("~/App_Data") : Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\data";
 
             Version = System.Reflection.Assembly.GetCallingAssembly().GetName().Version.ToString();
             Host = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
