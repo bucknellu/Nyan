@@ -240,15 +240,14 @@ namespace Nyan.Modules.Data.Oracle
                 var ocld = " - ";
                 var ocfld = ";";
                 var commentStat =
-                    "COMMENT ON TABLE " + tn + " IS 'Auto-generated table for Entity " + typeof(T).FullName + ".'" +
-                    ocld +
-                    "'Supporting structures:' " + ocld +
-                    "'    Sequence: " + seqName + "'" + ocld +
-                    "'    Triggers: " +
+                    "COMMENT ON TABLE " + tn + " IS 'Auto-generated table for Entity " + typeof(T).FullName + ". " +
+                    "Supporting structures - " + 
+                    " Sequence: " + seqName + "; " + 
+                    " Triggers: " +
                     MicroEntity<T>.Statements.SchemaElements["BeforeInsertTrigger"].Value
                     + ", " +
                     MicroEntity<T>.Statements.SchemaElements["BeforeUpdateTrigger"].Value
-                    + "'" + ocfld;
+                    + ".'" + ocfld;
 
                 try
                 {
