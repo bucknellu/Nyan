@@ -61,6 +61,6 @@ namespace Nyan.Core.Modules.Data
         public Type AdapterType { get; set; }
         public bool AuditAccess { get; set; }
         public bool AuditChange { get; set; }
-        public Type CredentialSetType { get; private set; }
+        public Type CredentialSetType { get; set; }
     }
 }
