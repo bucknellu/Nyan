@@ -55,7 +55,7 @@ namespace Nyan.Core.Modules.Data.Maintenance
 
             WipeModelsFromDisk(path);
 
-            foreach (var md in GetModels().Where(md => md.Available))
+            foreach (var md in GetModels(limitToMainAssembly).Where(md => md.Available))
             {
                 Current.Log.Add("[" + md.Type.Name + "]: Rendering model to disk", Message.EContentType.Maintenance);
 
