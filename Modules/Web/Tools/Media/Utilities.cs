@@ -52,9 +52,10 @@ namespace Nyan.Modules.Web.Tools.Media
                 }
             }
 
-            var bmPhoto = new Bitmap(intermediateWidth, intermediateHeight, PixelFormat.Format24bppRgb);
+            var bmPhoto = new Bitmap(intermediateWidth, intermediateHeight, PixelFormat.Format32bppPArgb);
 
             var grp = Graphics.FromImage(bmPhoto);
+            grp.Clear(Color.Transparent);
 
             grp.InterpolationMode = InterpolationMode.HighQualityBicubic;
             grp.PixelOffsetMode = PixelOffsetMode.HighQuality;
@@ -66,6 +67,8 @@ namespace Nyan.Modules.Web.Tools.Media
             var section = new Rectangle(new Point(widthOffSet, heightOffSet), new Size(width, height));
 
             var preoutputGrp = Graphics.FromImage(outputImage);
+            preoutputGrp.Clear(Color.Transparent);
+
             preoutputGrp.InterpolationMode = InterpolationMode.HighQualityBicubic;
 
             preoutputGrp.DrawImage(bmPhoto, 0, 0, section, GraphicsUnit.Pixel);
