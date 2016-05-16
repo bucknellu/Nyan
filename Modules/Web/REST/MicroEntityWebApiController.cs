@@ -200,7 +200,7 @@ namespace Nyan.Modules.Web.REST
 
                 EvaluateAuthorization(ClassSecurity, RequestType.Get, AccessType.Read, id);
 
-                var preRet = MicroEntity<T>.Get(id);
+                var preRet = InternalGet(id);
                 if (preRet == null) throw new HttpResponseException(HttpStatusCode.NotFound);
 
                 if (MicroEntity<T>.TableData.AuditAccess)
@@ -218,6 +218,69 @@ namespace Nyan.Modules.Web.REST
                 Current.Log.Add("GET " + id + " " + typeof(T).FullName + ":" + id + " ERR (" + sw.ElapsedMilliseconds + " ms): " + e.Message, e);
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e);
             }
+        }
+
+        public virtual T InternalGet(string id)
+        {
+            return MicroEntity<T>.Get(id);
+        }
+
+        [Route("subset")]
+        [HttpPost]
+        public virtual HttpResponseMessage WebApiGetSetByPost()
+        {
+            var idset = Request.Content.ReadAsStringAsync().Result;
+            return RenderJsonResult(InternalGetSet(idset));
+        }
+
+        [Route("subset/{idset}")]
+        [HttpGet]
+        public virtual HttpResponseMessage WebApiGetSetByGet(string idset) { return RenderJsonResult(InternalGetSet(idset)); }
+
+        public virtual List<T> InternalGetSet(string idset)
+        {
+            if (idset == null) return null;
+
+            var res = new List<T>();
+
+            var sw = new Stopwatch();
+
+            try
+            {
+
+                sw.Start();
+
+                var set = new List<string>();
+
+                if (idset.IndexOf(";", StringComparison.Ordinal) != -1)
+                    set = idset.Split(';').ToList();
+
+                if (idset.IndexOf(",", StringComparison.Ordinal) != -1)
+                    set = idset.Split(',').ToList();
+
+                if (set.Count == 0) return res;
+
+
+                foreach (var i in set)
+                {
+                    var probe = InternalGet(i);
+
+                    if (probe != null)
+                        res.Add(probe);
+                }
+
+                return res;
+
+
+            }
+            catch (Exception e)
+            {
+                sw.Stop();
+                Current.Log.Add("InternalGetSet " + typeof(T).FullName + ":" + idset + " ERR (" + sw.ElapsedMilliseconds + " ms): " + e.Message, e);
+                RenderException(HttpStatusCode.InternalServerError, e.Message);
+                return null;
+            }
+
         }
 
         [Route("")]
@@ -440,6 +503,13 @@ namespace Nyan.Modules.Web.REST
             var ret = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(contents.ToJson()) };
             ret.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
             return ret;
+        }
+
+        public void RenderException(HttpStatusCode eType, string message)
+        {
+            var httpError = new HttpError(message);
+            var errorResponse = Request.CreateErrorResponse(eType, httpError);
+            throw new HttpResponseException(errorResponse);
         }
 
         public virtual string SearchResultMoniker { get { return MicroEntity<T>.Statements.Label; } }
