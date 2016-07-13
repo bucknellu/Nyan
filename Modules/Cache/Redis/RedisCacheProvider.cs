@@ -185,7 +185,10 @@ namespace Nyan.Modules.Cache.Redis
 
                 var db = _redis.GetDatabase(DatabaseIndex);
 
-                var keys = server.Keys();
+                var keys = server.Keys(pattern: "*", database: DatabaseIndex).ToList();
+
+                Core.Settings.Current.Log.Add("REDIS: Removing {0} keys from database {1}".format(keys.Count, DatabaseIndex), Message.EContentType.Maintenance);
+
                 foreach (var key in keys)
                 {
                     db.KeyDelete(key);
