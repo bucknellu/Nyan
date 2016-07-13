@@ -79,7 +79,6 @@ namespace Nyan.Core.Modules.Data
             var ret = TableData.UseCaching
                 ? Helper.FetchCacheableSingleResultByKey(GetFromDatabase, identifier)
                 : GetFromDatabase(identifier);
-
             return ret;
         }
 
@@ -474,10 +473,15 @@ break; */
                 obj = Statements.Adapter.InsertableParameters<T>(this);
             }
 
+
             if (Statements.IdColumn == null)
+            {
                 Execute(Statements.SqlInsertSingle, obj);
+            }
             else if (isNew)
+            {
                 ret = SaveAndGetId(obj);
+            }
             else
             {
                 Execute(Statements.SqlUpdateSingle, obj);
@@ -976,14 +980,14 @@ break; */
                     Statements.State.Step = "Checking Connection";
                     Statements.Adapter.SetConnectionString<T>();
 
+                    LogLocal(Statements.ConnectionString.SafeArray("Data Source", "=", ";", Transformation.ESafeArrayMode.Allow), Message.EContentType.MoreInfo);
+
                     using (var conn = Statements.Adapter.Connection(Statements.ConnectionString))
                     {
                         //Test Connectivity
                         conn.Open();
                         conn.Close();
                         conn.Dispose();
-
-                        LogLocal(Statements.ConnectionString.SafeArray("Data Source", "=", ";", Transformation.ESafeArrayMode.Allow), Message.EContentType.MoreInfo);
                     }
 
                     if (!TableData.IsReadOnly)
@@ -1012,6 +1016,8 @@ break; */
                     Statements.State.Stack = new StackTrace(e, true).FancyString();
 
                     Log.System.Add(Statements.State.Description);
+                    Log.System.Add("    " + Statements.ConnectionString.SafeArray("Data Source", "=", ";", Transformation.ESafeArrayMode.Allow));
+                    Log.System.Add("    Environment: " + Current.Environment.CurrentCode);
                     Log.System.Add("    " + Statements.State.Stack);
 
                     LogLocal(Statements.ConnectionString.SafeArray("Data Source", "=", ";", Transformation.ESafeArrayMode.Allow), Message.EContentType.Warning);
