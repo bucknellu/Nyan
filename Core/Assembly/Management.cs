@@ -17,13 +17,12 @@ namespace Nyan.Core.Assembly
     /// </summary>
     public static class Management
     {
-        private static readonly Dictionary<string, System.Reflection.Assembly> AssemblyCache = new Dictionary<string, System.Reflection.Assembly>();
+        public static readonly Dictionary<string, System.Reflection.Assembly> AssemblyCache = new Dictionary<string, System.Reflection.Assembly>();
         private static readonly Dictionary<Type, List<Type>> InterfaceClassesCache = new Dictionary<Type, List<Type>>();
         private static readonly object Lock = new object();
         private static readonly List<FileSystemWatcher> FsMonitors = new List<FileSystemWatcher>();
         private static readonly List<string> WatchedSources = new List<string>();
-
-        private static readonly Dictionary<string, string> UniqueAssemblies = new Dictionary<string, string>();
+        public static readonly Dictionary<string, string> UniqueAssemblies = new Dictionary<string, string>();
 
         static Management()
         {
