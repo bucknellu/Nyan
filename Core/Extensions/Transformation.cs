@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Dynamic;
@@ -185,6 +186,14 @@ namespace Nyan.Core.Extensions
             var dictionary = obj.ToDictionary();
             dictionary.Add(name, value);
             return dictionary;
+        }
+
+        public static ICollection<T> ToCollection<T>(this List<T> items) where T : class
+        {
+            var ret = new Collection<T>();
+            foreach (var t in items) {ret.Add(t);}
+            return ret;
+
         }
 
         public static T? ToNullable<T>(this string s) where T : struct
