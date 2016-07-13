@@ -12,6 +12,23 @@ namespace Nyan.Core.Modules.Data
         where T : ComplexMicroEntity<T, TU>, new()
         where TU : MicroEntity<TU>
     {
+
+        public static List<T> Get()
+        {
+
+            // 2-step in order for guarantee caching.
+
+            var src = MicroEntity<TU>.Get().ToList();
+            var ret = new List<T>();
+
+            foreach (var u in src)
+            {
+               ret.Add(Get(u.GetEntityIdentifier())); 
+            }
+
+            return ret;
+        }
+
         public static T Get(long identifier, string referenceField = null)
         {
             return Get(identifier.ToString(CultureInfo.InvariantCulture), referenceField);
@@ -20,7 +37,6 @@ namespace Nyan.Core.Modules.Data
         public static T Get(string identifier, string referenceField = null)
         {
             var cacheid = typeof(T).CacheKey(identifier);
-
 
             if (Current.Cache.OperationalStatus == EOperationalStatus.Operational)
             {
@@ -72,6 +88,31 @@ namespace Nyan.Core.Modules.Data
         {
             //Must ALWAYS be overridden by implementing Class.
             throw new NotImplementedException();
+        }
+
+        public static void FlushCacheEntry(string identifier)
+        {
+            if (Current.Cache.OperationalStatus != EOperationalStatus.Operational) return;
+
+            var cacheid = typeof(T).CacheKey(identifier);
+
+            Current.Log.Add("CACHE KILL " + cacheid);
+
+            Current.Cache.Remove(cacheid);
+        }
+        public static void FlushCacheEntry(long identifier)
+        {
+            FlushCacheEntry(identifier.ToString());
+        }
+
+        public static void SetCacheEntry(long identifier, object content)
+        {
+            SetCacheEntry(identifier.ToString(), content);
+        }
+        public static void SetCacheEntry(string key, object content)
+        {
+            var cacheid = typeof(T).CacheKey(key);
+            Current.Cache[cacheid] = content.ToJson();
         }
     }
 }
