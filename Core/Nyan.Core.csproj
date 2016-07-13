@@ -56,6 +56,7 @@
     <Compile Include="Extensions\Reflections.cs" />
     <Compile Include="Extensions\Serialization.cs" />
     <Compile Include="Configuration.cs" />
+    <Compile Include="Modules\Data\Model\LocalStorageModel.cs" />
     <Compile Include="Wrappers\StaticMembersDynamicWrapper.cs" />
     <Compile Include="Extensions\Transformation.cs" />
     <Compile Include="Factories\Identifier.cs" />
