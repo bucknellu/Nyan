@@ -52,6 +52,21 @@ namespace Nyan.Core.Modules.Cache
             return ret;
         }
 
+
+        public static void FlushCacheableSingleResultByKey<T>() { FlushCacheableSingleResultByKey<T>("s"); }
+        public static void FlushCacheableSingleResultByKey<T>(string key)
+        {
+
+            if (Current.Cache.OperationalStatus != EOperationalStatus.Operational)
+                return;
+
+            var cacheid = typeof(T).CacheKey(key);
+
+            Current.Cache.Remove(cacheid);
+        }
+
+
+
         public static T FetchCacheableResultSingleton<T>(Func<T> method, object singletonLock, string namespaceSpec = null, int timeOutSeconds = 600)
         {
             string cacheid;
