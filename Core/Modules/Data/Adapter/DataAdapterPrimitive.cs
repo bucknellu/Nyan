@@ -117,9 +117,36 @@ namespace Nyan.Core.Modules.Data.Adapter
             var statements = MicroEntity<T>.Statements;
             var tableData = MicroEntity<T>.TableData;
 
-            var envCode = tableData.PersistentEnvironmentCode ?? Current.Environment.CurrentCode;
+            var mapping = MicroEntity<T>.EnvironmentMappingData;
+
+            var mappedEnvCode = mapping.ContainsKey(Current.Environment.CurrentCode) ? mapping[Current.Environment.CurrentCode] : null;
+
+            var envCode = tableData.PersistentEnvironmentCode;
+
+            var mapSrc = "";
+
+            if (envCode == null)
+            {
+                if (mappedEnvCode != null)
+                {
+                    mapSrc = "Mapping";
+                    envCode = mappedEnvCode;
+                }
+            }
+            else
+            {
+                mapSrc = "PersistentEnvironmentCode";
+            }
+
+            if (envCode == null)
+            {
+                mapSrc = "Environment.CurrentCode";
+                envCode = Current.Environment.CurrentCode;
+            }
 
             if (envCode == "UND") envCode = "DEV";
+
+            Current.Log.Add(typeof(T), "Environment [" + envCode + "] set by " + mapSrc);
 
             if (!statements.ConnectionCypherKeys.ContainsKey(envCode))
             {
@@ -342,7 +369,7 @@ namespace Nyan.Core.Modules.Data.Adapter
             // Let's determine the target MicroEntity.
             dynamic refType = new StaticMembersDynamicWrapper(typeof(T));
 
-            var ret = new ModelDefinition() {Type = typeof (T), Available = false};
+            var ret = new ModelDefinition() { Type = typeof(T), Available = false };
 
             // ReadOnly? Too bad. Ignore.
             if (refType.TableData.IsReadOnly)

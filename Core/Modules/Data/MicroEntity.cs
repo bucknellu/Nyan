@@ -1050,6 +1050,26 @@ break; */
             }
         }
 
+        public static Dictionary<string, string> EnvironmentMappingData
+        {
+            get
+            {
+                var atts = Attribute.GetCustomAttributes(typeof(T), typeof(MicroEntityEnvironmentMappingAttribute))
+                    .Select(i=> (MicroEntityEnvironmentMappingAttribute)i)
+                    .ToList();
+
+                if (atts.Count <= 0) return new Dictionary<string, string>();
+
+                {
+                    var ret = atts.ToDictionary(i => i.Origin, i => i.Target);
+
+                    Current.Log.Add(typeof(T), "Environment mappings found: " + string.Join(";", ret.Select(x => x.Key + ">" + x.Value).ToArray()));
+
+                    return ret;
+                }
+            }
+        }
+
         private static void Environment_EnvironmentChanged(object sender, EventArgs e)
         {
             //Target environment changed; pick the proper connection strings.
