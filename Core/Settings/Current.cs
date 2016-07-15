@@ -1,26 +1,21 @@
 ﻿using System;
-using System.IO;
 using System.Linq;
-using System.Web.Hosting;
 using System.Windows.Forms;
 using Nyan.Core.Assembly;
 using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Cache;
 using Nyan.Core.Modules.Data.Connection;
 using Nyan.Core.Modules.Encryption;
+using Nyan.Core.Modules.Environment;
 using Nyan.Core.Modules.Identity;
 using Nyan.Core.Modules.Log;
-using Nyan.Core.Modules.Environment;
 using Nyan.Core.Process;
 using Message = Nyan.Core.Modules.Log.Message;
-using Nyan.Core.Diagnostics;
 
 namespace Nyan.Core.Settings
 {
     public static class Current
     {
-        private static string _webApiCorsDomains;
-
         static Current()
         {
             try { Application.ApplicationExit += Application_ApplicationExit; } catch { }
@@ -41,7 +36,6 @@ namespace Nyan.Core.Settings
             GlobalConnectionBundleType = refObj.GlobalConnectionBundleType;
             Authorization = refObj.Authorization;
             WebApiCORSDomains = refObj.WebApiCORSDomains;
-
 
             Log.Add(@"   |\_/|          |", Message.EContentType.Info);
             Log.Add(@"  >(o.O)<         | Nyan " + System.Reflection.Assembly.GetCallingAssembly().GetName().Version, Message.EContentType.Info);
@@ -66,19 +60,14 @@ namespace Nyan.Core.Settings
                 Cache.Initialize();
         }
 
-        public static ICacheProvider Cache { get; private set; }
-        public static IEnvironmentProvider Environment { get; private set; }
-        public static IEncryptionProvider Encryption { get; private set; }
-        public static IAuthorizationProvider Authorization { get; private set; }
-        public static LogProvider Log { get; private set; }
-        public static Type GlobalConnectionBundleType { get; private set; }
+        public static ICacheProvider Cache { get; }
+        public static IEnvironmentProvider Environment { get; }
+        public static IEncryptionProvider Encryption { get; }
+        public static IAuthorizationProvider Authorization { get; }
+        public static LogProvider Log { get; }
+        public static Type GlobalConnectionBundleType { get; }
 
-
-        public static string WebApiCORSDomains
-        {
-            get { return _webApiCorsDomains; }
-            private set { _webApiCorsDomains = value; }
-        }
+        public static string WebApiCORSDomains { get; private set; }
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
