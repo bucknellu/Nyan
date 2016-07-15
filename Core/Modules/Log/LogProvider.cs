@@ -128,6 +128,11 @@ namespace Nyan.Core.Modules.Log
                 Add(e.InnerException, null, token);
         }
 
+        public virtual void Add(Type t, string message, Message.EContentType type = Message.EContentType.Generic)
+        {
+            Add(t.FullName + ": " + message,type);
+        }
+
         public virtual void Add(string pMessage, Exception e) { Add(e, pMessage, null); }
 
         public virtual void StartListening() { }
