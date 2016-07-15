@@ -13,7 +13,7 @@ namespace Nyan.Modules.Web.Tools.Search
     {
         [Route("{term}")]
         [HttpGet]
-        public Dictionary<string, List<SearchResult>> Search(string term)
+        public Dictionary<string, object> Search(string term)
         {
             try
             {
@@ -35,7 +35,7 @@ namespace Nyan.Modules.Web.Tools.Search
 
         [Route("{term}/{categories}")]
         [HttpGet]
-        public Dictionary<string, List<SearchResult>> Search(string term, string categories)
+        public Dictionary<string, object> Search(string term, string categories)
         {
             try
             {
@@ -55,7 +55,7 @@ namespace Nyan.Modules.Web.Tools.Search
             }
         }
 
-        private Dictionary<string, List<SearchResult>> doSearch(string terms)
+        private Dictionary<string, object> doSearch(string terms)
         {
             var term = terms.FromJson<ParmSet>();
 

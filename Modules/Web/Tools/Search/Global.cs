@@ -15,7 +15,7 @@ namespace Nyan.Modules.Web.Tools.Search
     {
         private static readonly List<Type> _searchableTypes = Management.GetClassesByInterface<ISearch>();
 
-        public static Dictionary<string, List<SearchResult>> Run(string term, string categories)
+        public static Dictionary<string, object> Run(string term, string categories)
         {
             var step = "Initializing";
             try
@@ -35,7 +35,7 @@ namespace Nyan.Modules.Web.Tools.Search
                 foreach (var searchableType in _searchableTypes)
                 {
                     step = "Creating instance of " + searchableType.FullName;
-                    var instance = (ISearch) Activator.CreateInstance(searchableType);
+                    var instance = (ISearch)Activator.CreateInstance(searchableType);
 
                     step = "Adding task for " + searchableType.FullName;
 
@@ -64,7 +64,7 @@ namespace Nyan.Modules.Web.Tools.Search
                         var cts = new CancellationTokenSource();
                         var cancellableTask = task.ContinueWith(ignored => { }, cts.Token);
                         cts.Cancel();
-                        Task.WaitAny(new[] {cancellableTask}, TimeSpan.FromSeconds(0.1));
+                        Task.WaitAny(new[] { cancellableTask }, TimeSpan.FromSeconds(0.1));
                         Current.Log.Add("Task Canceled.");
                     }
                     else
@@ -100,12 +100,27 @@ namespace Nyan.Modules.Web.Tools.Search
                 }
 
                 step = "Returning content";
-                return retcon;
-            } catch (Exception e)
+
+
+                var finalCon = new Dictionary<string, object>();
+                var regCount = 0;
+
+                foreach (var i in retcon)
+                {
+                    regCount += i.Value.Count;
+                    finalCon.Add(i.Key, i.Value);
+                }
+
+                finalCon.Add("_total", regCount);
+
+                return finalCon;
+
+            }
+            catch (Exception e)
             {
                 Current.Log.Add("Error while " + step + ":", Message.EContentType.Warning);
                 Current.Log.Add(e);
-                return new Dictionary<string, List<SearchResult>>();
+                return new Dictionary<string, object> { { "_total", 0 } };
             }
         }
 
@@ -114,7 +129,8 @@ namespace Nyan.Modules.Web.Tools.Search
             try
             {
                 return new KeyValuePair<string, List<SearchResult>>(instance.SearchResultMoniker, instance.SimpleQuery(term));
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 Current.Log.Add(e);
                 return new KeyValuePair<string, List<SearchResult>>(instance.SearchResultMoniker, new List<SearchResult>());
