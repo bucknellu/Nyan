@@ -65,7 +65,8 @@
     <Compile Include="Media\ImageController.cs" />
     <Compile Include="Media\Utilities.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Proxy.cs" />
+    <Compile Include="Resource\Proxy.cs" />
+    <Compile Include="Resource\Summary.cs" />
     <Compile Include="Search\Global.cs" />
     <Compile Include="Search\SearchController.cs" />
     <Compile Include="WebSocket\WebSocketMessagingController.cs" />
