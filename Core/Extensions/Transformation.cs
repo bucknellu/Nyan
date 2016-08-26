@@ -4,9 +4,12 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Dynamic;
+using System.Globalization;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
+using Newtonsoft.Json.Linq;
 using Nyan.Core.Factories;
 using Nyan.Core.Settings;
 
@@ -191,9 +194,8 @@ namespace Nyan.Core.Extensions
         public static ICollection<T> ToCollection<T>(this List<T> items) where T : class
         {
             var ret = new Collection<T>();
-            foreach (var t in items) {ret.Add(t);}
+            foreach (var t in items) ret.Add(t);
             return ret;
-
         }
 
         public static T? ToNullable<T>(this string s) where T : struct
@@ -362,13 +364,11 @@ namespace Nyan.Core.Extensions
         public static bool IgnoreCaseContains(this IEnumerable<string> list, string lookupStr)
         {
             lookupStr = lookupStr.ToLower();
-            foreach (string str in list)
+            foreach (var str in list)
             {
-                string s = str.ToLower();
+                var s = str.ToLower();
                 if (s.Equals(lookupStr))
-                {
                     return true;
-                }
             }
 
             return false;
@@ -376,15 +376,53 @@ namespace Nyan.Core.Extensions
 
         public static string ProperCase(this string str)
         {
-            string[] words = str.Split(' ');
-            for (int i = 0; i < words.Length; i++)
-            {
+            var words = str.Split(' ');
+            for (var i = 0; i < words.Length; i++)
                 words[i] = words[i].Substring(0, 1).ToUpper() + words[i].ToLower().Substring(1, words[i].Length - 1);
-            }
 
-            return String.Join(" ", words);
+            return string.Join(" ", words);
         }
 
-        public static string ToString(this Newtonsoft.Json.Linq.JValue val) { return val.ToObject<string>(); }
+        public static string ToString(this JValue val) { return val.ToObject<string>(); }
+
+        public static bool IsValidEmail(this string strIn)
+        {
+            if (string.IsNullOrEmpty(strIn))
+                return false;
+
+            // Use IdnMapping class to convert Unicode domain names.
+            try
+            {
+                strIn = Regex.Replace(strIn, @"(@)(.+)$", DomainMapper, RegexOptions.None, TimeSpan.FromMilliseconds(200));
+            }
+            catch
+            {
+                return false;
+            }
+
+            // Return true if strIn is in valid e-mail format.
+            try
+            {
+                return Regex.IsMatch(strIn,
+                    @"^(?("")("".+?(?<!\\)""@)|(([0-9a-z]((\.(?!\.))|[-!#\$%&'\*\+/=\?\^`\{\}\|~\w])*)(?<=[0-9a-z])@))" +
+                    @"(?(\[)(\[(\d{1,3}\.){3}\d{1,3}\])|(([0-9a-z][-\w]*[0-9a-z]*\.)+[a-z0-9][\-a-z0-9]{0,22}[a-z0-9]))$",
+                    RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
+            }
+            catch (RegexMatchTimeoutException)
+            {
+                return false;
+            }
+        }
+
+        private static string DomainMapper(Match match)
+        {
+            // IdnMapping class with default property values.
+            var idn = new IdnMapping();
+
+            var domainName = match.Groups[2].Value;
+            domainName = idn.GetAscii(domainName);
+
+            return match.Groups[1].Value + domainName;
+        }
     }
 }
