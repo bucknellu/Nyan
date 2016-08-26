@@ -57,7 +57,9 @@
     <Compile Include="Extensions\Serialization.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="Modules\Data\MicroEntityEnvironmentMappingAttribute.cs" />
+    <Compile Include="Modules\Data\MicroEntityParametrizedGet.cs" />
     <Compile Include="Modules\Data\Model\LocalStorageModel.cs" />
+    <Compile Include="Process\Operations.cs" />
     <Compile Include="Wrappers\StaticMembersDynamicWrapper.cs" />
     <Compile Include="Extensions\Transformation.cs" />
     <Compile Include="Factories\Identifier.cs" />
