@@ -62,5 +62,6 @@ namespace Nyan.Core.Modules.Data
         public bool AuditChange { get; set; }
         public Type CredentialSetType { get; set; }
         public string PersistentEnvironmentCode { get; set; }
+        public bool SuppressErrors { get; set; }
     }
 }
