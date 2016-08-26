@@ -5,6 +5,7 @@ using System.Configuration;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Data.Maintenance;
@@ -55,6 +56,9 @@ namespace Nyan.Core.Modules.Data.Adapter
             statements.SqlRemoveSingleParametrized = sqlTemplateRemoveSingleParametrized.format(refTableName, "{0}", "{1}");
             statements.SqlTruncateTable = sqlTemplateTableTruncate.format(refTableName);
             statements.SqlReturnNewIdentifier = sqlTemplateReturnNewIdentifier;
+            statements.SqlOrderByCommand = sqltemplateOrderByCommand;
+            statements.SqlPaginationWrapper = sqltemplatePaginationWrapper;
+            statements.SqlRowCount = sqltemplateRowCount.format(refTableName);
 
             var preInsFieldList = new StringBuilder();
             var preInsParamList = new StringBuilder();
@@ -100,8 +104,7 @@ namespace Nyan.Core.Modules.Data.Adapter
                 }
                 catch (Exception e)
                 {
-                    Current.Log.Add("SetSqlStatements: Error rendering statements: " + e.Message,
-                        Message.EContentType.Warning);
+                    if (!tableData.SuppressErrors) Current.Log.Add("SetSqlStatements: Error rendering statements: " + e.Message, Message.EContentType.Warning);
                     throw;
                 }
             }
@@ -146,7 +149,7 @@ namespace Nyan.Core.Modules.Data.Adapter
 
             if (envCode == "UND") envCode = "DEV";
 
-            Current.Log.Add(typeof(T), "Environment [" + envCode + "] set by " + mapSrc);
+            if (!tableData.SuppressErrors) Current.Log.Add(typeof(T), "Environment [" + envCode + "] set by " + mapSrc);
 
             if (!statements.ConnectionCypherKeys.ContainsKey(envCode))
             {
@@ -180,7 +183,7 @@ namespace Nyan.Core.Modules.Data.Adapter
             //Handling credentials
 
             if (statements.ConnectionString.IndexOf("{credentials}", StringComparison.Ordinal) == -1)
-                Current.Log.Add("[{0}] {1}: Credentials set, but no placeholder found on connection string. Skipping.".format(envCode, typeof(T).FullName), Message.EContentType.Warning);
+                if (!tableData.SuppressErrors) Current.Log.Add("[{0}] {1}: Credentials set, but no placeholder found on connection string. Skipping.".format(envCode, typeof(T).FullName), Message.EContentType.Warning);
 
             statements.CredentialsString = statements.CredentialCypherKeys[envCode];
 
@@ -255,6 +258,68 @@ namespace Nyan.Core.Modules.Data.Adapter
                     pTargetCustomType = DynamicParametersPrimitive.DbGenericType.String;
                     ret.Add(pSourceName, pSourceValue, pTargetCustomType, ParameterDirection.Input);
                 }
+            }
+
+            return ret;
+        }
+
+        public virtual string PaginationWrapper<T>(string sequence, MicroEntityParametrizedGet parm) where T : MicroEntity<T>
+        {
+            var ret = "";
+
+            ret = MicroEntity<T>.Statements.SqlPaginationWrapper.format(sequence, (parm.PageIndex * parm.PageSize), ((parm.PageIndex + 1) * parm.PageSize));
+
+            return ret;
+        }
+
+        public virtual string GetOrderByClausefromSerializedQueryParameters<T>(string sequence) where T : MicroEntity<T>
+        {
+            var seq = sequence ?? "";
+            if (seq == "") return null;
+
+            // 1: Create parameter list.
+            var fieldList = new List<string>();
+
+            if (seq.IndexOf(",", StringComparison.Ordinal) != -1)
+            {
+                fieldList = seq.Split(',').ToList();
+            }
+            else
+            {
+                fieldList.Add(seq);
+            }
+
+            // 2: Transform into SQL-like dictionary
+
+            var opDir = new Dictionary<string, string>();
+
+            foreach (var i in fieldList)
+            {
+                var dir = i[0];
+                var parm = i.Substring(1);
+
+                switch (dir)
+                {
+                    case '+': opDir[parm] = "ASC"; break; 
+                    case ' ': opDir[parm] = "ASC"; break; // The + sign equals space after URLDecode.
+                    case '-': opDir[parm] = "DESC"; break;
+                    default: opDir[i] = "ASC"; break;
+                }
+            }
+
+            // 3: Fetch proper field name; prepare return string.
+
+            var ret = "";
+            var fields = MicroEntity<T>.Statements.PropertyFieldMap;
+
+            foreach (var i in opDir)
+            {
+                var probe = fields.FirstOrDefault(a => a.Value.ToLower().Equals(i.Key.ToLower()));
+                if (probe.Key == null) throw new ArgumentException("Parameter '" + i + "' not found.");
+
+                if (ret != "") ret += ", ";
+
+                ret += probe.Value + " " + i.Value;
             }
 
             return ret;
@@ -343,6 +408,9 @@ namespace Nyan.Core.Modules.Data.Adapter
         protected internal string sqlTemplateReturnNewIdentifier = "select last_insert_rowid() as newid";
         protected internal string sqlTemplateTableTruncate = "TRUNCATE TABLE {0}";
         protected internal string sqlTemplateUpdateSingle = "UPDATE {0} SET {1} WHERE {2} = {3}";
+        protected internal string sqltemplateOrderByCommand = "ORDER BY";
+        protected internal string sqltemplatePaginationWrapper = "SELECT * FROM(SELECT A.*, ROWNUM C___RN FROM({0}) A) WHERE C___RN BETWEEN {1}+1 AND {2}";
+        protected internal string sqltemplateRowCount = "SELECT COUNT(*) FROM {0}";
 
         protected internal bool useIndependentStatementsForKeyExtraction = false;
         protected internal bool useNumericPrimaryKeyOnly = false;
