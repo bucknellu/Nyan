@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Threading;
 using Nyan.Core.Extensions;
 using Nyan.Core.Factories;
+using Nyan.Core.Modules.Data;
+using Nyan.Core.Settings;
 
 namespace Nyan.Core.Modules.Log
 {
@@ -102,6 +104,8 @@ namespace Nyan.Core.Modules.Log
             if (handler != null) handler(message);
         }
 
+        public virtual void CheckFatalTriggers(string payload) { }
+
         public virtual void Add(bool content) { Add(content.ToString()); }
 
         public virtual void Add(string pattern, params object[] replacementStrings) { Add(string.Format(pattern, replacementStrings)); }
@@ -130,7 +134,7 @@ namespace Nyan.Core.Modules.Log
 
         public virtual void Add(Type t, string message, Message.EContentType type = Message.EContentType.Generic)
         {
-            Add(t.FullName + " : " + message,type);
+            Add(t.FullName + " : " + message, type);
         }
 
         public virtual void Add(string pMessage, Exception e) { Add(e, pMessage, null); }
@@ -140,9 +144,9 @@ namespace Nyan.Core.Modules.Log
         public virtual void BeforeDispatch(Message payload) { }
         public virtual void AfterDispatch(Message payload)
         {
-            if (Settings.replicateLocally)
-                System.Add(payload.Content);
+            if (Settings.replicateLocally) System.Add(payload.Content);
         }
+
         public virtual void doDispatchCycle(Message payload)
         {
             try { BeforeDispatch(payload); } catch { }
@@ -157,6 +161,7 @@ namespace Nyan.Core.Modules.Log
             if (type > Settings.VerbosityThreshold) return;
 
             var payload = new Message { Content = content, Subject = type.ToString(), Type = type };
+
 
             if (_useScheduler)
             {
