@@ -2,14 +2,18 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading.Tasks;
 using System.Web.Http;
 using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Data;
 using Nyan.Core.Modules.Data.Adapter;
+using Nyan.Core.Modules.Data.Model;
 using Nyan.Core.Modules.Log;
 using Nyan.Core.Settings;
 using Nyan.Core.Wrappers;
@@ -113,6 +117,7 @@ namespace Nyan.Modules.Web.REST
         public virtual object WebApiGetAll()
         {
             var sw = new Stopwatch();
+            var addCount = false;
 
             try
             {
@@ -121,9 +126,29 @@ namespace Nyan.Modules.Web.REST
                 sw.Start();
 
                 object preRet;
+                var parametrizedGet = new MicroEntityParametrizedGet();
+
                 if (RESTHeaderQuery == null)
                 {
-                    preRet = MicroEntity<T>.Get();
+                    var mustUseParametrizedGet = false;
+
+                    var queryString = Request.GetQueryNameValuePairs().ToDictionary(x => x.Key, x => x.Value);
+
+                    if (queryString.ContainsKey("sort"))
+                    {
+                        mustUseParametrizedGet = true;
+                        parametrizedGet.OrderBy = queryString["sort"];
+                    }
+
+                    if (queryString.ContainsKey("page"))
+                    {
+                        addCount = true;
+                        mustUseParametrizedGet = true;
+                        parametrizedGet.PageIndex = Convert.ToInt32(queryString["page"]);
+                        parametrizedGet.PageSize = queryString.ContainsKey("limit") ? Convert.ToInt32(queryString["limit"]) : 50;
+                    }
+
+                    preRet = mustUseParametrizedGet ? MicroEntity<T>.Get(parametrizedGet) : MicroEntity<T>.Get();
                 }
                 else
                 {
@@ -143,12 +168,21 @@ namespace Nyan.Modules.Web.REST
 
                 sw.Stop();
 
-                if (MicroEntity<T>.TableData.AuditAccess)
-                    AuditRequest("ACCESS", typeof(T).FullName + ":ALL");
+                if (MicroEntity<T>.TableData.AuditAccess) AuditRequest("ACCESS", typeof(T).FullName + ":ALL");
 
                 Current.Log.Add("GET " + typeof(T).FullName + " OK (" + sw.ElapsedMilliseconds + " ms)");
 
-                return RenderJsonResult(preRet);
+                var ret = RenderJsonResult(preRet);
+
+                if (addCount)
+                {
+                    var tot = MicroEntity<T>.Count();
+
+                    ret.Headers.Add("X-Total-Count", tot.ToString());
+                    ret.Headers.Add("X-Total-Pages", (Math.Truncate((double)tot / parametrizedGet.PageSize) + 1).ToString(CultureInfo.InvariantCulture));
+                }
+
+                return ret;
             }
             catch (Exception e)
             {
@@ -248,18 +282,25 @@ namespace Nyan.Modules.Web.REST
             try
             {
 
-                sw.Start();
-
                 var set = new List<string>();
 
                 if (idset.IndexOf(";", StringComparison.Ordinal) != -1)
+                {
                     set = idset.Split(';').ToList();
+                }
 
                 if (idset.IndexOf(",", StringComparison.Ordinal) != -1)
+                {
                     set = idset.Split(',').ToList();
+                }
 
-                if (set.Count == 0) return res;
+                if (set.Count == 0)
+                {
+                    if (idset == "") return res;
+                    set = new List<string> { idset };
+                }
 
+                sw.Start();
 
                 foreach (var i in set)
                 {
@@ -288,6 +329,9 @@ namespace Nyan.Modules.Web.REST
         public virtual HttpResponseMessage WebApiPost(T item)
         {
             var sw = new Stopwatch();
+
+            var res = "";
+            Request.Content.ReadAsStringAsync().ContinueWith(a => res = a.Result);
 
             try
             {
@@ -360,19 +404,41 @@ namespace Nyan.Modules.Web.REST
         {
             //TODO: Capture current user identifier and write to storage.
 
-            var curPId = Current.Authorization.Id;
+            var curPId = Convert.ToInt32(Current.Authorization.Id);
 
             Current.Log.Add("Imprinting Agent " + curPId);
 
-            if (item.IsNew())
+            if (item == null)
             {
-                var propCreator = item.GetType().GetProperty("CreatorId");
-                if (propCreator != null) propCreator.SetValue(item, curPId, null);
+                Current.Log.Add("WARN Imprinting Agent " + curPId + ": No item.", Message.EContentType.Warning);
+                return;
             }
 
-            var propUpdater = item.GetType().GetProperty("LastUpdaterId");
-            if (propUpdater != null) propUpdater.SetValue(item, curPId, null);
+            if (item.IsNew())
+            {
+                SetValue(item, "CreatorId", curPId);
+            }
+
+            SetValue(item, "LastUpdaterId", curPId);
         }
+
+        // http://stackoverflow.com/a/13270302/1845714
+        public static void SetValue(object inputObject, string propertyName, object propertyVal)
+        {
+            Type type = inputObject.GetType();
+            System.Reflection.PropertyInfo propertyInfo = type.GetProperty(propertyName);
+
+            if (propertyInfo == null) return;
+
+            var targetType = IsNullableType(propertyInfo.PropertyType) ? Nullable.GetUnderlyingType(propertyInfo.PropertyType) : propertyInfo.PropertyType;
+            propertyVal = Convert.ChangeType(propertyVal, targetType);
+            propertyInfo.SetValue(inputObject, propertyVal, null);
+        }
+        private static bool IsNullableType(Type type)
+        {
+            return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
+        }
+
 
         private static void AuditRequest(string verb, string target, string content = null)
         {
