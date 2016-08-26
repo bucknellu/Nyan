@@ -98,10 +98,7 @@ namespace Nyan.Tools.LogMonitor
                     mustUpdate = true;
 
                 }
-                catch (Exception e)
-                {
-                    throw;
-                }
+                catch { }
             }
         }
 
@@ -112,10 +109,15 @@ namespace Nyan.Tools.LogMonitor
 
         private void tmrMaintenance_Tick(object sender, EventArgs e)
         {
-            if (!mustUpdate) return;
+            //if (!mustUpdate) return;
 
-            mustUpdate = false;
-            _lastItem.EnsureVisible();
+            try
+            {
+                mustUpdate = false;
+                _lastItem.EnsureVisible();
+            }
+            catch { }
+
         }
 
         private void btnAdjustColumns_Click(object sender, EventArgs e)

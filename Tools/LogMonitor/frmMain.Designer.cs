@@ -82,7 +82,7 @@
             // tmrMaintenance
             // 
             this.tmrMaintenance.Enabled = true;
-            this.tmrMaintenance.Interval = 250;
+            this.tmrMaintenance.Interval = 500;
             this.tmrMaintenance.Tick += new System.EventHandler(this.tmrMaintenance_Tick);
             // 
             // panel1
