@@ -28,6 +28,17 @@ namespace Nyan.Core.Modules.Cache
             return ret;
         }
 
+        public static void FlushCacheableListResultByKey<T>(string key)
+        {
+            var cacheid = typeof(T).CacheKey(key);
+
+            if (Current.Cache.OperationalStatus == EOperationalStatus.Operational)
+            {
+                Current.Cache.Remove(cacheid);
+            }
+
+        }
+
         public static T FetchCacheableSingleResultByKey<T>(Func<string, T> method, string key, string baseType = null, int cacheTimeOutSeconds = 600)
         {
 
