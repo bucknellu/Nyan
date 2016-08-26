@@ -36,6 +36,10 @@ namespace Nyan.Core.Modules.Data
 
         public static T Get(string identifier, string referenceField = null)
         {
+
+            if (identifier == null) return null;
+            if (identifier.ToLower().Trim() == "new") return new T();
+
             var cacheid = typeof(T).CacheKey(identifier);
 
             if (Current.Cache.OperationalStatus == EOperationalStatus.Operational)
