@@ -13,16 +13,16 @@ namespace Nyan.Core.Modules.Data
             Initializing,
             Operational,
             RecoverableFailure,
-            CriticalFailure
+            CriticalFailure,
+            ShuttingDown
         }
 
         public class MicroEntityState
         {
-            public EStatus Status { get; internal set; }
+            public EStatus Status { get; set; }
             protected internal string Description { get; internal set; }
             protected internal string Step { get; internal set; }
             protected internal string Stack { get; internal set; }
-
             public MicroEntityState() { Status = EStatus.Undefined; }
         }
 
@@ -66,9 +66,12 @@ namespace Nyan.Core.Modules.Data
         public string SqlRemoveSingleParametrized;
         public string SqlTruncateTable;
         public string SqlUpdateSingle;
+        public string SqlOrderByCommand;
+        public string SqlPaginationWrapper;
 
         public MicroEntityState State = new MicroEntityState();
 
         public string EnvironmentCode;
+        public string SqlRowCount;
     }
 }
