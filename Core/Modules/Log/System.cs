@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using Nyan.Core.Extensions;
+using Nyan.Core.Settings;
 
 namespace Nyan.Core.Modules.Log
 {
@@ -16,7 +17,9 @@ namespace Nyan.Core.Modules.Log
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
 
-            _out = new StreamWriter(new FileStream(dir + "\\log.txt", FileMode.Append, FileAccess.Write, FileShare.ReadWrite));
+            var _ts = DateTime.Now.ToString("yyyyddMMHHmmss");
+
+            _out = new StreamWriter(new FileStream(dir + "\\log-" + _ts + ".txt", FileMode.Append, FileAccess.Write, FileShare.ReadWrite));
         }
 
         public static void Add(Exception e) { Add("Exception: " + e.Message + " at " + new StackTrace(e, true).FancyString(), Message.EContentType.Exception); }
@@ -35,6 +38,9 @@ namespace Nyan.Core.Modules.Log
 
             _out.WriteLine(ctn);
             _out.Flush();
+
+            // if (Current.Log != null) Current.Log.AfterDispatch(new Message() {Content = message, Type = type});
+
         }
     }
 }
