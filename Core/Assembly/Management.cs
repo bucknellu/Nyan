@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Web;
-using System.Windows.Forms;
+using Nyan.Core.Modules.Log;
+using Nyan.Core.Process;
 using Nyan.Core.Settings;
 using Nyan.Core.Shared;
-using Message = Nyan.Core.Modules.Log.Message;
 
 namespace Nyan.Core.Assembly
 {
@@ -144,8 +145,7 @@ namespace Nyan.Core.Assembly
 
                     var assylist = Directory.GetFiles(path, "*.dll");
 
-                    foreach (var dll in assylist)
-                        LoadAssemblyFromPath(dll);
+                    foreach (var dll in assylist) LoadAssemblyFromPath(dll);
 
                     var watcher = new FileSystemWatcher
                     {
@@ -171,7 +171,7 @@ namespace Nyan.Core.Assembly
 
         private static void FileSystemWatcher_OnChanged(object sender, FileSystemEventArgs e)
         {
-            if (Process.Sequences.IsShuttingDown) return;
+            if (Sequences.IsShuttingDown) return;
 
             // No need for system monitors anymore, better to interrupt and dispose all of them.
             foreach (var i in FsMonitors)
@@ -241,13 +241,9 @@ namespace Nyan.Core.Assembly
             var assySource = new List<System.Reflection.Assembly>();
 
             if (limitToMainAssembly)
-            {
                 assySource.Add(Configuration.ApplicationAssembly);
-            }
             else
-            {
                 assySource = AssemblyCache.Values.ToList();
-            }
 
             foreach (var asy in assySource)
             {
@@ -255,6 +251,46 @@ namespace Nyan.Core.Assembly
                     .GetTypes()
                     .Where(type => type.BaseType != null)
                     .Where(type => (type.BaseType.IsGenericType && type.BaseType.GetGenericTypeDefinition() == refType) || type.BaseType == refType));
+            }
+
+            return classCol;
+        }
+
+        public static readonly Dictionary<Type, List<Type>> GetGenericsByBaseClassCache = new Dictionary<Type, List<Type>>();
+
+        public static List<Type> GetGenericsByBaseClass(Type refType)
+        {
+            if (GetGenericsByBaseClassCache.ContainsKey(refType)) return GetGenericsByBaseClassCache[refType];
+
+            var classCol = new List<Type>();
+
+            try
+            {
+                foreach (var asy in AssemblyCache.Values.ToList())
+                {
+                    foreach (var st in asy.GetTypes())
+                    {
+                        if (st.BaseType == null) continue;
+                        if (!st.BaseType.IsGenericType) continue;
+                        if (st == refType) continue;
+
+                        try
+                        {
+                            foreach (var gta in st.BaseType.GenericTypeArguments)
+                            {
+                                if (gta == refType) classCol.Add(st);
+                            }
+                        }
+                        catch { }
+                    }
+                }
+
+                GetGenericsByBaseClassCache.Add(refType, classCol);
+
+            }
+            catch (Exception e)
+            {
+                Current.Log.Add(e);
             }
 
             return classCol;
@@ -343,8 +379,6 @@ namespace Nyan.Core.Assembly
 
                 return ret;
             }
-
-
         }
     }
 }
