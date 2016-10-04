@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Security.Principal;
 
 namespace Nyan.Core.Modules.Identity
@@ -10,6 +11,7 @@ namespace Nyan.Core.Modules.Identity
         public string Id { get { return null; } }
         public string Locator { get { return null; } }
         public bool CheckPermission(string pCode) { return true; }
+        public bool CheckPermission(IEnumerable<string> pCode) { return true; }
         public void Shutdown() { }
     }
 }
