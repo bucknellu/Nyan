@@ -127,6 +127,7 @@ namespace Nyan.Modules.Web.REST
 
                 object preRet;
                 var parametrizedGet = new MicroEntityParametrizedGet();
+                long tot = 0;
 
                 if (RESTHeaderQuery == null)
                 {
@@ -146,6 +147,17 @@ namespace Nyan.Modules.Web.REST
                         mustUseParametrizedGet = true;
                         parametrizedGet.PageIndex = Convert.ToInt32(queryString["page"]);
                         parametrizedGet.PageSize = queryString.ContainsKey("limit") ? Convert.ToInt32(queryString["limit"]) : 50;
+                    }
+
+                    if (queryString.ContainsKey("q"))
+                    {
+                        parametrizedGet.QueryTerm = queryString["q"].ToLower();
+                        tot = MicroEntity<T>.Count(parametrizedGet.QueryTerm);
+                    }
+                    else { 
+
+                    tot = MicroEntity<T>.Count();
+
                     }
 
                     preRet = mustUseParametrizedGet ? MicroEntity<T>.Get(parametrizedGet) : MicroEntity<T>.Get();
@@ -176,7 +188,6 @@ namespace Nyan.Modules.Web.REST
 
                 if (addCount)
                 {
-                    var tot = MicroEntity<T>.Count();
 
                     ret.Headers.Add("X-Total-Count", tot.ToString());
                     ret.Headers.Add("X-Total-Pages", (Math.Truncate((double)tot / parametrizedGet.PageSize) + 1).ToString(CultureInfo.InvariantCulture));

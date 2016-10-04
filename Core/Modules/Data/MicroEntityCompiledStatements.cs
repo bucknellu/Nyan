@@ -57,6 +57,8 @@ namespace Nyan.Core.Modules.Data
         /// </summary>
         public string SqlCustomSelectQueryTemplate;
 
+        public string SqlSimpleQueryTerm;
+
         public string SqlGetAll;
         public string SqlGetSingle;
 

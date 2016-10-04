@@ -38,6 +38,25 @@ namespace Nyan.Core.Modules.Data.Adapter
 
         public abstract void CheckDatabaseEntities<T>() where T : MicroEntity<T>;
 
+        public virtual void SetSqlTerms<T>() where T : MicroEntity<T>
+        {
+            var statements = MicroEntity<T>.Statements;
+            var t = typeof(T);
+
+            var tmpTerm = "";
+
+            foreach (var pi in t.GetProperties())
+            {
+                if (!statements.PropertyFieldMap.ContainsKey(pi.Name)) continue;
+                if (pi.PropertyType.Name != "String") continue;
+
+                if (tmpTerm != "") tmpTerm += " OR ";
+                tmpTerm += "LOWER(" + statements.PropertyFieldMap[pi.Name] + ") LIKE '%' || " + ParameterDefinition + "qParm || '%'";
+            }
+
+            statements.SqlSimpleQueryTerm = tmpTerm;
+        }
+
         public virtual void SetSqlStatements<T>() where T : MicroEntity<T>
         {
             var tableData = MicroEntity<T>.TableData;
@@ -300,7 +319,7 @@ namespace Nyan.Core.Modules.Data.Adapter
 
                 switch (dir)
                 {
-                    case '+': opDir[parm] = "ASC"; break; 
+                    case '+': opDir[parm] = "ASC"; break;
                     case ' ': opDir[parm] = "ASC"; break; // The + sign equals space after URLDecode.
                     case '-': opDir[parm] = "DESC"; break;
                     default: opDir[i] = "ASC"; break;
