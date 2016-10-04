@@ -65,18 +65,16 @@ namespace Nyan.Core.Modules.Cache
 
 
         public static void FlushCacheableSingleResultByKey<T>() { FlushCacheableSingleResultByKey<T>("s"); }
-        public static void FlushCacheableSingleResultByKey<T>(string key)
+        public static void FlushCacheableSingleResultByKey<T>(string key, string fullNameAlias = null)
         {
 
             if (Current.Cache.OperationalStatus != EOperationalStatus.Operational)
                 return;
 
-            var cacheid = typeof(T).CacheKey(key);
+            var cacheid = typeof(T).CacheKey(key, fullNameAlias);
 
             Current.Cache.Remove(cacheid);
         }
-
-
 
         public static T FetchCacheableResultSingleton<T>(Func<T> method, object singletonLock, string namespaceSpec = null, int timeOutSeconds = 600)
         {
@@ -92,8 +90,7 @@ namespace Nyan.Core.Modules.Cache
                 {
                     if (typeof(T).GetGenericTypeDefinition() == typeof(List<>))
                         if (typeof(T).GetGenericArguments()[0].IsPrimitiveType())
-                            throw new ArgumentOutOfRangeException(
-                                "Invalid cache source - list contains primitive type. Specify namespaceSpec.");
+                            throw new ArgumentOutOfRangeException("Invalid cache source - list contains primitive type. Specify namespaceSpec.");
                         else
                             cacheid = typeof(T).GetGenericArguments()[0].CacheKey("s");
                 }
