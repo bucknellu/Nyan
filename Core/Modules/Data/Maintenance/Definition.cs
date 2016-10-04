@@ -60,10 +60,10 @@ namespace Nyan.Core.Modules.Data.Maintenance
                 Current.Log.Add("[" + md.Type.Name + "]: Rendering model to disk", Message.EContentType.Maintenance);
 
                 if (md.Schema != null)
-                    File.WriteAllText(path + "{1}-{0}-[{2}]-schema.sql".format(md.EnvironmentCode, md.AdapterType, md.Type.Name), md.Schema);
+                    File.WriteAllText(path + "schema-{1}-{0}-[{2}].sql".format(md.EnvironmentCode, md.AdapterType, md.Type.Name), md.Schema);
 
                 if (md.Data != null)
-                    File.WriteAllText(path + "{1}-{0}-[{2}]-data.sql".format(md.EnvironmentCode, md.AdapterType, md.Type.Name), md.Data);
+                    File.WriteAllText(path + "data-{1}-{0}-[{2}].sql".format(md.EnvironmentCode, md.AdapterType, md.Type.Name), md.Data);
             }
 
             Current.Log.Add("[RenderModelsToDisk]: Models available at " + path, Message.EContentType.Maintenance);
