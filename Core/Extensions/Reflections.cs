@@ -238,6 +238,20 @@ namespace Nyan.Core.Extensions
             }
         }
 
+        public static void CopyListPropertiesTo<T, TU>(this IEnumerable<T> source, List<TU> dest)
+        {
+            dest.Clear();
+
+            foreach (var i in source)
+            {
+                var uo = (TU)Activator.CreateInstance(typeof(TU), null);
+
+                i.CopyPropertiesTo(uo);
+                dest.Add(uo);
+
+            }
+        }
+
         public static void CopyPropertiesTo<T, TU>(this T source, TU dest)
         {
             var sourceProps = typeof (T).GetProperties().Where(x => x.CanRead).ToList();
