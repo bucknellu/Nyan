@@ -549,7 +549,7 @@ break; */
                 ret = GetEntityIdentifier();
             }
 
-            LogWrap(GetType().FullName + ": SAVE " + ret);
+            // LogWrap(GetType().FullName + ": SAVE " + ret);
 
             if (Current.Cache.OperationalStatus == EOperationalStatus.Operational)
             {

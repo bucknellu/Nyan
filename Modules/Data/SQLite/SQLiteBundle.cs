@@ -24,14 +24,14 @@ namespace Nyan.Modules.Data.SQLite
             _dbName = dbName;
 
             AdapterType = typeof(SqLiteDataAdapter);
-            ConnectionCypherKeys = new Dictionary<string, string> { { "STA", "Data Source=" + Core.Settings.Current.BaseDirectory + "\\" + _dbName + ";Version=3;" } };
+            ConnectionCypherKeys = new Dictionary<string, string> { { "STA", "Data Source=" + Core.Configuration.DataDirectory + "\\" + _dbName + ";Version=3;" } };
         }
 
         public override void ValidateDatabase()
         {
-            if (!File.Exists(Core.Settings.Current.DataDirectory + "\\" + _dbName))
+            if (!File.Exists(Core.Configuration.DataDirectory + "\\" + _dbName))
             {
-                SQLiteConnection.CreateFile(Core.Settings.Current.DataDirectory + "\\" + _dbName);
+                SQLiteConnection.CreateFile(Core.Configuration.DataDirectory + "\\" + _dbName);
             }
         }
     }
