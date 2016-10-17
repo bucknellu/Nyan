@@ -76,6 +76,41 @@ namespace Nyan.Core.Modules.Cache
             Current.Cache.Remove(cacheid);
         }
 
+        public static void FlushCacheableResultSingleton(string namespaceSpec)
+        {
+            if (namespaceSpec == null)
+                throw new ArgumentOutOfRangeException("Invalid cache source. Specify namespaceSpec.");
+
+            FlushCacheableResultSingleton<string>(namespaceSpec);
+        }
+
+
+        public static void FlushCacheableResultSingleton<T>(string namespaceSpec = null)
+        {
+            string cacheid;
+
+            T cache;
+
+            if (namespaceSpec == null)
+            {
+                cacheid = typeof(T).CacheKey("s");
+
+                try
+                {
+                    if (typeof(T).GetGenericTypeDefinition() == typeof(List<>))
+                        if (typeof(T).GetGenericArguments()[0].IsPrimitiveType())
+                            throw new ArgumentOutOfRangeException("Invalid cache source - list contains primitive type. Specify namespaceSpec.");
+                        else
+                            cacheid = typeof(T).GetGenericArguments()[0].CacheKey("s");
+                }
+                catch { }
+            }
+            else
+                cacheid = namespaceSpec + ":s";
+
+            Current.Cache.Remove(cacheid);
+        }
+
         public static T FetchCacheableResultSingleton<T>(Func<T> method, object singletonLock, string namespaceSpec = null, int timeOutSeconds = 600)
         {
             string cacheid;
