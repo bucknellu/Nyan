@@ -81,11 +81,13 @@ namespace Nyan.Modules.Log.UDP
                 //var bytePayload = payload.ToJson().ToSerializedBytes();
 
                 _sender.Send(bytePayload, bytePayload.Length);
+
+                return;
             }
             catch (Exception e)
             {
                 // Use the system log, since errors here mean that we won't be able to send it remotely.
-                Core.Modules.Log.System.Add(e);
+                // Core.Modules.Log.System.Add(e);
             }
         }
 

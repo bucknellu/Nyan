@@ -62,7 +62,11 @@
     <Compile Include="Modules\Data\MicroEntityParametrizedGet.cs" />
     <Compile Include="Modules\Data\Model\LocalStorageModel.cs" />
     <Compile Include="Process\Operations.cs" />
-    <Compile Include="Startup\Service.cs">
+    <Compile Include="Startup\IServiceDefinition.cs" />
+    <Compile Include="Startup\ServiceLauncher.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Startup\WindowsServiceInstaller.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Wrappers\StaticMembersDynamicWrapper.cs" />

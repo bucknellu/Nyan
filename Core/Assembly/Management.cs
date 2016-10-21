@@ -201,23 +201,14 @@ namespace Nyan.Core.Assembly
                     //TODO: Improve wildcard detection
                     if (name.IndexOf(match) > -1)
                     {
-                        Current.Log.Add("[" + e.FullPath + "]: Matches whitelisted pattern [" + i + "], continuing.",
-                            Message.EContentType.ShutdownSequence);
                         return;
                     }
 
                 }
                 else if (i.Equals(name))
                 {
-                    Current.Log.Add("[" + e.FullPath + "]: Whitelisted, continuing.", Message.EContentType.ShutdownSequence);
                     return;
                 }
-            }
-
-            if (MonitorWhiteList.Contains(name))
-            {
-                Current.Log.Add("[" + e.FullPath + "]: Whitelisted, continuing.", Message.EContentType.ShutdownSequence);
-                return;
             }
 
             // No need for system monitors anymore, better to interrupt and dispose all of them.
