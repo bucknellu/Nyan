@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Web;
 using Nyan.Core.Modules.Log;
 using Nyan.Core.Process;
@@ -169,9 +170,55 @@ namespace Nyan.Core.Assembly
             }
         }
 
+        static List<string> MonitorWhiteList = new List<string>()
+        {
+            "InstallUtil.InstallLog",
+            "*.InstallLog",
+            "*.InstallState",
+        };
+
+        public static string WildcardToRegex(string pattern)
+        {
+            return "^" + Regex.Escape(pattern).
+            Replace("\\*", ".*").
+            Replace("\\?", ".") + "$";
+        }
+
+
         private static void FileSystemWatcher_OnChanged(object sender, FileSystemEventArgs e)
         {
             if (Sequences.IsShuttingDown) return;
+
+            var name = Path.GetFileName(e.FullPath);
+
+
+            foreach (var i in MonitorWhiteList)
+            {
+                if (i.IndexOf("*", StringComparison.Ordinal) != -1)
+                {
+                    var match = i.Replace("*.", "");
+
+                    //TODO: Improve wildcard detection
+                    if (name.IndexOf(match) > -1)
+                    {
+                        Current.Log.Add("[" + e.FullPath + "]: Matches whitelisted pattern [" + i + "], continuing.",
+                            Message.EContentType.ShutdownSequence);
+                        return;
+                    }
+
+                }
+                else if (i.Equals(name))
+                {
+                    Current.Log.Add("[" + e.FullPath + "]: Whitelisted, continuing.", Message.EContentType.ShutdownSequence);
+                    return;
+                }
+            }
+
+            if (MonitorWhiteList.Contains(name))
+            {
+                Current.Log.Add("[" + e.FullPath + "]: Whitelisted, continuing.", Message.EContentType.ShutdownSequence);
+                return;
+            }
 
             // No need for system monitors anymore, better to interrupt and dispose all of them.
             foreach (var i in FsMonitors)
