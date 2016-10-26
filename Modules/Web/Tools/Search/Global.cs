@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +14,7 @@ namespace Nyan.Modules.Web.Tools.Search
 {
     public static class Global
     {
-        private static readonly List<Type> _searchableTypes = Management.GetClassesByInterface<ISearch>();
+        private static readonly List<Type> SearchableTypes = Management.GetClassesByInterface<ISearch>();
 
         public static Dictionary<string, object> Run(string term, string categories)
         {
@@ -27,12 +28,12 @@ namespace Nyan.Modules.Web.Tools.Search
                     .Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
                     .ToList();
 
-                var tasks = new List<Task<KeyValuePair<string, List<SearchResult>>>>();
+                var tasks = new List<Task<KeyValuePair<string, SearchResultBlock>>>();
                 var timeout = TimeSpan.FromSeconds(10);
 
                 step = "Iterating through ISearch types";
                 //Prepare a task for each search-able type
-                foreach (var searchableType in _searchableTypes)
+                foreach (var searchableType in SearchableTypes)
                 {
                     step = "Creating instance of " + searchableType.FullName;
                     var instance = (ISearch)Activator.CreateInstance(searchableType);
@@ -40,8 +41,7 @@ namespace Nyan.Modules.Web.Tools.Search
                     step = "Adding task for " + searchableType.FullName;
 
                     var preTask =
-                        new Task<KeyValuePair<string, List<SearchResult>>>(() => ProcessSearchableType(instance, term),
-                            TaskCreationOptions.LongRunning); // Required to allow for timeout
+                        new Task<KeyValuePair<string, SearchResultBlock>>(() => ProcessSearchableType(instance, term), TaskCreationOptions.LongRunning); // Required to allow for timeout
                     tasks.Add(preTask);
                 }
 
@@ -69,17 +69,17 @@ namespace Nyan.Modules.Web.Tools.Search
                     }
                     else
                     {
-                        Current.Log.Add("Adding " + task.Result.Key + " Task result.");
+                        Current.Log.Add("Adding " + task.Result.Key + " Task result (" + task.Result.Value.ProcessingTime + " ms)");
 
                         if (retcon.ContainsKey(task.Result.Key)) // Concatenate
                         {
                             Current.Log.Add("Concatenating " + task.Result.Key);
-                            retcon[task.Result.Key] = task.Result.Value.Concat(retcon[task.Result.Key]).ToList();
+                            retcon[task.Result.Key] = task.Result.Value.Results.Concat(retcon[task.Result.Key]).ToList();
                         }
                         else // Just add.
                         {
                             Current.Log.Add("Adding " + task.Result.Key);
-                            retcon.Add(task.Result.Key, task.Result.Value);
+                            retcon.Add(task.Result.Key, task.Result.Value.Results);
                         }
                     }
                 }
@@ -124,17 +124,30 @@ namespace Nyan.Modules.Web.Tools.Search
             }
         }
 
-        private static KeyValuePair<string, List<SearchResult>> ProcessSearchableType(ISearch instance, string term)
+        private static KeyValuePair<string, SearchResultBlock> ProcessSearchableType(ISearch instance, string term)
         {
-            try
-            {
-                return new KeyValuePair<string, List<SearchResult>>(instance.SearchResultMoniker, instance.SimpleQuery(term));
-            }
-            catch (Exception e)
-            {
-                Current.Log.Add(e);
-                return new KeyValuePair<string, List<SearchResult>>(instance.SearchResultMoniker, new List<SearchResult>());
-            }
+            var ret = new SearchResultBlock { Results = new List<SearchResult>() };
+
+            var sw = new Stopwatch();
+
+            sw.Start();
+
+
+            try { ret.Results = instance.SimpleQuery(term); }
+            catch (Exception e) { Current.Log.Add(e); }
+
+            sw.Stop();
+            ret.ProcessingTime = sw.ElapsedMilliseconds;
+
+            return new KeyValuePair<string, SearchResultBlock>(instance.SearchResultMoniker, ret);
+
+        }
+
+        internal class SearchResultBlock
+        {
+            internal List<SearchResult> Results = new List<SearchResult>();
+            internal long ProcessingTime;
+
         }
     }
 }
