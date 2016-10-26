@@ -41,6 +41,7 @@ namespace Nyan.Core.Modules.Data
         public string IdPropertyRaw;
         public DateTime PrdConfigLastChange;
         public Dictionary<string, string> PropertyFieldMap;
+        public Dictionary<string, long> PropertyLengthMap;
         public Dictionary<string, KeyValuePair<string, string>> SchemaElements;
 
         /// <summary>

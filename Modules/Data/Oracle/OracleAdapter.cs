@@ -61,9 +61,20 @@ namespace Nyan.Modules.Data.Oracle
                 foreach (var prop in typeof(T).GetProperties())
                 {
                     var pType = prop.PropertyType;
-                    var pDestinyType = "VARCHAR2(255)";
-                    var pNullableSpec = "";
+
                     var pSourceName = prop.Name;
+
+                    long size = 255;
+
+                    if (MicroEntity<T>.Statements.PropertyLengthMap.ContainsKey(pSourceName))
+                    {
+                        size = MicroEntity<T>.Statements.PropertyLengthMap[pSourceName];
+                        if (size == 0) size = 255;
+
+                    }
+
+                    var pDestinyType = "VARCHAR2(" + size + ")";
+                    var pNullableSpec = "";
 
                     if (pType.IsPrimitiveType())
                     {

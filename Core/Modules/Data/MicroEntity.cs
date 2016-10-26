@@ -34,7 +34,8 @@ namespace Nyan.Core.Modules.Data
     public abstract class MicroEntity<T> where T : MicroEntity<T>
     {
         // ReSharper disable once StaticFieldInGenericType
-        private static readonly ConcurrentDictionary<Type, MicroEntityCompiledStatements> ClassRegistration = new ConcurrentDictionary<Type, MicroEntityCompiledStatements>();
+        private static readonly ConcurrentDictionary<Type, MicroEntityCompiledStatements> ClassRegistration =
+            new ConcurrentDictionary<Type, MicroEntityCompiledStatements>();
 
         // ReSharper disable once StaticFieldInGenericType
         private static readonly object AccessLock = new object();
@@ -43,11 +44,17 @@ namespace Nyan.Core.Modules.Data
 
         #region Maintenance
 
-        public static DataAdapterPrimitive.ModelDefinition ModelDefinition { get { return Statements.Adapter.GetModel<T>(Definition.DdlContent.All); } }
+        public static DataAdapterPrimitive.ModelDefinition ModelDefinition
+        {
+            get { return Statements.Adapter.GetModel<T>(Definition.DdlContent.All); }
+        }
 
         #endregion
 
-        public bool IsReadOnly() { return TableData.IsReadOnly; }
+        public bool IsReadOnly()
+        {
+            return TableData.IsReadOnly;
+        }
 
         private static void LogWrap(string s, Message.EContentType pType = Message.EContentType.Generic)
         {
@@ -80,7 +87,10 @@ namespace Nyan.Core.Modules.Data
         // ReSharper disable once StaticFieldInGenericType
         private static string _typeName;
 
-        public static T Get(long identifier) { return Get(identifier.ToString(CultureInfo.InvariantCulture)); }
+        public static T Get(long identifier)
+        {
+            return Get(identifier.ToString(CultureInfo.InvariantCulture));
+        }
 
         public static string GetTypeName()
         {
@@ -105,8 +115,7 @@ namespace Nyan.Core.Modules.Data
         {
             if (identifier == null) return null;
 
-            if (Statements.IdPropertyRaw == null)
-                throw new MissingPrimaryKeyException("Identifier not set for " + typeof(T).FullName);
+            if (Statements.IdPropertyRaw == null) throw new MissingPrimaryKeyException("Identifier not set for " + typeof(T).FullName);
 
             var ret = TableData.UseCaching
                 ? Helper.FetchCacheableSingleResultByKey(GetFromDatabase, identifier)
@@ -121,7 +130,9 @@ namespace Nyan.Core.Modules.Data
         /// <returns>An object instance if the ID exists, or NULL otherwise.</returns>
         internal static T GetFromDatabase(object identifier)
         {
-            var retCol = Statements.Adapter.useNumericPrimaryKeyOnly ? Query(Statements.SqlGetSingle, new { Id = Convert.ToInt32(identifier) }) : Query(Statements.SqlGetSingle, new { Id = identifier });
+            var retCol = Statements.Adapter.useNumericPrimaryKeyOnly
+                ? Query(Statements.SqlGetSingle, new { Id = Convert.ToInt32(identifier) })
+                : Query(Statements.SqlGetSingle, new { Id = identifier });
 
             var ret = retCol.Count > 0 ? retCol[0] : null;
             return ret;
@@ -138,25 +149,23 @@ namespace Nyan.Core.Modules.Data
             const int nSize = 500;
             var list = new List<List<string>>();
 
-            for (var si = 0; si < identifiers.Count; si += nSize)
-                list.Add(identifiers.GetRange(si, Math.Min(nSize, identifiers.Count - si)));
+            for (var si = 0; si < identifiers.Count; si += nSize) list.Add(identifiers.GetRange(si, Math.Min(nSize, identifiers.Count - si)));
 
             var tasks = new List<Task<List<T>>>();
 
             foreach (var innerList in list)
             {
-                for (var index = 0; index < innerList.Count; index++)
-                    innerList[index] = innerList[index].Replace("'", "''");
+                for (var index = 0; index < innerList.Count; index++) innerList[index] = innerList[index].Replace("'", "''");
 
                 var qryparm = "'" + string.Join("','", innerList) + "'";
 
-                var q = string.Format(Statements.SqlAllFieldsQueryTemplate, Statements.IdPropertyRaw + " IN (" + qryparm + ")");
+                var q = string.Format(Statements.SqlAllFieldsQueryTemplate,
+                    Statements.IdPropertyRaw + " IN (" + qryparm + ")");
 
                 tasks.Add(new Task<List<T>>(() => Query(q)));
             }
 
-            foreach (var task in tasks)
-                task.Start();
+            foreach (var task in tasks) task.Start();
 
             // ReSharper disable once CoVariantArrayConversion
             Task.WaitAll(tasks.ToArray());
@@ -194,7 +203,8 @@ namespace Nyan.Core.Modules.Data
             // ReSharper disable once PossibleNullReferenceException
             queryParm.Add(leftSideValue.ToString(), rightSideValue);
 
-            var querySpec = ResolveNodeType(body.NodeType, leftSideValue, Statements.Adapter.ParameterDefinition.ToString() + leftSideValue);
+            var querySpec = ResolveNodeType(body.NodeType, leftSideValue,
+                Statements.Adapter.ParameterDefinition.ToString() + leftSideValue);
 
             var q = string.Format(Statements.SqlAllFieldsQueryTemplate, querySpec.First());
 
@@ -209,9 +219,11 @@ namespace Nyan.Core.Modules.Data
 
         private static void ValidateEntityState()
         {
-            if ((Statements.State.Status != MicroEntityCompiledStatements.EStatus.Operational &&
-                 Statements.State.Status != MicroEntityCompiledStatements.EStatus.Initializing))
-                throw new InvalidDataException("Class is not operational: {0}, {1} ({2})".format(Statements.State.Status.ToString(), Statements.State.Description, Statements.State.Stack));
+            if ((Statements.State.Status != MicroEntityCompiledStatements.EStatus.Operational) &&
+                (Statements.State.Status != MicroEntityCompiledStatements.EStatus.Initializing))
+                throw new InvalidDataException(
+                    "Class is not operational: {0}, {1} ({2})".format(Statements.State.Status.ToString(),
+                        Statements.State.Description, Statements.State.Stack));
         }
 
         /// <summary>
@@ -289,13 +301,11 @@ yield return new Or { OperadoresInternos = new List<IOperator> { ((IEnumerable<I
 break; */
                 case ExpressionType.NotEqual:
                     if (rightValue != null) yield return new SqlNotEqual { FieldName = leftValue.ToString(), FieldValue = rightValue };
-                    else
-                        yield return new SqlNotNull { FieldName = leftValue.ToString() };
+                    else yield return new SqlNotNull { FieldName = leftValue.ToString() };
                     break;
                 default:
                     if (rightValue != null) yield return new SqlEqual { FieldName = leftValue.ToString(), FieldValue = rightValue };
-                    else
-                        yield return new SqlNull { FieldName = leftValue.ToString() };
+                    else yield return new SqlNull { FieldName = leftValue.ToString() };
                     break;
             }
         }
@@ -304,8 +314,7 @@ break; */
         {
             var oOriginal = preRet.ToDictionary();
 
-            foreach (var item in patchList)
-                oOriginal[item.Key] = item.Value;
+            foreach (var item in patchList) oOriginal[item.Key] = item.Value;
 
             return oOriginal.ToJson().FromJson<T>();
         }
@@ -330,7 +339,10 @@ break; */
             return ret;
         }
 
-        public static long Count() { return QuerySingleValue<long>(Statements.SqlRowCount); }
+        public static long Count()
+        {
+            return QuerySingleValue<long>(Statements.SqlRowCount);
+        }
 
         public static long Count(string qTerm)
         {
@@ -349,17 +361,20 @@ break; */
             var src = "";
             var bag = GetNewDynamicParameterBag();
 
-            if (parm.QueryTerm == null) { src = Statements.SqlGetAll; }
+            if (parm.QueryTerm == null)
+            {
+                src = Statements.SqlGetAll;
+            }
             else
             {
                 src = string.Format(Statements.SqlAllFieldsQueryTemplate, Statements.SqlSimpleQueryTerm);
-                bag.Add("qParm", "%" + parm.QueryTerm + "%" );
+                bag.Add("qParm", "%" + parm.QueryTerm + "%");
             }
 
             if (parm.OrderBy != null)
-                op = src + " " + Statements.SqlOrderByCommand + " " + Statements.Adapter.GetOrderByClausefromSerializedQueryParameters<T>(parm.OrderBy);
-            else
-                op = src;
+                op = src + " " + Statements.SqlOrderByCommand + " " +
+                     Statements.Adapter.GetOrderByClausefromSerializedQueryParameters<T>(parm.OrderBy);
+            else op = src;
 
             if (parm.PageIndex != -1) op = Statements.Adapter.PaginationWrapper<T>(op, parm);
 
@@ -375,12 +390,14 @@ break; */
             return ret;
         }
 
-        public static void Remove(long identifier) { Remove(identifier.ToString(CultureInfo.InvariantCulture)); }
+        public static void Remove(long identifier)
+        {
+            Remove(identifier.ToString(CultureInfo.InvariantCulture));
+        }
 
         public static void RemoveAll()
         {
-            if (TableData.IsReadOnly)
-                throw new ReadOnlyException("This entity is set as read-only.");
+            if (TableData.IsReadOnly) throw new ReadOnlyException("This entity is set as read-only.");
 
             Execute(Statements.SqlTruncateTable);
 
@@ -391,8 +408,7 @@ break; */
 
         public static void Remove(string identifier)
         {
-            if (TableData.IsReadOnly)
-                throw new ReadOnlyException("This entity is set as read-only.");
+            if (TableData.IsReadOnly) throw new ReadOnlyException("This entity is set as read-only.");
 
             Execute(Statements.SqlRemoveSingleParametrized, new { Id = identifier });
 
@@ -403,19 +419,19 @@ break; */
 
         public static void Insert(List<T> objs)
         {
-            foreach (var obj in objs)
-                obj.Insert();
+            foreach (var obj in objs) obj.Insert();
         }
 
-        public static void Update(List<T> objs) { Save(objs); }
+        public static void Update(List<T> objs)
+        {
+            Save(objs);
+        }
 
         public static void Save(List<T> objs)
         {
-            if (TableData.IsReadOnly)
-                throw new ReadOnlyException("This entity is set as read-only.");
+            if (TableData.IsReadOnly) throw new ReadOnlyException("This entity is set as read-only.");
 
-            foreach (var obj in objs)
-                obj.Save();
+            foreach (var obj in objs) obj.Save();
         }
 
         public static void Put(List<T> objs)
@@ -439,6 +455,7 @@ break; */
         {
             return ReferenceQueryByField(field, id.ToString());
         }
+
         public static IEnumerable<T> ReferenceQueryByField(string field, string id)
         {
             var b = GetNewDynamicParameterBag();
@@ -463,13 +480,25 @@ break; */
             return set;
         }
 
-        public static ParameterDefinition ParameterDefinition { get { return Statements.Adapter.ParameterDefinition; } }
+        public static ParameterDefinition ParameterDefinition
+        {
+            get { return Statements.Adapter.ParameterDefinition; }
+        }
 
-        public static DynamicParametersPrimitive GetNewDynamicParameterBag(bool pRaw = false) { return Statements.Adapter.Parameters<T>(null, pRaw); }
+        public static DynamicParametersPrimitive GetNewDynamicParameterBag(bool pRaw = false)
+        {
+            return Statements.Adapter.Parameters<T>(null, pRaw);
+        }
 
-        public static bool IsCached(long identifier) { return IsCached(identifier.ToString(CultureInfo.InvariantCulture)); }
+        public static bool IsCached(long identifier)
+        {
+            return IsCached(identifier.ToString(CultureInfo.InvariantCulture));
+        }
 
-        public static bool IsCached(string identifier) { return TableData.UseCaching && Current.Cache.Contains(CacheKey(identifier)); }
+        public static bool IsCached(string identifier)
+        {
+            return TableData.UseCaching && Current.Cache.Contains(CacheKey(identifier));
+        }
 
         #endregion
 
@@ -479,8 +508,7 @@ break; */
         {
             var probe = GetEntityIdentifier();
 
-            if (!TableData.IsInsertableIdentifier)
-                if (probe == "" || probe == "0") return true;
+            if (!TableData.IsInsertableIdentifier) if ((probe == "") || (probe == "0")) return true;
 
             var oProbe = Get(probe);
             return oProbe == null;
@@ -497,8 +525,7 @@ break; */
         {
             var oRef = this;
 
-            if (value.IsNumeric())
-                value = Convert.ToInt64(value);
+            if (value.IsNumeric()) value = Convert.ToInt64(value);
 
             var refProp = GetType().GetProperty(Statements.IdPropertyRaw);
 
@@ -507,8 +534,7 @@ break; */
 
         public void Remove()
         {
-            if (TableData.IsReadOnly)
-                throw new ReadOnlyException("This entity is set as read-only.");
+            if (TableData.IsReadOnly) throw new ReadOnlyException("This entity is set as read-only.");
 
             Execute(Statements.SqlRemoveSingleParametrized, this);
 
@@ -524,8 +550,7 @@ break; */
 
         public string Save()
         {
-            if (TableData.IsReadOnly)
-                throw new ReadOnlyException("This entity is set as read-only.");
+            if (TableData.IsReadOnly) throw new ReadOnlyException("This entity is set as read-only.");
 
             if (_isDeleted) return null;
             var ret = "";
@@ -534,15 +559,11 @@ break; */
 
             var isNew = IsNew();
 
-            if (!isNew)
-                obj = Statements.Adapter.Parameters<T>(this);
-            else
-                obj = Statements.Adapter.InsertableParameters<T>(this);
+            if (!isNew) obj = Statements.Adapter.Parameters<T>(this);
+            else obj = Statements.Adapter.InsertableParameters<T>(this);
 
-            if (Statements.IdColumn == null)
-                Execute(Statements.SqlInsertSingle, obj);
-            else if (isNew)
-                ret = SaveAndGetId(obj);
+            if (Statements.IdColumn == null) Execute(Statements.SqlInsertSingle, obj);
+            else if (isNew) ret = SaveAndGetId(obj);
             else
             {
                 Execute(Statements.SqlUpdateSingle, obj);
@@ -578,8 +599,7 @@ break; */
 
         public string SaveAndGetId(DynamicParametersPrimitive obj)
         {
-            if (TableData.IsReadOnly)
-                throw new ReadOnlyException("This entity is set as read-only.");
+            if (TableData.IsReadOnly) throw new ReadOnlyException("This entity is set as read-only.");
 
             if (_isDeleted) return null;
             var ret = InsertAndReturnIdentifier(obj);
@@ -589,8 +609,7 @@ break; */
 
         public void Insert()
         {
-            if (TableData.IsReadOnly)
-                throw new ReadOnlyException("This entity is set as read-only.");
+            if (TableData.IsReadOnly) throw new ReadOnlyException("This entity is set as read-only.");
 
             if (_isDeleted) return;
 
@@ -628,7 +647,8 @@ break; */
             }
         }
 
-        public static List<List<Dictionary<string, object>>> QueryMultiple(string sqlStatement, object sqlParameters = null, CommandType pCommandType = CommandType.Text)
+        public static List<List<Dictionary<string, object>>> QueryMultiple(string sqlStatement,
+            object sqlParameters = null, CommandType pCommandType = CommandType.Text)
         {
             ValidateEntityState();
 
@@ -662,10 +682,14 @@ break; */
             }
             catch (Exception e)
             {
-                LogWrap(e, GetTypeName() + ": Entity/Dapper Query: Error while issuing statements to the database. Statement: [" + sqlStatement + "]. Database: " + cDebug);
+                LogWrap(e,
+                    GetTypeName() +
+                    ": Entity/Dapper Query: Error while issuing statements to the database. Statement: [" + sqlStatement +
+                    "]. Database: " + cDebug);
                 throw new DataException(
                     GetTypeName() +
-                    "Entity/Dapper Query: Error while issuing statements to the database. Error:  [" + e.Message + "].", e);
+                    "Entity/Dapper Query: Error while issuing statements to the database. Error:  [" + e.Message + "].",
+                    e);
             }
         }
 
@@ -677,7 +701,8 @@ break; */
             return Query(sqlStatement, obj, CommandType.Text);
         }
 
-        public static List<T> Query(string sqlStatement, DynamicParametersPrimitive sqlParameters, CommandType pCommandType)
+        public static List<T> Query(string sqlStatement, DynamicParametersPrimitive sqlParameters,
+            CommandType pCommandType)
         {
             ValidateEntityState();
 
@@ -703,7 +728,9 @@ break; */
             catch (Exception e)
             {
                 DumpQuery(sqlStatement, dbConn, sqlParameters, e);
-                throw new DataException(GetTypeName() + " Entity/Dapper Query: Error while issuing statements to the database. Error:  [" + e.Message + "].", e);
+                throw new DataException(
+                    GetTypeName() + " Entity/Dapper Query: Error while issuing statements to the database. Error:  [" +
+                    e.Message + "].", e);
             }
         }
 
@@ -715,8 +742,7 @@ break; */
 
             sqlStatement = sqlStatement.Replace(System.Environment.NewLine, " ").Replace("\t", " ").Trim();
 
-            while (sqlStatement.IndexOf("  ", StringComparison.Ordinal) != -1)
-                sqlStatement = sqlStatement.Replace("  ", " ");
+            while (sqlStatement.IndexOf("  ", StringComparison.Ordinal) != -1) sqlStatement = sqlStatement.Replace("  ", " ");
 
             LogWrap(sguid + " Qy [" + sqlStatement + "]", Message.EContentType.Warning);
             LogWrap(sguid + " Pr [" + parms + "]", Message.EContentType.Warning);
@@ -737,9 +763,13 @@ break; */
             }
         }
 
-        public static void Execute(string sqlStatement, object sourceObj) { Execute(sqlStatement, Statements.Adapter.Parameters<T>(sourceObj)); }
+        public static void Execute(string sqlStatement, object sourceObj)
+        {
+            Execute(sqlStatement, Statements.Adapter.Parameters<T>(sourceObj));
+        }
 
-        public static void Execute(string sqlStatement, DynamicParametersPrimitive sqlParameters = null, CommandType pCommandType = CommandType.Text)
+        public static void Execute(string sqlStatement, DynamicParametersPrimitive sqlParameters = null,
+            CommandType pCommandType = CommandType.Text)
         {
             ValidateEntityState();
 
@@ -792,9 +822,13 @@ break; */
             }
         }
 
-        public static List<TU> Query<TU>(string sqlStatement) { return Query<TU>(sqlStatement, null); }
+        public static List<TU> Query<TU>(string sqlStatement)
+        {
+            return Query<TU>(sqlStatement, null);
+        }
 
-        public static List<TU> Query<TU>(string sqlStatement, object sqlParameters = null, CommandType pCommandType = CommandType.Text)
+        public static List<TU> Query<TU>(string sqlStatement, object sqlParameters = null,
+            CommandType pCommandType = CommandType.Text)
         {
             ValidateEntityState();
 
@@ -843,13 +877,14 @@ break; */
                     var a = p.ParameterNames.ToList();
 
                     foreach (var name in a)
-                    {
-                        try { result[name] = p.Get<dynamic>(name); }
+                        try
+                        {
+                            result[name] = p.Get<dynamic>(name);
+                        }
                         catch
                         {
                             result[name] = null;
                         }
-                    }
                 }
             }
             catch (Exception e)
@@ -864,9 +899,12 @@ break; */
             return result;
         }
 
-        public static string InsertAndReturnIdentifier(DynamicParametersPrimitive p = null, CommandType pCommandType = CommandType.Text)
+        public static string InsertAndReturnIdentifier(DynamicParametersPrimitive p = null,
+            CommandType pCommandType = CommandType.Text)
         {
-            var sqlStatement = Statements.Adapter.useIndependentStatementsForKeyExtraction ? Statements.SqlInsertSingle : Statements.SqlInsertSingleWithReturn;
+            var sqlStatement = Statements.Adapter.useIndependentStatementsForKeyExtraction
+                ? Statements.SqlInsertSingle
+                : Statements.SqlInsertSingleWithReturn;
 
             try
             {
@@ -890,7 +928,8 @@ break; */
                         else
                         {
                             p = GetNewDynamicParameterBag();
-                            p.Add("newid", dbType: DynamicParametersPrimitive.DbGenericType.String, direction: ParameterDirection.Output, size: 38);
+                            p.Add("newid", dbType: DynamicParametersPrimitive.DbGenericType.String,
+                                direction: ParameterDirection.Output, size: 38);
                             conn.Execute(Statements.SqlReturnNewIdentifier, p);
                             var ret = p.Get<object>("newid").ToString();
 
@@ -900,10 +939,10 @@ break; */
                         }
                     }
 
-                    if (!Statements.Adapter.UseOutputParameterForInsertedKeyExtraction)
-                        return conn.ExecuteScalar<string>(sqlStatement, p);
+                    if (!Statements.Adapter.UseOutputParameterForInsertedKeyExtraction) return conn.ExecuteScalar<string>(sqlStatement, p);
 
-                    p.Add("newid", dbType: DynamicParametersPrimitive.DbGenericType.String, direction: ParameterDirection.Output, size: 38);
+                    p.Add("newid", dbType: DynamicParametersPrimitive.DbGenericType.String,
+                        direction: ParameterDirection.Output, size: 38);
 
                     conn.Query<string>(sqlStatement, p, null, true, null, pCommandType);
                     return p.Get<object>("newid").ToString();
@@ -934,12 +973,9 @@ break; */
                     Statements.State.Status = MicroEntityCompiledStatements.EStatus.Initializing;
                     Statements.State.Step = "Instantiating ColumnAttributeTypeMapper";
 
-                    if (TableData.Label != null)
-                        Statements.Label = TableData.Label;
-                    else if (TableData.TableName != null)
-                        Statements.Label = TableData.TableName;
-                    else
-                        Statements.Label = typeof(T).Name;
+                    if (TableData.Label != null) Statements.Label = TableData.Label;
+                    else if (TableData.TableName != null) Statements.Label = TableData.TableName;
+                    else Statements.Label = typeof(T).Name;
 
                     var cat = new ColumnAttributeTypeMapper<T>();
                     SqlMapper.SetTypeMap(typeof(T), cat);
@@ -958,13 +994,20 @@ break; */
 
                     var probeType = typeof(T);
 
-                    Statements.PropertyFieldMap =
-                        (from pInfo in
-                            probeType.GetProperties()
+                    Statements.PropertyFieldMap = 
+                        (from pInfo in probeType.GetProperties()
                          let p1 = pInfo.GetCustomAttributes(false).OfType<ColumnAttribute>().ToList()
-                         let fieldName = p1.Count != 0 ? p1[0].Name : pInfo.Name
+                         let fieldName = p1.Count != 0 ? (p1[0].Name ?? pInfo.Name) : pInfo.Name
                          select new KeyValuePair<string, string>(pInfo.Name, fieldName))
                             .ToDictionary(x => x.Key, x => x.Value);
+
+                    Statements.PropertyLengthMap =
+                        (from pInfo in probeType.GetProperties()
+                         let p1 = pInfo.GetCustomAttributes(false).OfType<ColumnAttribute>().ToList()
+                         let fieldLength = p1.Count != 0 ? (p1[0].Length != 0 ? p1[0].Length  : 0) : 0
+                         select new KeyValuePair<string, long>(pInfo.Name, fieldLength))
+                            .ToDictionary(x => x.Key, x => x.Value);
+
 
                     Statements.CredentialCypherKeys = TableData.CredentialCypherKeys;
 
@@ -991,7 +1034,8 @@ break; */
                     //Then pick Credential sets
 
                     Statements.State.Step = "determining CredentialSets to use";
-                    Statements.CredentialSet = Factory.GetCredentialSetPerConnectionBundle(Statements.Bundle, TableData.CredentialSetType);
+                    Statements.CredentialSet = Factory.GetCredentialSetPerConnectionBundle(Statements.Bundle,
+                        TableData.CredentialSetType);
                     Statements.CredentialCypherKeys = Statements.CredentialSet.CredentialCypherKeys;
 
                     var identifierColumnName = TableData.IdentifierColumnName;
@@ -1003,18 +1047,16 @@ break; */
                                 .Where(prop => Attribute.IsDefined(prop, typeof(KeyAttribute)))
                                 .ToList();
 
-                        if (props != null)
-                        {
-                            if (props.Count > 0)
-                                identifierColumnName = props[0].Name;
-                        }
+                        if (props != null) if (props.Count > 0) identifierColumnName = props[0].Name;
                     }
 
                     if (identifierColumnName != null)
                     {
                         Statements.State.Step = "Resolving Identifier";
 
-                        var mapEntry = Statements.PropertyFieldMap.FirstOrDefault(p => p.Value.ToLower().Equals(identifierColumnName.ToLower()));
+                        var mapEntry =
+                            Statements.PropertyFieldMap.FirstOrDefault(
+                                p => p.Value.ToLower().Equals(identifierColumnName.ToLower()));
 
                         Statements.IdProperty = Statements.Adapter.ParameterDefinition + mapEntry.Key;
                         Statements.IdPropertyRaw = mapEntry.Key;
@@ -1026,7 +1068,9 @@ break; */
                         {
                             si["Key"] = "(missing)";
                             LogLocal("Missing [Key] definition", Message.EContentType.Warning);
-                            throw new ConfigurationErrorsException(GetTypeName() + ": Entity (with Table name {0}) is missing a [Key] definition.".format(TableData.TableName));
+                            throw new ConfigurationErrorsException(GetTypeName() +
+                                                                   ": Entity (with Table name {0}) is missing a [Key] definition."
+                                                                       .format(TableData.TableName));
                         }
                     }
 
@@ -1043,7 +1087,9 @@ break; */
                     Statements.State.Step = "Checking Connection";
                     Statements.Adapter.SetConnectionString<T>();
 
-                    LogLocal(Statements.ConnectionString.SafeArray("Data Source", "=", ";", Transformation.ESafeArrayMode.Allow), Message.EContentType.MoreInfo);
+                    LogLocal(
+                        Statements.ConnectionString.SafeArray("Data Source", "=", ";",
+                            Transformation.ESafeArrayMode.Allow), Message.EContentType.MoreInfo);
 
                     using (var conn = Statements.Adapter.Connection(Statements.ConnectionString))
                     {
@@ -1054,14 +1100,12 @@ break; */
                     }
 
                     if (!TableData.IsReadOnly)
-                    {
                         if (TableData.AutoGenerateMissingSchema)
                         {
                             Statements.State.Step = "Checking database entities";
                             si["Database Adapter"] = Statements.Adapter.GetType().Name;
                             Statements.Adapter.CheckDatabaseEntities<T>();
                         }
-                    }
 
                     try
                     {
@@ -1083,15 +1127,20 @@ break; */
                 catch (Exception e)
                 {
                     Statements.State.Status = MicroEntityCompiledStatements.EStatus.CriticalFailure;
-                    Statements.State.Description = typeof(T).FullName + " : Error while " + Statements.State.Step + " - " + e.Message;
+                    Statements.State.Description = typeof(T).FullName + " : Error while " + Statements.State.Step +
+                                                   " - " + e.Message;
                     Statements.State.Stack = new StackTrace(e, true).FancyString();
 
                     Log.System.Add(Statements.State.Description);
-                    Log.System.Add("    " + Statements.ConnectionString.SafeArray("Data Source", "=", ";", Transformation.ESafeArrayMode.Allow));
+                    Log.System.Add("    " +
+                                   Statements.ConnectionString.SafeArray("Data Source", "=", ";",
+                                       Transformation.ESafeArrayMode.Allow));
                     Log.System.Add("    Environment: " + Current.Environment.CurrentCode);
                     Log.System.Add("    " + Statements.State.Stack);
 
-                    LogLocal(Statements.ConnectionString.SafeArray("Data Source", "=", ";", Transformation.ESafeArrayMode.Allow), Message.EContentType.Warning);
+                    LogLocal(
+                        Statements.ConnectionString.SafeArray("Data Source", "=", ";",
+                            Transformation.ESafeArrayMode.Allow), Message.EContentType.Warning);
 
                     var refEx = e;
                     while (refEx.InnerException != null)
@@ -1109,7 +1158,10 @@ break; */
             }
         }
 
-        public static MicroEntityCompiledStatements Statements { get { return ClassRegistration[typeof(T)]; } }
+        public static MicroEntityCompiledStatements Statements
+        {
+            get { return ClassRegistration[typeof(T)]; }
+        }
 
         public static MicroEntitySetupAttribute TableData
         {
@@ -1117,7 +1169,7 @@ break; */
             {
                 return
                     (MicroEntitySetupAttribute)
-                        Attribute.GetCustomAttribute(typeof(T), typeof(MicroEntitySetupAttribute));
+                    Attribute.GetCustomAttribute(typeof(T), typeof(MicroEntitySetupAttribute));
             }
         }
 
@@ -1134,7 +1186,9 @@ break; */
                 {
                     var ret = atts.ToDictionary(i => i.Origin, i => i.Target);
 
-                    LogWrap(typeof(T), "Environment mappings found: " + string.Join(";", ret.Select(x => x.Key + ">" + x.Value).ToArray()));
+                    LogWrap(typeof(T),
+                        "Environment mappings found: " +
+                        string.Join(";", ret.Select(x => x.Key + ">" + x.Value).ToArray()));
 
                     return ret;
                 }
@@ -1189,7 +1243,10 @@ break; */
             return _cacheKeyBase + key;
         }
 
-        public static string CacheKey(Type t, string key = "") { return t.FullName + ":" + key; }
+        public static string CacheKey(Type t, string key = "")
+        {
+            return t.FullName + ":" + key;
+        }
 
         #endregion
 

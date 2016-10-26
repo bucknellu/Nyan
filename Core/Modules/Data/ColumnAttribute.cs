@@ -6,5 +6,6 @@ namespace Nyan.Core.Modules.Data
     public sealed class ColumnAttribute : Attribute
     {
         public string Name { get; set; }
+        public long Length { get; set; }
     }
 }

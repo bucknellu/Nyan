@@ -2,7 +2,7 @@
 
 namespace Nyan.Core.Modules.Data
 {
-    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Property)]
     public sealed class KeyAttribute : Attribute
     {
     }
