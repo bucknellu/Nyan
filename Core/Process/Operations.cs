@@ -1,6 +1,5 @@
 ﻿using System.Threading;
 using Nyan.Core.Extensions;
-using Nyan.Core.Modules.Data;
 using Nyan.Core.Modules.Log;
 using Nyan.Core.Settings;
 
