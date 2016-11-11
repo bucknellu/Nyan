@@ -69,22 +69,22 @@ namespace Nyan.Modules.Web.Tools.Search
                     }
                     else
                     {
-                        Current.Log.Add("Adding " + task.Result.Key + " Task result (" + task.Result.Value.ProcessingTime + " ms)");
-
                         if (retcon.ContainsKey(task.Result.Key)) // Concatenate
                         {
-                            Current.Log.Add("Concatenating " + task.Result.Key);
-                            retcon[task.Result.Key] = task.Result.Value.Results.Concat(retcon[task.Result.Key]).ToList();
+                            var col1 = task.Result.Value.Results;
+                            var col2 = retcon[task.Result.Key];
+                            retcon[task.Result.Key] = col1.Concat(col2).ToList();
+
+
+                            Current.Log.Add("CONCAT [{0}]: {1} items ({2} ms)".format(task.Result.Key, retcon[task.Result.Key].Count, task.Result.Value.ProcessingTime));
                         }
                         else // Just add.
                         {
-                            Current.Log.Add("Adding " + task.Result.Key);
                             retcon.Add(task.Result.Key, task.Result.Value.Results);
+                            Current.Log.Add("ADD    [{0}]: {1} items ({2} ms)".format(task.Result.Key, task.Result.Value.Results.Count, task.Result.Value.ProcessingTime));
                         }
                     }
                 }
-
-                Current.Log.Add("cats.Count " + cats.Count);
 
                 if (cats.Count > 0)
                 {
