@@ -536,7 +536,7 @@ break; */
         {
             if (TableData.IsReadOnly) throw new ReadOnlyException("This entity is set as read-only.");
 
-            Execute(Statements.SqlRemoveSingleParametrized, this);
+            Execute(Statements.SqlRemoveSingleParametrized, new { id = this.GetEntityIdentifier() });
 
             var cKey = typeof(T).FullName + ":" + GetEntityIdentifier();
             Current.Cache.Remove(cKey);
@@ -994,7 +994,7 @@ break; */
 
                     var probeType = typeof(T);
 
-                    Statements.PropertyFieldMap = 
+                    Statements.PropertyFieldMap =
                         (from pInfo in probeType.GetProperties()
                          let p1 = pInfo.GetCustomAttributes(false).OfType<ColumnAttribute>().ToList()
                          let fieldName = p1.Count != 0 ? (p1[0].Name ?? pInfo.Name) : pInfo.Name
@@ -1004,7 +1004,7 @@ break; */
                     Statements.PropertyLengthMap =
                         (from pInfo in probeType.GetProperties()
                          let p1 = pInfo.GetCustomAttributes(false).OfType<ColumnAttribute>().ToList()
-                         let fieldLength = p1.Count != 0 ? (p1[0].Length != 0 ? p1[0].Length  : 0) : 0
+                         let fieldLength = p1.Count != 0 ? (p1[0].Length != 0 ? p1[0].Length : 0) : 0
                          select new KeyValuePair<string, long>(pInfo.Name, fieldLength))
                             .ToDictionary(x => x.Key, x => x.Value);
 
