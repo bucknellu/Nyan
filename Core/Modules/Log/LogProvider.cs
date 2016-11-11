@@ -20,15 +20,9 @@ namespace Nyan.Core.Modules.Log
 
         public List<string> ShutdownTriggerTerms = new List<string>();
 
-        public virtual string Protocol
-        {
-            get { return null; }
-        }
+        public virtual string Protocol { get { return null; } }
 
-        public virtual string Uri
-        {
-            get { return null; }
-        }
+        public virtual string Uri { get { return null; } }
 
         public bool HasMessage { get; private set; } = true;
 
@@ -51,7 +45,7 @@ namespace Nyan.Core.Modules.Log
                 {
                     if (_workerThread != null) return;
 
-                    _workerThread = new Thread(DispatcherWorker) {IsBackground = false};
+                    _workerThread = new Thread(DispatcherWorker) { IsBackground = false };
                     _workerThread.Start();
                 }
             }
@@ -77,8 +71,12 @@ namespace Nyan.Core.Modules.Log
 
                 if (_shutdown) return;
 
-                try { doDispatchCycle(a); }
-                catch (Exception e) {
+                try
+                {
+                    doDispatchCycle(a);
+                }
+                catch (Exception e)
+                {
                     System.Add(e); // Log locally.
                 }
 
@@ -101,20 +99,14 @@ namespace Nyan.Core.Modules.Log
             if (handler != null) handler(message);
         }
 
-        public virtual void Add(bool content)
-        {
-            Add(content.ToString());
-        }
+        public virtual void Add(bool content) { Add(content.ToString()); }
 
         public virtual void Add(string pattern, params object[] replacementStrings)
         {
             Add(string.Format(pattern, replacementStrings));
         }
 
-        public virtual void Add(Exception e)
-        {
-            Add(e, null, null);
-        }
+        public virtual void Add(Exception e) { Add(e, null, null); }
 
         public virtual void Add(Exception e, string message, string token = null)
         {
@@ -124,8 +116,11 @@ namespace Nyan.Core.Modules.Log
 
             var ctx = token + " : " + message;
 
-            try { ctx += " @ " + new StackTrace(e, true).FancyString(); }
-            catch {}
+            try
+            {
+                ctx += " @ " + new StackTrace(e, true).FancyString();
+            }
+            catch { }
 
             Add(ctx, Message.EContentType.Exception);
 
@@ -137,14 +132,11 @@ namespace Nyan.Core.Modules.Log
             Add(t.FullName + " : " + message, type);
         }
 
-        public virtual void Add(string pMessage, Exception e)
-        {
-            Add(e, pMessage, null);
-        }
+        public virtual void Add(string pMessage, Exception e) { Add(e, pMessage, null); }
 
-        public virtual void StartListening() {}
+        public virtual void StartListening() { }
 
-        public virtual void BeforeDispatch(Message payload) {}
+        public virtual void BeforeDispatch(Message payload) { }
 
         public virtual void AfterDispatch(Message payload)
         {
@@ -153,32 +145,49 @@ namespace Nyan.Core.Modules.Log
 
         public virtual void doDispatchCycle(Message payload)
         {
-            try { BeforeDispatch(payload); }
-            catch {}
-            try { Dispatch(payload); }
-            catch {}
-            try { AfterDispatch(payload); }
-            catch {}
+            try
+            {
+                BeforeDispatch(payload);
+            }
+            catch { }
+            try
+            {
+                Dispatch(payload);
+            }
+            catch { }
+            try
+            {
+                AfterDispatch(payload);
+            }
+            catch { }
         }
 
-        public virtual bool CheckShutdownTriggerTerms(string payload)
+        public virtual bool
+            CheckShutdownTriggerTerms(string payload)
         {
-            if (_isResetting) return true;
-
-            foreach (var ft in ShutdownTriggerTerms)
+            try
             {
-                if (payload.IndexOf(ft, StringComparison.OrdinalIgnoreCase) == -1) continue;
+                if (_isResetting) return true;
 
-                _isResetting = true;
+                foreach (var ft in ShutdownTriggerTerms)
+                {
+                    if (payload.IndexOf(ft, StringComparison.OrdinalIgnoreCase) == -1) continue;
 
-                Add("Fatal trigger exception detected: '" + payload + "'", Message.EContentType.Exception);
-                System.Add("Fatal trigger exception detected: '" + payload + "'");
+                    _isResetting = true;
 
-                Operations.StartTakeDown(10);
+                    Add("Fatal trigger exception detected: '" + payload + "'", Message.EContentType.Exception);
+                    System.Add("Fatal trigger exception detected: '" + payload + "'");
 
-                return true;
+                    Operations.StartTakeDown(10);
+
+                    return true;
+                }
+                return false;
             }
-            return false;
+            catch
+            {
+                return false;
+            }
         }
 
         public virtual void Add(string content, Message.EContentType type = Message.EContentType.Generic)
@@ -191,7 +200,7 @@ namespace Nyan.Core.Modules.Log
 
             if (type > Settings.VerbosityThreshold) return;
 
-            var payload = new Message {Content = content, Subject = type.ToString(), Type = type};
+            var payload = new Message { Content = content, Subject = type.ToString(), Type = type };
 
             if (_useScheduler)
             {
@@ -200,8 +209,12 @@ namespace Nyan.Core.Modules.Log
             }
             else
             {
-                try { doDispatchCycle(payload); }
-                catch (Exception e) {
+                try
+                {
+                    doDispatchCycle(payload);
+                }
+                catch (Exception e)
+                {
                     System.Add(e);
                 }
             }

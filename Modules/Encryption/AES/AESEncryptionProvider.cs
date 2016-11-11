@@ -41,6 +41,8 @@ namespace Nyan.Modules.Encryption.AES
         {
             InitSettings();
 
+            if (pContent == null) return null;
+
             string plaintext;
 
             var _base = Convert.FromBase64String(pContent);
