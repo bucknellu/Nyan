@@ -411,7 +411,11 @@ namespace Nyan.Core.Assembly
 
                 priorityList.Sort((firstPair, nextPair) => nextPair.Key - firstPair.Key);
 
+                foreach (var item in priorityList) { Modules.Log.System.Add("        " + item.Key + " " + item.Value.Name); }
+
                 var ret = priorityList.Select(item => item.Value).ToList();
+
+
 
                 InterfaceClassesCache.Add(type, ret); // Caching results, so similar queries will return from cache
 
