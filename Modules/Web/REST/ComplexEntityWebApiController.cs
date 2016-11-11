@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Web.Http;
 using Nyan.Core.Modules.Data;
 using Nyan.Core.Settings;
@@ -80,6 +81,14 @@ namespace Nyan.Modules.Web.REST
                 Current.Log.Add("  GET:" + id + " " + typeof(T).FullName + ":" + id + " ERR (" + sw.ElapsedMilliseconds + " ms): " + e.Message, e);
                 throw;
             }
+        }
+
+        [Route("")]
+        [HttpPost]
+        public virtual HttpResponseMessage WebApiPost(T item)
+        {
+            var ret = new SimpleHttpResponseMessage(HttpStatusCode.NoContent, "Method not implemented");
+            return ret;
         }
     }
 }
