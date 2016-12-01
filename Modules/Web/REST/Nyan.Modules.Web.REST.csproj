@@ -75,6 +75,7 @@
     <Compile Include="auth\NyanAuthenticationFilter.cs" />
     <Compile Include="formatters\CsvMediaTypeFormatter.cs" />
     <Compile Include="GlobalAssemblyResolver.cs" />
+    <Compile Include="GlobalErrorHandler.cs" />
     <Compile Include="SimpleHttpResponseMessage.cs" />
     <Compile Include="ComplexEntityWebApiController.cs" />
     <Compile Include="Sequences.cs" />
