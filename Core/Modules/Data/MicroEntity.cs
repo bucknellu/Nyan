@@ -466,6 +466,11 @@ break; */
             return set;
         }
 
+        public static IEnumerable<T> ReferenceQueryByStringField(string field, string id)
+        {
+            return ReferenceQueryByField(field, id);
+        }
+
         public static IEnumerable<T> QueryByWhereClause(string clause, object b = null)
         {
             var statement = string.Format(Statements.SqlAllFieldsQueryTemplate, clause);

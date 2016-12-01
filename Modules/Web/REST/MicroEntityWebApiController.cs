@@ -532,13 +532,13 @@ namespace Nyan.Modules.Web.REST
                         {
                             Current.Log.Add("STATIC " + targetType);
                             dynamic refType = new StaticMembersDynamicWrapper(targetType);
-                            referenceCollection = refType.ReferenceQueryByField(probe.ForeignProperty, id);
+                            referenceCollection = refType.ReferenceQueryByStringField(probe.ForeignProperty, id);
                         }
                         else // we can just instantiate.
                         {
                             Current.Log.Add("DYNAMIC " + targetType);
                             dynamic refType = Activator.CreateInstance(targetType);
-                            referenceCollection = refType.ReferenceQueryByField(probe.ForeignProperty, id);
+                            referenceCollection = refType.ReferenceQueryByStringField(probe.ForeignProperty, id);
                         }
                     }
 
