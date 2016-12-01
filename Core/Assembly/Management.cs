@@ -113,7 +113,7 @@ namespace Nyan.Core.Assembly
             var probe = GetAssemblyByName(shortName);
 
             if (probe == null)
-                Modules.Log.System.Add("            ERROR");
+                Modules.Log.System.Add("            [ERR] NOT FOUND");
             else
                 Modules.Log.System.Add("            OK      : " + probe);
             return probe;

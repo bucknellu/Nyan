@@ -2,6 +2,8 @@
 using System.Net.Http.Headers;
 using System.Web.Http;
 using System.Web.Http.Cors;
+using System.Web.Http.ExceptionHandling;
+using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Log;
 using Nyan.Core.Settings;
 using Nyan.Modules.Web.REST.auth;
@@ -20,9 +22,15 @@ namespace Nyan.Modules.Web.REST
             // Force load of all Controllers:
             if (Current.WebApiCORSDomains != null)
             {
+
+                var items = Current.WebApiCORSDomains.Split(',');
                 var corsAttr = new EnableCorsAttribute(Current.WebApiCORSDomains, "*", "*") {SupportsCredentials = true};
+                Current.Log.Add("WebApi REST       : {0} CORS domains allowed.".format(items.Length), Message.EContentType.Info);
+
                 config.EnableCors(corsAttr);
             }
+
+            config.Services.Add(typeof(IExceptionLogger), new GlobalErrorHandler());
 
             config.SuppressHostPrincipal(); //Isolates WebApi Auth form Host (IIS) Auth
 
@@ -37,7 +45,6 @@ namespace Nyan.Modules.Web.REST
 
             config.Formatters.JsonFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("text/html"));
             //config.Formatters.Add(new CsvMediaTypeFormatter());
-
 
             Current.Log.Add("WebApi REST       : Routes registered.", Message.EContentType.Info);
         }
