@@ -99,7 +99,8 @@ namespace Nyan.Core.Modules.Data.Adapter
                 foreach (var parameter in _internalParameters)
                 {
                     if (_sqlInClause != "") _sqlInClause += ", ";
-                    _sqlInClause += parameter.Value.Name;
+                    //_sqlInClause += parameter.Value.Name;
+                    _sqlInClause += ParameterDefinition + parameter.Value.Name;
                 }
 
                 return _sqlInClause;
@@ -220,6 +221,17 @@ namespace Nyan.Core.Modules.Data.Adapter
         public void ResetCachedWhereClause() { _sqlWhereClause = null; }
 
         public void ResetCachedInClause() { _sqlInClause = null; }
+
+        public virtual void AddRange<T>(string baseName, IEnumerable<T> values)
+        {
+            var idx = 0;
+
+            foreach (var value in values)
+            {
+                Add(baseName + idx, value);
+                idx++;
+            }
+        }
 
         public virtual void Add(string name, object value = null, DbGenericType? dbType = DbGenericType.String, ParameterDirection? direction = ParameterDirection.Input, int? size = null)
         {
