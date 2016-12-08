@@ -4,6 +4,7 @@ using Nyan.Core.Modules.Cache;
 using System;
 using System.Collections.Generic;
 using Nyan.Core.Modules.Log;
+using Nyan.Core.Settings;
 using StackExchange.Redis;
 using Nyan.Core.Shared;
 
@@ -82,8 +83,10 @@ namespace Nyan.Modules.Cache.Redis
                 }
                 catch (Exception)
                 {
-                    OperationalStatus = EOperationalStatus.Error;
-                    throw;
+                    return null;
+
+                    //OperationalStatus = EOperationalStatus.Error;
+                    //throw;
                 }
             }
             set
@@ -101,10 +104,12 @@ namespace Nyan.Modules.Cache.Redis
                     //if (oSet != null)
                     //    db.SetAdd(oSet, value);
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    OperationalStatus = EOperationalStatus.Error;
-                    throw;
+                    Current.Log.Add(e);
+
+                    //OperationalStatus = EOperationalStatus.Error;
+                    //throw;
                 }
             }
         }
