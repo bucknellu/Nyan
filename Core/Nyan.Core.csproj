@@ -58,6 +58,7 @@
     <Compile Include="Extensions\Reflections.cs" />
     <Compile Include="Extensions\Serialization.cs" />
     <Compile Include="Configuration.cs" />
+    <Compile Include="Modules\Data\Interceptor.cs" />
     <Compile Include="Modules\Data\MicroEntityEnvironmentMappingAttribute.cs" />
     <Compile Include="Modules\Data\MicroEntityParametrizedGet.cs" />
     <Compile Include="Modules\Data\Model\LocalStorageModel.cs" />
@@ -78,9 +79,6 @@
     <Compile Include="Modules\Data\Connection\Factory.cs" />
     <Compile Include="Modules\Data\Contracts\ISearch.cs" />
     <Compile Include="Modules\Data\Maintenance\Definition.cs" />
-    <Compile Include="Modules\Data\Model\ModelPrimitive.cs" />
-    <Compile Include="Modules\Data\Model\ObjectModel.cs" />
-    <Compile Include="Modules\Data\Model\RelationalModel.cs" />
     <Compile Include="Modules\Identity\IAuthorizationProvider.cs" />
     <Compile Include="Modules\Identity\NullAuthorizationProvider.cs" />
     <Compile Include="Modules\Cache\ICacheConfiguration.cs" />
