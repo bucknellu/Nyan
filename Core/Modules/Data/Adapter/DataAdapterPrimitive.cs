@@ -17,6 +17,8 @@ namespace Nyan.Core.Modules.Data.Adapter
 {
     public abstract class DataAdapterPrimitive
     {
+        public IInterceptor Interceptor = null;
+
         public bool UseOutputParameterForInsertedKeyExtraction { get { return useOutputParameterForInsertedKeyExtraction; } }
 
         public ParameterDefinition ParameterDefinition { get { return ParameterSource.ParameterDefinition; } }
@@ -370,7 +372,9 @@ namespace Nyan.Core.Modules.Data.Adapter
                 var pSourceValue = prop.GetValue(obj, null);
                 var pTargetCustomType = DynamicParametersPrimitive.DbGenericType.String;
 
-                if (type.IsPrimitiveType())
+                var mustSerialize = (!type.IsPrimitiveType() || st.PropertySerializationMap[pSourceName]);
+
+                if (!mustSerialize)
                 {
                     if (typeof(IList).IsAssignableFrom(type) && type.IsGenericType) continue;
                     if (typeof(IDictionary<,>).IsAssignableFrom(type)) continue;

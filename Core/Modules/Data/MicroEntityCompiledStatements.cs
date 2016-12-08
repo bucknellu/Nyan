@@ -30,6 +30,8 @@ namespace Nyan.Core.Modules.Data
         protected internal ConnectionBundlePrimitive Bundle;
         protected internal CredentialSetPrimitive CredentialSet;
 
+        public IInterceptor Interceptor;
+
         public Dictionary<string, string> ConnectionCypherKeys = new Dictionary<string, string>();
         public Dictionary<string, string> CredentialCypherKeys = new Dictionary<string, string>();
 
@@ -42,6 +44,7 @@ namespace Nyan.Core.Modules.Data
         public DateTime PrdConfigLastChange;
         public Dictionary<string, string> PropertyFieldMap;
         public Dictionary<string, long> PropertyLengthMap;
+        public Dictionary<string, bool> PropertySerializationMap;
         public Dictionary<string, KeyValuePair<string, string>> SchemaElements;
 
         /// <summary>

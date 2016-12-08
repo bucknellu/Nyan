@@ -7,5 +7,6 @@ namespace Nyan.Core.Modules.Data
     {
         public string Name { get; set; }
         public long Length { get; set; }
+        public bool Serialized { get; set; }
     }
 }
