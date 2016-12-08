@@ -15,5 +15,6 @@ namespace Nyan.Core.Modules.Data
         void Remove<T>(string locator) where T : MicroEntity<T>;
         void Remove<T>(MicroEntity<T> microEntity) where T : MicroEntity<T>;
         void RemoveAll<T>() where T : MicroEntity<T>;
+        void Insert<T>(MicroEntity<T> microEntity) where T : MicroEntity<T>;
     }
 }
