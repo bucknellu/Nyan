@@ -51,10 +51,7 @@ namespace Nyan.Core.Modules.Data
 
         #endregion
 
-        public bool IsReadOnly()
-        {
-            return TableData.IsReadOnly;
-        }
+        public bool IsReadOnly() { return TableData.IsReadOnly; }
 
         private static void LogWrap(string s, Message.EContentType pType = Message.EContentType.Generic)
         {
@@ -87,10 +84,7 @@ namespace Nyan.Core.Modules.Data
         // ReSharper disable once StaticFieldInGenericType
         private static string _typeName;
 
-        public static T Get(long identifier)
-        {
-            return Get(identifier.ToString(CultureInfo.InvariantCulture));
-        }
+        public static T Get(long identifier) { return Get(identifier.ToString(CultureInfo.InvariantCulture)); }
 
         public static string GetTypeName()
         {
@@ -130,13 +124,23 @@ namespace Nyan.Core.Modules.Data
         /// <returns>An object instance if the ID exists, or NULL otherwise.</returns>
         internal static T GetFromDatabase(object identifier)
         {
-            var retCol = Statements.Adapter.useNumericPrimaryKeyOnly
-                ? Query(Statements.SqlGetSingle, new { Id = Convert.ToInt32(identifier) })
-                : Query(Statements.SqlGetSingle, new { Id = identifier });
+            T ret;
 
-            var ret = retCol.Count > 0 ? retCol[0] : null;
+            if (Statements.Interceptor != null)
+            {
+                ret = Statements.Interceptor.Get<T>(identifier.ToString());
+            }
+            else
+            {
+                var retCol = Statements.Adapter.useNumericPrimaryKeyOnly
+                    ? Query(Statements.SqlGetSingle, new { Id = Convert.ToInt32(identifier) })
+                    : Query(Statements.SqlGetSingle, new { Id = identifier });
+
+                ret = retCol.Count > 0 ? retCol[0] : null;
+            }
             return ret;
         }
+
 
         /// <summary>
         /// </summary>
@@ -328,7 +332,9 @@ break; */
             ValidateEntityState();
 
             //GetAll should never use cache, always hitting the DB.
-            var ret = Query(Statements.SqlGetAll);
+
+            var ret = Statements.Interceptor != null ? Statements.Interceptor.Get<T>() : Query(Statements.SqlGetAll);
+
             if (!TableData.UseCaching) return ret;
 
             //...but it populates the cache with all the individual results, saving time for future FETCHes.
@@ -339,10 +345,7 @@ break; */
             return ret;
         }
 
-        public static long Count()
-        {
-            return QuerySingleValue<long>(Statements.SqlRowCount);
-        }
+        public static long Count() { return QuerySingleValue<long>(Statements.SqlRowCount); }
 
         public static long Count(string qTerm)
         {
@@ -390,16 +393,14 @@ break; */
             return ret;
         }
 
-        public static void Remove(long identifier)
-        {
-            Remove(identifier.ToString(CultureInfo.InvariantCulture));
-        }
+        public static void Remove(long identifier) { Remove(identifier.ToString(CultureInfo.InvariantCulture)); }
 
         public static void RemoveAll()
         {
             if (TableData.IsReadOnly) throw new ReadOnlyException("This entity is set as read-only.");
 
-            Execute(Statements.SqlTruncateTable);
+            if (Statements.Interceptor != null) Statements.Interceptor.RemoveAll<T>();
+            else Execute(Statements.SqlTruncateTable);
 
             if (!TableData.UseCaching) return;
             if (Current.Cache.OperationalStatus != EOperationalStatus.Operational) return;
@@ -410,7 +411,8 @@ break; */
         {
             if (TableData.IsReadOnly) throw new ReadOnlyException("This entity is set as read-only.");
 
-            Execute(Statements.SqlRemoveSingleParametrized, new { Id = identifier });
+            if (Statements.Interceptor != null) Statements.Interceptor.Remove<T>(identifier);
+            else Execute(Statements.SqlRemoveSingleParametrized, new { Id = identifier });
 
             if (!TableData.UseCaching) return;
 
@@ -422,10 +424,7 @@ break; */
             foreach (var obj in objs) obj.Insert();
         }
 
-        public static void Update(List<T> objs)
-        {
-            Save(objs);
-        }
+        public static void Update(List<T> objs) { Save(objs); }
 
         public static void Save(List<T> objs)
         {
@@ -485,10 +484,7 @@ break; */
             return set;
         }
 
-        public static ParameterDefinition ParameterDefinition
-        {
-            get { return Statements.Adapter.ParameterDefinition; }
-        }
+        public static ParameterDefinition ParameterDefinition { get { return Statements.Adapter.ParameterDefinition; } }
 
         public static DynamicParametersPrimitive GetNewDynamicParameterBag(bool pRaw = false)
         {
@@ -541,7 +537,8 @@ break; */
         {
             if (TableData.IsReadOnly) throw new ReadOnlyException("This entity is set as read-only.");
 
-            Execute(Statements.SqlRemoveSingleParametrized, new { id = this.GetEntityIdentifier() });
+            if (Statements.Interceptor != null) Statements.Interceptor.Remove(this);
+            else Execute(Statements.SqlRemoveSingleParametrized, new { id = GetEntityIdentifier() });
 
             var cKey = typeof(T).FullName + ":" + GetEntityIdentifier();
             Current.Cache.Remove(cKey);
@@ -560,22 +557,27 @@ break; */
             if (_isDeleted) return null;
             var ret = "";
 
-            DynamicParametersPrimitive obj;
-
-            var isNew = IsNew();
-
-            if (!isNew) obj = Statements.Adapter.Parameters<T>(this);
-            else obj = Statements.Adapter.InsertableParameters<T>(this);
-
-            if (Statements.IdColumn == null) Execute(Statements.SqlInsertSingle, obj);
-            else if (isNew) ret = SaveAndGetId(obj);
+            if (Statements.Interceptor != null)
+            {
+                ret = Statements.Interceptor.Save(this);
+            }
             else
             {
-                Execute(Statements.SqlUpdateSingle, obj);
-                ret = GetEntityIdentifier();
-            }
+                DynamicParametersPrimitive obj;
 
-            // LogWrap(GetType().FullName + ": SAVE " + ret);
+                var isNew = IsNew();
+
+                if (!isNew) obj = Statements.Adapter.Parameters<T>(this);
+                else obj = Statements.Adapter.InsertableParameters<T>(this);
+
+                if (Statements.IdColumn == null) Execute(Statements.SqlInsertSingle, obj);
+                else if (isNew) ret = SaveAndGetId(obj);
+                else
+                {
+                    Execute(Statements.SqlUpdateSingle, obj);
+                    ret = GetEntityIdentifier();
+                }
+            }
 
             if (Current.Cache.OperationalStatus == EOperationalStatus.Operational)
             {
@@ -588,8 +590,6 @@ break; */
                     Current.Cache.Remove(_key);
                 }
             }
-
-            //Settings.Current.Cache.Remove(CacheKey("A"));
 
             OnSave(ret);
 
@@ -689,7 +689,8 @@ break; */
             {
                 LogWrap(e,
                     GetTypeName() +
-                    ": Entity/Dapper Query: Error while issuing statements to the database. Statement: [" + sqlStatement +
+                    ": Entity/Dapper Query: Error while issuing statements to the database. Statement: [" + sqlStatement
+                    +
                     "]. Database: " + cDebug);
                 throw new DataException(
                     GetTypeName() +
@@ -827,10 +828,7 @@ break; */
             }
         }
 
-        public static List<TU> Query<TU>(string sqlStatement)
-        {
-            return Query<TU>(sqlStatement, null);
-        }
+        public static List<TU> Query<TU>(string sqlStatement) { return Query<TU>(sqlStatement, null); }
 
         public static List<TU> Query<TU>(string sqlStatement, object sqlParameters = null,
             CommandType pCommandType = CommandType.Text)
@@ -991,7 +989,8 @@ break; */
                     Statements.EnvironmentCode = TableData.PersistentEnvironmentCode ?? Current.Environment.Current.Code;
 
                     if (TableData.PersistentEnvironmentCode != null)
-                        si["Environment"] = TableData.PersistentEnvironmentCode + " (overriding [" + Current.Environment.Current.Code + "])";
+                        si["Environment"] = TableData.PersistentEnvironmentCode + " (overriding ["
+                                            + Current.Environment.Current.Code + "])";
 
                     //LogLocal("INIT START", Message.EContentType.Info);
 
@@ -1013,6 +1012,12 @@ break; */
                          select new KeyValuePair<string, long>(pInfo.Name, fieldLength))
                             .ToDictionary(x => x.Key, x => x.Value);
 
+                    Statements.PropertySerializationMap =
+                        (from pInfo in probeType.GetProperties()
+                         let p1 = pInfo.GetCustomAttributes(false).OfType<ColumnAttribute>().ToList()
+                         let isSerializable = (p1.Count != 0) && p1[0].Serialized
+                         select new KeyValuePair<string, bool>(pInfo.Name, isSerializable))
+                            .ToDictionary(x => x.Key, x => x.Value);
 
                     Statements.CredentialCypherKeys = TableData.CredentialCypherKeys;
 
@@ -1035,6 +1040,9 @@ break; */
                         Statements.State.Description = "No connection bundle specified.";
                         return;
                     }
+
+                    // Setting up any available Interceptors...
+                    if (Statements.Adapter.Interceptor != null) Statements.Interceptor = Statements.Adapter.Interceptor;
 
                     //Then pick Credential sets
 
@@ -1096,21 +1104,28 @@ break; */
                         Statements.ConnectionString.SafeArray("Data Source", "=", ";",
                             Transformation.ESafeArrayMode.Allow), Message.EContentType.MoreInfo);
 
-                    using (var conn = Statements.Adapter.Connection(Statements.ConnectionString))
+                    if (Statements.Interceptor != null)
                     {
-                        //Test Connectivity
-                        conn.Open();
-                        conn.Close();
-                        conn.Dispose();
+                        Statements.Interceptor.Connect<T>(Statements.ConnectionString);
                     }
-
-                    if (!TableData.IsReadOnly)
-                        if (TableData.AutoGenerateMissingSchema)
+                    else
+                    {
+                        using (var conn = Statements.Adapter.Connection(Statements.ConnectionString))
                         {
-                            Statements.State.Step = "Checking database entities";
-                            si["Database Adapter"] = Statements.Adapter.GetType().Name;
-                            Statements.Adapter.CheckDatabaseEntities<T>();
+                            //Test Connectivity
+                            conn.Open();
+                            conn.Close();
+                            conn.Dispose();
                         }
+
+                        if (!TableData.IsReadOnly)
+                            if (TableData.AutoGenerateMissingSchema)
+                            {
+                                Statements.State.Step = "Checking database entities";
+                                si["Database Adapter"] = Statements.Adapter.GetType().Name;
+                                Statements.Adapter.CheckDatabaseEntities<T>();
+                            }
+                    }
 
                     try
                     {
@@ -1119,7 +1134,8 @@ break; */
                     }
                     catch (Exception e)
                     {
-                        var tmpWarn = typeof(T).FullName + " : Error while " + Statements.State.Step + " - " + e.Message;
+                        var tmpWarn = typeof(T).FullName + " : Error while " + Statements.State.Step + " - "
+                                      + e.Message;
                         LogWrap(tmpWarn, Message.EContentType.Warning);
                     }
 
@@ -1163,10 +1179,7 @@ break; */
             }
         }
 
-        public static MicroEntityCompiledStatements Statements
-        {
-            get { return ClassRegistration[typeof(T)]; }
-        }
+        public static MicroEntityCompiledStatements Statements { get { return ClassRegistration[typeof(T)]; } }
 
         public static MicroEntitySetupAttribute TableData
         {
@@ -1248,10 +1261,7 @@ break; */
             return _cacheKeyBase + key;
         }
 
-        public static string CacheKey(Type t, string key = "")
-        {
-            return t.FullName + ":" + key;
-        }
+        public static string CacheKey(Type t, string key = "") { return t.FullName + ":" + key; }
 
         #endregion
 
