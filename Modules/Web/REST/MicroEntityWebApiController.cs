@@ -66,8 +66,7 @@ namespace Nyan.Modules.Web.REST
             return true;
         }
 
-        public virtual void PostAction(RequestType pRequestType, AccessType pAccessType, string pidentifier = null,
-            T pObject = null, string pContext = null) {}
+        public virtual void PostAction(RequestType pRequestType, AccessType pAccessType, string pidentifier = null, T pObject = null, string pContext = null) { }
 
         private void EvaluateAuthorization(EndpointSecurityAttribute attr, RequestType requestType,
             AccessType accessType, string parm = null, T parm2 = null, string parm3 = null)
@@ -97,7 +96,8 @@ namespace Nyan.Modules.Web.REST
             }
 
             if (!ret)
-                try {
+                try
+                {
                     ret = AuthorizeAction(requestType, accessType, parm, ref parm2, parm3);
                 }
                 catch (Exception e) // User may throw a custom error, and that's fine: let's just log it.
@@ -173,7 +173,7 @@ namespace Nyan.Modules.Web.REST
                     {
                         var m = typeof(MicroEntity<T>).GetMethodExt("Query", RESTHeaderClassType);
                         var mg = m.MakeGenericMethod(RESTHeaderClassType);
-                        preRet = mg.Invoke(null, new object[] {RESTHeaderQuery});
+                        preRet = mg.Invoke(null, new object[] { RESTHeaderQuery });
                     }
                     else
                     {
@@ -195,7 +195,7 @@ namespace Nyan.Modules.Web.REST
                 {
                     ret.Headers.Add("X-Total-Count", tot.ToString());
                     ret.Headers.Add("X-Total-Pages",
-                        (Math.Truncate((double) tot/parametrizedGet.PageSize) + 1).ToString(CultureInfo.InvariantCulture));
+                        (Math.Truncate((double)tot / parametrizedGet.PageSize) + 1).ToString(CultureInfo.InvariantCulture));
                 }
 
                 return ret;
@@ -221,7 +221,7 @@ namespace Nyan.Modules.Web.REST
 
                 EvaluateAuthorization(ClassSecurity, RequestType.New, AccessType.Read, null);
 
-                var preRet = (T) Activator.CreateInstance(typeof(T), new object[] {});
+                var preRet = (T)Activator.CreateInstance(typeof(T), new object[] { });
                 sw.Stop();
                 Current.Log.Add("NEW " + typeof(T).FullName + " OK (" + sw.ElapsedMilliseconds + " ms)");
 
@@ -310,7 +310,7 @@ namespace Nyan.Modules.Web.REST
                 if (set.Count == 0)
                 {
                     if (idset == "") return res;
-                    set = new List<string> {idset};
+                    set = new List<string> { idset };
                 }
 
                 sw.Start();
@@ -339,6 +339,9 @@ namespace Nyan.Modules.Web.REST
         [HttpPost]
         public virtual HttpResponseMessage WebApiPost(T item)
         {
+
+            var originalId = item.GetEntityIdentifier();
+
             var sw = new Stopwatch();
 
             var res = "";
@@ -357,10 +360,9 @@ namespace Nyan.Modules.Web.REST
 
                 if (MicroEntity<T>.TableData.AuditChange) AuditRequest("CHANGE", typeof(T).FullName + ":" + item.GetEntityIdentifier(), item.ToJson());
 
-                Current.Log.Add("UPD " + typeof(T).FullName + ":" + item.GetEntityIdentifier() + " OK (" +
-                                sw.ElapsedMilliseconds + " ms)");
+                Current.Log.Add("UPD " + typeof(T).FullName + ":" + item.GetEntityIdentifier() + " OK (" + sw.ElapsedMilliseconds + " ms)");
 
-                PostAction(RequestType.Post, AccessType.Write, preRet.GetEntityIdentifier(), preRet);
+                PostAction(RequestType.Post, AccessType.Write, preRet.GetEntityIdentifier(), preRet, preRet.GetEntityIdentifier() != originalId ? "CREATE" : "UPDATE");
 
                 return RenderJsonResult(preRet);
             }
@@ -546,7 +548,8 @@ namespace Nyan.Modules.Web.REST
 
                     ret = Request.CreateResponse(HttpStatusCode.OK, referenceCollection);
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     ret = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, ex);
                 }
             return ret;
@@ -570,7 +573,7 @@ namespace Nyan.Modules.Web.REST
 
         public HttpResponseMessage RenderJsonResult(object contents)
         {
-            var ret = new HttpResponseMessage(HttpStatusCode.OK) {Content = new StringContent(contents.ToJson())};
+            var ret = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(contents.ToJson()) };
             ret.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
             return ret;
         }
