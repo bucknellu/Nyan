@@ -1,12 +1,26 @@
-﻿using Nyan.Core.Modules.Log;
+﻿using System;
+using System.Collections.Generic;
+using System.Windows.Forms;
 using Nyan.Core.Settings;
-using System;
+using Message = Nyan.Core.Modules.Log.Message;
 
 namespace Nyan.Core.Process
 {
     public static class Sequences
     {
+        public static List<Action> BootstrapActions = new List<Action>();
+        public static List<Action> ShutdownActions = new List<Action>();
+
         public static bool IsShuttingDown { get; private set; }
+
+        public static void Start()
+        {
+            foreach (var ba in BootstrapActions)
+            {
+                try { ba(); }
+                catch (Exception e) { Current.Log.Add(e); }
+            }
+        }
 
         public static void End(string pReason = "(None)")
         {
@@ -35,8 +49,10 @@ namespace Nyan.Core.Process
 
             Current.Log.Shutdown();
 
-            try { System.Windows.Forms.Application.Exit(); } catch { }
-            try { Environment.Exit(0); } catch { }
+            try { Application.Exit(); }
+            catch { }
+            try { Environment.Exit(0); }
+            catch { }
         }
     }
 }

@@ -56,8 +56,9 @@ namespace Nyan.Core.Settings
             Log.Add("Stack status      : Operational", Message.EContentType.StartupSequence);
 
             //Post-initialization procedures
-            if (Cache != null)
-                Cache.Initialize();
+            if (Cache != null) Cache.Initialize();
+
+            Sequences.Start();
         }
 
         public static ICacheProvider Cache { get; }
