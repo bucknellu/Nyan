@@ -10,6 +10,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Web;
 using Newtonsoft.Json.Linq;
 using Nyan.Core.Factories;
 using Nyan.Core.Settings;
@@ -32,6 +33,24 @@ namespace Nyan.Core.Extensions
             "Oracle.DataAccess.Client.OracleCommand",
             "Dapper.SqlMapper+<QueryImpl>"
         };
+
+        public static string ToQueryString(this Dictionary<string, string> obj)
+        {
+            var properties = from p in obj
+                             where p.Value != null
+                             select p.Key + "=" + HttpUtility.UrlEncode(p.Value);
+
+            return string.Join("&", properties.ToArray());
+        }
+
+        public static string ToQueryString(this object obj)
+        {
+            var properties = from p in obj.GetType().GetProperties()
+                             where p.GetValue(obj, null) != null
+                             select p.Name + "=" + HttpUtility.UrlEncode(p.GetValue(obj, null).ToString());
+
+            return string.Join("&", properties.ToArray());
+        }
 
         public static string SafeArray(this string source, string criteria = "", string keySeparator = "=", string elementSeparator = ",", ESafeArrayMode mode = ESafeArrayMode.Remove)
         {
