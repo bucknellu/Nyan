@@ -55,10 +55,7 @@ namespace Nyan.Modules.Web.REST
             }
         }
 
-        public virtual string SearchResultMoniker
-        {
-            get { return MicroEntity<T>.Statements.Label; }
-        }
+        public virtual string SearchResultMoniker { get { return MicroEntity<T>.Statements.Label; } }
 
         public virtual bool AuthorizeAction(RequestType pRequestType, AccessType pAccessType, string pidentifier,
             ref T pObject, string pContext)
@@ -66,7 +63,9 @@ namespace Nyan.Modules.Web.REST
             return true;
         }
 
-        public virtual void PostAction(RequestType pRequestType, AccessType pAccessType, string pidentifier = null, T pObject = null, string pContext = null) { }
+        public virtual void PostAction(RequestType pRequestType, AccessType pAccessType, string pidentifier = null,
+            T pObject = null, string pContext = null)
+        { }
 
         private void EvaluateAuthorization(EndpointSecurityAttribute attr, RequestType requestType,
             AccessType accessType, string parm = null, T parm2 = null, string parm3 = null)
@@ -181,6 +180,7 @@ namespace Nyan.Modules.Web.REST
                     }
                 }
 
+                PostCollectionAction(RequestType.GetAll, AccessType.Read, ref preRet, ref tot);
                 PostAction(RequestType.GetAll, AccessType.Read);
 
                 sw.Stop();
@@ -208,6 +208,8 @@ namespace Nyan.Modules.Web.REST
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e);
             }
         }
+
+        public virtual void PostCollectionAction(RequestType pRequestType, AccessType pAccessType, ref object collectionList, ref long totalRecords, string pidentifier = null, T pObject = null, string pContext = null) { }
 
         [Route("new")]
         [HttpGet]
@@ -271,10 +273,7 @@ namespace Nyan.Modules.Web.REST
             }
         }
 
-        public virtual T InternalGet(string id)
-        {
-            return MicroEntity<T>.Get(id);
-        }
+        public virtual T InternalGet(string id) { return MicroEntity<T>.Get(id); }
 
         [Route("subset")]
         [HttpPost]
@@ -328,7 +327,8 @@ namespace Nyan.Modules.Web.REST
             {
                 sw.Stop();
                 Current.Log.Add(
-                    "InternalGetSet " + typeof(T).FullName + ":" + idset + " ERR (" + sw.ElapsedMilliseconds + " ms): " +
+                    "InternalGetSet " + typeof(T).FullName + ":" + idset + " ERR (" + sw.ElapsedMilliseconds + " ms): "
+                    +
                     e.Message, e);
                 RenderException(HttpStatusCode.InternalServerError, e.Message);
                 return null;
@@ -339,7 +339,6 @@ namespace Nyan.Modules.Web.REST
         [HttpPost]
         public virtual HttpResponseMessage WebApiPost(T item)
         {
-
             var originalId = item.GetEntityIdentifier();
 
             var sw = new Stopwatch();
@@ -360,9 +359,11 @@ namespace Nyan.Modules.Web.REST
 
                 if (MicroEntity<T>.TableData.AuditChange) AuditRequest("CHANGE", typeof(T).FullName + ":" + item.GetEntityIdentifier(), item.ToJson());
 
-                Current.Log.Add("UPD " + typeof(T).FullName + ":" + item.GetEntityIdentifier() + " OK (" + sw.ElapsedMilliseconds + " ms)");
+                Current.Log.Add("UPD " + typeof(T).FullName + ":" + item.GetEntityIdentifier() + " OK ("
+                                + sw.ElapsedMilliseconds + " ms)");
 
-                PostAction(RequestType.Post, AccessType.Write, preRet.GetEntityIdentifier(), preRet, preRet.GetEntityIdentifier() != originalId ? "CREATE" : "UPDATE");
+                PostAction(RequestType.Post, AccessType.Write, preRet.GetEntityIdentifier(), preRet,
+                    preRet.GetEntityIdentifier() != originalId ? "CREATE" : "UPDATE");
 
                 return RenderJsonResult(preRet);
             }
@@ -496,7 +497,8 @@ namespace Nyan.Modules.Web.REST
             catch (Exception e)
             {
                 Current.Log.Add(
-                    "DEL " + typeof(T).FullName + ":" + probe.GetEntityIdentifier() + " ERR (" + sw.ElapsedMilliseconds +
+                    "DEL " + typeof(T).FullName + ":" + probe.GetEntityIdentifier() + " ERR (" + sw.ElapsedMilliseconds
+                    +
                     " ms): " + e.Message, e);
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e);
             }
