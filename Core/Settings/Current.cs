@@ -83,7 +83,6 @@ namespace Nyan.Core.Settings
         private static IPackage ResolveSettingsPackage()
         {
             var packages = Management.GetClassesByInterface<IPackage>();
-
             if (packages.Any()) return (IPackage)Activator.CreateInstance(packages[0]);
 
             //No package defined? not to worry; let's create one with the provided pieces.
