@@ -69,6 +69,9 @@
     <Compile Include="Resource\Summary.cs" />
     <Compile Include="Search\Global.cs" />
     <Compile Include="Search\SearchController.cs" />
+    <Compile Include="Security\Network.cs" />
+    <Compile Include="Security\NetworkController.cs" />
+    <Compile Include="Security\TimedLock.cs" />
     <Compile Include="WebSocket\WebSocketMessagingController.cs" />
     <Compile Include="WebSocket\NyanWebSocketHandler.cs" />
   </ItemGroup>
