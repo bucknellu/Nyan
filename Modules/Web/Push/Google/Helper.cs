@@ -87,8 +87,7 @@ namespace Nyan.Modules.Web.Push.Google
                 randomisePadding: randomisePadding);
         }
 
-        public static bool SendNotification(string endpoint, string data, string userKey, string userSecret, int ttl = 0,
-            ushort padding = 0, bool randomisePadding = false)
+        public static bool SendNotification(string endpoint, string data, string userKey, string userSecret, int ttl = 0, ushort padding = 0, bool randomisePadding = false)
         {
             return SendNotification(endpoint,
                 data: Encoding.UTF8.GetBytes(data),
@@ -104,7 +103,9 @@ namespace Nyan.Modules.Web.Push.Google
         {
             var Request = new HttpRequestMessage(HttpMethod.Post, endpoint);
             if (endpoint.StartsWith("https://android.googleapis.com/gcm/send/")) Request.Headers.TryAddWithoutValidation("Authorization", "key=" + FirebaseServerKey);
+
             Request.Headers.Add("TTL", ttl.ToString());
+
             if ((data != null) && (userKey != null) && (userSecret != null))
             {
                 var Package = EncryptMessage(userKey, userSecret, data, padding, randomisePadding);
@@ -126,17 +127,18 @@ namespace Nyan.Modules.Web.Push.Google
             var Random = new SecureRandom();
             var Salt = new byte[16];
             Random.NextBytes(Salt);
+
             var Curve = ECNamedCurveTable.GetByName("prime256v1");
             var Spec = new ECDomainParameters(Curve.Curve, Curve.G, Curve.N, Curve.H, Curve.GetSeed());
             var Generator = new ECKeyPairGenerator();
             Generator.Init(new ECKeyGenerationParameters(Spec, new SecureRandom()));
+
             var KeyPair = Generator.GenerateKeyPair();
             var AgreementGenerator = new ECDHBasicAgreement();
             AgreementGenerator.Init(KeyPair.Private);
-            var IKM =
-                AgreementGenerator.CalculateAgreement(new ECPublicKeyParameters(Spec.Curve.DecodePoint(userKey), Spec));
-            var PRK = GenerateHKDF(userSecret, IKM.ToByteArrayUnsigned(),
-                Encoding.UTF8.GetBytes("Content-Encoding: auth\0"), 32);
+
+            var IKM = AgreementGenerator.CalculateAgreement(new ECPublicKeyParameters(Spec.Curve.DecodePoint(userKey), Spec));
+            var PRK = GenerateHKDF(userSecret, IKM.ToByteArrayUnsigned(), Encoding.UTF8.GetBytes("Content-Encoding: auth\0"), 32);
             var PublicKey = ((ECPublicKeyParameters)KeyPair.Public).Q.GetEncoded(false);
             var CEK = GenerateHKDF(Salt, PRK, CreateInfoChunk("aesgcm", userKey, PublicKey), 16);
             var Nonce = GenerateHKDF(Salt, PRK, CreateInfoChunk("nonce", userKey, PublicKey), 12);
@@ -155,6 +157,7 @@ namespace Nyan.Modules.Web.Push.Google
         {
             var Output = BitConverter.GetBytes(Convert.ToUInt16(number));
             if (BitConverter.IsLittleEndian) Array.Reverse(Output);
+
             return Output;
         }
 
@@ -166,6 +169,7 @@ namespace Nyan.Modules.Web.Push.Google
             Output.AddRange(recipientPublicKey);
             Output.AddRange(ConvertInt(senderPublicKey.Length));
             Output.AddRange(senderPublicKey);
+
             return Output.ToArray();
         }
 
@@ -177,6 +181,7 @@ namespace Nyan.Modules.Web.Push.Google
             PRKGen.Update(1);
             var Result = MacUtilities.DoFinal(PRKGen);
             if (Result.Length > len) Array.Resize(ref Result, len);
+
             return Result;
         }
 

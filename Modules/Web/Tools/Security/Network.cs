@@ -30,6 +30,9 @@ namespace Nyan.Modules.Web.Tools.Security
         public static IpType Check(string pIp)
         {
             if (ResultCache.ContainsKey(pIp)) return ResultCache[pIp];
+
+            Core.Settings.Current.Log.Add("Resolving IP context for " + pIp);
+
             try
             {
                 foreach (var d in Descriptor.Descriptors)
@@ -57,8 +60,6 @@ namespace Nyan.Modules.Web.Tools.Security
             if (HttpContext.Current == null) throw new ArgumentNullException("No available HTTP context.");
             var remAddr = HttpContext.Current.Request.UserHostAddress;
             if (HttpContext.Current.Request.ServerVariables["HTTP_X_FORWARDED_FOR"] != null) remAddr = HttpContext.Current.Request.Headers["HTTP_X_FORWARDED_FOR"];
-
-            Core.Settings.Current.Log.Add("Resolving IP context for " + remAddr);
 
             return Check(remAddr);
         }
