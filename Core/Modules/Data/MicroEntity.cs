@@ -344,14 +344,21 @@ break; */
             return ret;
         }
 
-        public static long Count() { return QuerySingleValue<long>(Statements.SqlRowCount); }
+        public static long Count() {
+            return Statements.Interceptor?.RecordCount<T>() ?? QuerySingleValue<long>(Statements.SqlRowCount);
+        }
 
-        public static long Count(string qTerm)
+        public static long Count(MicroEntityParametrizedGet qTerm)
         {
-            var bag = GetNewDynamicParameterBag();
-            bag.Add("qParm", qTerm);
-            var term = Statements.SqlRowCount + " WHERE " + Statements.SqlSimpleQueryTerm;
-            return QuerySingleValue<long>(term, bag);
+            if (Statements.Interceptor != null) { return Statements.Interceptor.RecordCount<T>(qTerm); }
+
+            else
+            {
+                var bag = GetNewDynamicParameterBag();
+                bag.Add("qParm", qTerm.QueryTerm);
+                var term = Statements.SqlRowCount + " WHERE " + Statements.SqlSimpleQueryTerm;
+                return QuerySingleValue<long>(term, bag);
+            }
         }
 
 
@@ -362,26 +369,32 @@ break; */
             var op = "";
             var src = "";
             var bag = GetNewDynamicParameterBag();
+            List<T> ret = null;
 
-            if (parm.QueryTerm == null) {
-                src = Statements.SqlGetAll;
+            if (Statements.Interceptor != null)
+            {
+                ret = Statements.Interceptor.Get<T>(parm);
             }
             else
             {
-                src = string.Format(Statements.SqlAllFieldsQueryTemplate, Statements.SqlSimpleQueryTerm);
-                bag.Add("qParm", "%" + parm.QueryTerm + "%");
+                if (parm.QueryTerm == null) { src = Statements.SqlGetAll; }
+                else
+                {
+                    src = string.Format(Statements.SqlAllFieldsQueryTemplate, Statements.SqlSimpleQueryTerm);
+                    bag.Add("qParm", "%" + parm.QueryTerm + "%");
+                }
+
+                if (parm.OrderBy != null)
+                    op = src + " " + Statements.SqlOrderByCommand + " " +
+                         Statements.Adapter.GetOrderByClausefromSerializedQueryParameters<T>(parm.OrderBy);
+                else op = src;
+
+                if (parm.PageIndex != -1) op = Statements.Adapter.PaginationWrapper<T>(op, parm);
+
+                if (Current.Environment.CurrentCode == "DEV") Current.Log.Add("QRY STATEMENT: " + op);
+
+                ret = Query(op, bag);
             }
-
-            if (parm.OrderBy != null)
-                op = src + " " + Statements.SqlOrderByCommand + " " +
-                     Statements.Adapter.GetOrderByClausefromSerializedQueryParameters<T>(parm.OrderBy);
-            else op = src;
-
-            if (parm.PageIndex != -1) op = Statements.Adapter.PaginationWrapper<T>(op, parm);
-
-            if (Current.Environment.CurrentCode == "DEV") Current.Log.Add("QRY STATEMENT: " + op);
-
-            var ret = Query(op, bag);
             if (!TableData.UseCaching) return ret;
 
             //...populates/refresh the cache with all the individual results, saving time for future individual FETCHes.
@@ -704,6 +717,10 @@ break; */
 
         public static List<T> Query(string sqlStatement, object rawObject = null)
         {
+            if (Statements.Interceptor != null) {
+                return Statements.Interceptor.Query<T>(sqlStatement, rawObject);
+            }
+
             var primitive = rawObject as DynamicParametersPrimitive;
             var obj = primitive ?? Statements.Adapter.Parameters<T>(rawObject);
 
@@ -975,17 +992,22 @@ break; */
                 {
                     ClassRegistration.TryAdd(typeof(T), new MicroEntityCompiledStatements());
                     Statements.State.Status = MicroEntityCompiledStatements.EStatus.Initializing;
-                    Statements.State.Step = "Instantiating ColumnAttributeTypeMapper";
+                    Statements.State.Step = "Starting TableData/Statements setup";
 
                     if (TableData.Label != null) Statements.Label = TableData.Label;
                     else if (TableData.TableName != null) Statements.Label = TableData.TableName;
                     else Statements.Label = typeof(T).Name;
 
+                    Statements.State.Step = "Instantiating new ColumnAttributeTypeMapper";
                     var cat = new ColumnAttributeTypeMapper<T>();
                     SqlMapper.SetTypeMap(typeof(T), cat);
 
+                    Statements.State.Step = "Setting up Machine/Environment SI dict";
+
                     si["Machine"] = System.Environment.MachineName;
                     si["Environment"] = Current.Environment.Current.Code;
+
+                    Statements.State.Step = "Setting up Statements.EnvironmentCode";
 
                     Statements.EnvironmentCode = TableData.PersistentEnvironmentCode ?? Current.Environment.Current.Code;
 
@@ -995,9 +1017,13 @@ break; */
 
                     //LogLocal("INIT START", Message.EContentType.Info);
 
+                    Statements.State.Step = "Setting up Reference Bundle";
+
                     var refBundle = TableData.ConnectionBundleType ?? Current.GlobalConnectionBundleType;
 
                     var probeType = typeof(T);
+
+                    Statements.State.Step = "Setting up PropertyFieldMap";
 
                     Statements.PropertyFieldMap =
                         (from pInfo in probeType.GetProperties()
@@ -1006,12 +1032,16 @@ break; */
                                 select new KeyValuePair<string, string>(pInfo.Name, fieldName))
                             .ToDictionary(x => x.Key, x => x.Value);
 
+                    Statements.State.Step = "Setting up PropertyLengthMap";
+
                     Statements.PropertyLengthMap =
                         (from pInfo in probeType.GetProperties()
                                 let p1 = pInfo.GetCustomAttributes(false).OfType<ColumnAttribute>().ToList()
                                 let fieldLength = p1.Count != 0 ? (p1[0].Length != 0 ? p1[0].Length : 0) : 0
                                 select new KeyValuePair<string, long>(pInfo.Name, fieldLength))
                             .ToDictionary(x => x.Key, x => x.Value);
+
+                    Statements.State.Step = "Setting up PropertySerializationMap";
 
                     Statements.PropertySerializationMap =
                         (from pInfo in probeType.GetProperties()
@@ -1020,11 +1050,16 @@ break; */
                                 select new KeyValuePair<string, bool>(pInfo.Name, isSerializable))
                             .ToDictionary(x => x.Key, x => x.Value);
 
+                    Statements.State.Step = "Setting up CredentialCypherKeys";
+
                     Statements.CredentialCypherKeys = TableData.CredentialCypherKeys;
 
                     //First, probe for a valid Connection bundle
                     if (refBundle != null)
                     {
+
+                        Statements.State.Step = "Setting up ConnectionCypherKeys";
+
                         var refType = (ConnectionBundlePrimitive) Activator.CreateInstance(refBundle);
 
                         Statements.Bundle = refType;
@@ -1131,6 +1166,8 @@ break; */
                     {
                         Statements.State.Step = "Calling initialization hooks";
                         OnEntityInitializationHook();
+
+                        Statements.Interceptor?.Initialize<T>();
                     }
                     catch (Exception e)
                     {
@@ -1243,7 +1280,7 @@ break; */
         {
             try
             {
-                LogLocal("Configuration changed config changed.", Message.EContentType.Maintenance);
+                LogLocal("Configuration changed", Message.EContentType.Maintenance);
                 Statements.Adapter.SetConnectionString<T>();
             }
             catch (Exception e) {
