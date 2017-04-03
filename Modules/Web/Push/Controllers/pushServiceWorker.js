@@ -17,22 +17,22 @@
 *
 */
 
-// Version 0.1
+// Version 0.1 (modified)
 
 "use strict";
 
 console.log("Started", self);
 
-self.addEventListener("install", function (event) {
+self.addEventListener("install", function(event) {
     self.skipWaiting();
-    console.log("Installed", event);
+    console.log("ServiceWorker: Installed", event);
 });
 
-self.addEventListener("activate", function (event) { console.log("Activated", event); });
+self.addEventListener("activate", function(event) { console.log("Activated", event); });
 
-self.addEventListener("push", function (event) {
-    console.log("Push message event", event);
-    console.log("Push message arguments", arguments);
+self.addEventListener("push", function(event) {
+    console.log("ServiceWorker: event", event);
+    console.log("ServiceWorker: arguments", arguments);
 
     var data = null;
     if (event.data) {
@@ -44,24 +44,51 @@ self.addEventListener("push", function (event) {
         self.registration.showNotification(data.title, data.options));
 });
 
-self.addEventListener("notificationclick", function (event) {
+function isUrl(s) {
+    var regexp = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
+    return regexp.test(s);
+}
+
+self.addEventListener("notificationclick", function(event) {
 
     // Android doesn't close the notification when you click it
     // See http://crbug.com/463146
     event.notification.close();
 
+    console.log("ServiceWorker: notificationclick event", event);
+
     var url = null;
 
-    try { url = event.notification.data.url; } catch (e) { }
+    try {
 
-    console.log("notificationclick: url", url);
+        if (isUrl(event.action)) {
+            url = event.action;
+        } else {
+
+            url = event.notification.data.url;
+
+            if (!!event.action) {
+
+                if (url.indexOf("#") !== -1) {
+                    url += "/" + encodeURI(event.action);
+                } else {
+                    url += url.indexOf("?") !== -1 ? "&" : "?";
+                    url += "action=" + encodeURI(event.action);
+                }
+            }
+        }
+
+    } catch (e) {
+    }
+
+    console.log("ServiceWorker: notificationclick: url", url);
 
     // Check if there's already a tab open with this URL.
     // If yes: focus on the tab.
     // If no: open a tab with the URL.
     event.waitUntil(
         clients.matchAll({ type: "window" })
-        .then(function (windowClients) {
+        .then(function(windowClients) {
             if (url) {
                 console.log("WindowClients", windowClients);
                 for (var i = 0; i < windowClients.length; i++) {
