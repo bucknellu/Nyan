@@ -11,6 +11,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Nyan.Core.Settings;
 using static System.String;
 
 namespace Nyan.Core.Extensions
@@ -169,6 +170,30 @@ namespace Nyan.Core.Extensions
                 return null;
             }
         }
+
+        public static Dictionary<string, string> ToPathValueDictionary(this JObject source)
+        {
+            var ret = new Dictionary<string, string>();
+
+            foreach (var jToken in (JToken)source)
+            {
+                var t = (JProperty) jToken;
+
+                var k = t.Name;
+                var v = t.Value;
+
+                if (v is JObject)
+                    ret = ret.Concat(ToPathValueDictionary((JObject)v)).ToDictionary(x => x.Key, x => x.Value);
+                else
+                {
+                   ret.Add(t.Path, v.ToString()); 
+                }
+            }
+
+            return ret;
+        }
+
+
 
         public static T FromJson<T>(this string obj)
         {
