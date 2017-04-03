@@ -103,6 +103,7 @@ namespace Nyan.Modules.Data.Oracle
                         if (pType == typeof(DateTime)) pDestinyType = "TIMESTAMP";
                         if (pType == typeof(bool)) pDestinyType = "NUMBER (1) DEFAULT 0";
                         if (pType == typeof(object)) pDestinyType = "BLOB";
+                        if (size > 4000) pDestinyType = "BLOB";
                         if (pType.IsEnum) pDestinyType = "NUMBER (10)";
 
                         if (pType == typeof(string)) isNullable = true;
