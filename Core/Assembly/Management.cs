@@ -37,6 +37,8 @@ namespace Nyan.Core.Assembly
         public static readonly Dictionary<Type, List<Type>> GetGenericsByBaseClassCache =
             new Dictionary<Type, List<Type>>();
 
+        private static readonly object GetGenericsByBaseClassLock = new object();
+
         static Management()
         {
 #pragma warning disable 618
@@ -176,6 +178,38 @@ namespace Nyan.Core.Assembly
             }
         }
 
+        public static void MonitorFile(string path)
+        {
+            var _path = path;
+            var filter = "*.*";
+
+            var attr = File.GetAttributes(path);
+
+            //detect whether its a directory or file
+            if ((attr & FileAttributes.Directory) != FileAttributes.Directory)
+            {
+                var fileinfo = new FileInfo(path);
+
+                _path = fileinfo.DirectoryName;
+                filter = fileinfo.Name;
+            }
+
+            var watcher = new FileSystemWatcher
+            {
+                Path = _path,
+                IncludeSubdirectories = false,
+                NotifyFilter = NotifyFilters.LastWrite,
+                Filter = filter
+            };
+
+            watcher.Changed += FileSystemWatcher_OnChanged;
+            watcher.EnableRaisingEvents = true;
+
+            FsMonitors.Add(watcher);
+
+            Modules.Log.System.Add("Monitoring [" + path + "]", Message.EContentType.StartupSequence);
+        }
+
         public static string WildcardToRegex(string pattern)
         {
             return "^" + Regex.Escape(pattern).
@@ -282,33 +316,36 @@ namespace Nyan.Core.Assembly
 
         public static List<Type> GetGenericsByBaseClass(Type refType)
         {
-            if (GetGenericsByBaseClassCache.ContainsKey(refType)) return GetGenericsByBaseClassCache[refType];
-
-            var classCol = new List<Type>();
-
-            try
+            lock (GetGenericsByBaseClassLock)
             {
-                foreach (var asy in AssemblyCache.Values.ToList())
-                    foreach (var st in asy.GetTypes())
-                    {
-                        if (st.BaseType == null) continue;
-                        if (!st.BaseType.IsGenericType) continue;
-                        if (st == refType) continue;
+                if (GetGenericsByBaseClassCache.ContainsKey(refType)) return GetGenericsByBaseClassCache[refType];
 
-                        try
+                var classCol = new List<Type>();
+
+                try
+                {
+                    foreach (var asy in AssemblyCache.Values.ToList())
+                        foreach (var st in asy.GetTypes())
                         {
-                            foreach (var gta in st.BaseType.GenericTypeArguments) if (gta == refType) classCol.Add(st);
+                            if (st.BaseType == null) continue;
+                            if (!st.BaseType.IsGenericType) continue;
+                            if (st == refType) continue;
+
+                            try
+                            {
+                                foreach (var gta in st.BaseType.GenericTypeArguments) if (gta == refType) classCol.Add(st);
+                            }
+                            catch {}
                         }
-                        catch {}
-                    }
 
-                GetGenericsByBaseClassCache.Add(refType, classCol);
-            }
-            catch (Exception e) {
-                Current.Log.Add(e);
-            }
+                    GetGenericsByBaseClassCache.Add(refType, classCol);
+                }
+                catch (Exception e) {
+                    Current.Log.Add(e);
+                }
 
-            return classCol;
+                return classCol;
+            }
         }
 
         /// <summary>
