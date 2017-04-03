@@ -16,14 +16,18 @@ namespace Nyan.Modules.Web.Push.Google
         {
             try
             {
-                Current.Log.Add("GoogleDispatcher: SEND > " + target.endpoint);
                 var ret = Helper.SendNotification(target, obj);
-                Current.Log.Add("GoogleDispatcher: " + ret);
+                Current.Log.Add("GoogleDispatcher: " + (ret ? "OK  ": "FAIL") + " " + target.endpoint);
+                HandlePushAttempt(target.endpoint, ret);
+
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 Current.Log.Add(e);
             }
         }
+
+
 
         public class Payload
         {
