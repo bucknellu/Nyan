@@ -157,7 +157,7 @@ namespace Nyan.Modules.Web.REST
                     if (queryString.ContainsKey("q"))
                     {
                         parametrizedGet.QueryTerm = queryString["q"].ToLower();
-                        tot = MicroEntity<T>.Count(parametrizedGet.QueryTerm);
+                        tot = MicroEntity<T>.Count(parametrizedGet);
                     }
                     else
                     {
