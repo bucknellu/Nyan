@@ -38,7 +38,9 @@ namespace Nyan.Core.Modules.Data.Maintenance
         {
             var probe = typeof(MicroEntity<>);
 
-            var objCol = Management.GetClassesByBaseClass(probe, limitToMainAssembly);
+            var objCol = Management.GetClassesByBaseClass(probe, limitToMainAssembly).ToList();
+
+            Current.Log.Add(objCol.Count + " models to be exported", Message.EContentType.Info);
 
             return objCol
                 .Select(obj => new StaticMembersDynamicWrapper(obj))
