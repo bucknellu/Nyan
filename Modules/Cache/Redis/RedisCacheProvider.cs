@@ -1,88 +1,38 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Cache;
-using System;
-using System.Collections.Generic;
 using Nyan.Core.Modules.Log;
 using Nyan.Core.Settings;
-using StackExchange.Redis;
 using Nyan.Core.Shared;
+using StackExchange.Redis;
 
 namespace Nyan.Modules.Cache.Redis
 {
     [Priority(Level = -1)]
     public class RedisCacheProvider : ICacheProvider
     {
-        public Dictionary<string, ICacheConfiguration> EnvironmentConfiguration { get; set; }
-
         private static ConnectionMultiplexer _redis;
 
         private static string _currentServer = "none";
-        private static int _dbIdx = -1;
-
-
-        #region custom implementation
-        private static int DatabaseIndex
-        {
-            get { return _dbIdx; }
-        }
-
-        public void Initialize()
-        {
-            //In the case nothing is defined, a standard environment setup is provided.
-            if (EnvironmentConfiguration == null)
-                EnvironmentConfiguration = new Dictionary<string, ICacheConfiguration>
-                {
-                    {"STA", new RedisCacheConfiguration {DatabaseIndex = 5, ConnectionString = "localhost"}}
-                };
-
-
-            var probe = (RedisCacheConfiguration)EnvironmentConfiguration[Core.Settings.Current.Environment.CurrentCode];
-            _dbIdx = probe.DatabaseIndex;
-            _currentServer = probe.ConnectionString;
-
-            Connect();
-        }
-
-        public void Shutdown() { }
-
-        public void Connect()
-        {
-            try
-            {
-                ServerName = _currentServer.Split(',')[0];
-
-                //The connection string may be encrypted. Try to decrypt it, but ignore if it fails.
-                try { _currentServer = Core.Settings.Current.Encryption.Decrypt(_currentServer); }
-                catch { }
-
-                Core.Settings.Current.Log.Add("Redis server      : Connecting to " + _currentServer.SafeArray("password"), Message.EContentType.MoreInfo);
-
-                _redis = ConnectionMultiplexer.Connect(_currentServer);
-                OperationalStatus = EOperationalStatus.Operational;
-            }
-            catch (Exception e)
-            {
-                OperationalStatus = EOperationalStatus.NonOperational;
-                Core.Settings.Current.Log.Add("REDIS unavailable: Application running on direct database mode.", Message.EContentType.Maintenance);
-                Core.Settings.Current.Log.Add(e);
-            }
-        }
-
-        #endregion
+        public Dictionary<string, ICacheConfiguration> EnvironmentConfiguration { get; set; }
 
         public string this[string key, string oSet = null, int cacheTimeOutSeconds = 600]
         {
             get
             {
                 if (OperationalStatus != EOperationalStatus.Operational) return null;
+
                 try
                 {
                     var db = _redis.GetDatabase(DatabaseIndex);
-                    return db.StringGet(key);
+                    var res = db.StringGet(key);
+                    return res;
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    Current.Log.Add(e);
                     return null;
 
                     //OperationalStatus = EOperationalStatus.Error;
@@ -96,6 +46,7 @@ namespace Nyan.Modules.Cache.Redis
                 try
                 {
                     var db = _redis.GetDatabase(DatabaseIndex);
+
                     if (cacheTimeOutSeconds == 0)
                         db.StringSet(key, value);
                     else
@@ -125,7 +76,8 @@ namespace Nyan.Modules.Cache.Redis
             try
             {
                 var db = _redis.GetDatabase(DatabaseIndex);
-                return db.KeyExists(key);
+                var res = db.KeyExists(key);
+                return res;
             }
             catch (Exception)
             {
@@ -192,12 +144,10 @@ namespace Nyan.Modules.Cache.Redis
 
                 var keys = server.Keys(pattern: "*", database: DatabaseIndex).ToList();
 
-                Core.Settings.Current.Log.Add("REDIS: Removing {0} keys from database {1}".format(keys.Count, DatabaseIndex), Message.EContentType.Maintenance);
+                Current.Log.Add("REDIS: Removing {0} keys from database {1}".format(keys.Count, DatabaseIndex),
+                    Message.EContentType.Maintenance);
 
-                foreach (var key in keys)
-                {
-                    db.KeyDelete(key);
-                }
+                foreach (var key in keys) db.KeyDelete(key);
 
                 //server.FlushDatabase(DatabaseIndex);
             }
@@ -210,5 +160,57 @@ namespace Nyan.Modules.Cache.Redis
             var n = (fullName ?? value.GetType().FullName) + ":s";
             this[n] = value.ToJson();
         }
+
+        #region custom implementation
+
+        private static int DatabaseIndex { get; set; } = -1;
+
+        public void Initialize()
+        {
+            //In the case nothing is defined, a standard environment setup is provided.
+            if (EnvironmentConfiguration == null)
+                EnvironmentConfiguration = new Dictionary<string, ICacheConfiguration>
+                {
+                    {"STA", new RedisCacheConfiguration {DatabaseIndex = 5, ConnectionString = "localhost"}}
+                };
+
+            var probe = (RedisCacheConfiguration)EnvironmentConfiguration[Current.Environment.CurrentCode];
+            DatabaseIndex = probe.DatabaseIndex;
+            _currentServer = probe.ConnectionString;
+
+            Connect();
+        }
+
+        public void Shutdown() { }
+
+        public void Connect()
+        {
+            try
+            {
+                ServerName = _currentServer.Split(',')[0];
+
+                //The connection string may be encrypted. Try to decrypt it, but ignore if it fails.
+                try
+                {
+                    _currentServer = Current.Encryption.Decrypt(_currentServer);
+                }
+                catch { }
+
+                Current.Log.Add("Redis server      : Connecting to " + _currentServer.SafeArray("password"),
+                    Message.EContentType.MoreInfo);
+
+                _redis = ConnectionMultiplexer.Connect(_currentServer);
+                OperationalStatus = EOperationalStatus.Operational;
+            }
+            catch (Exception e)
+            {
+                OperationalStatus = EOperationalStatus.NonOperational;
+                Current.Log.Add("REDIS unavailable: Application running on direct database mode.",
+                    Message.EContentType.Maintenance);
+                Current.Log.Add(e);
+            }
+        }
+
+        #endregion
     }
 }
