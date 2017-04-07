@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Configuration.Install;
 using System.Linq;
 using System.ServiceProcess;
@@ -11,12 +12,14 @@ namespace Nyan.Core.Startup
 {
     public class ServiceLauncher : ServiceBase
     {
-        internal static IServiceDefinition Service;
+        private static readonly List<ServiceDescriptor> Services = new List<ServiceDescriptor>();
+
+        private static string _serviceDescriptor;
 
         public ServiceLauncher()
         {
-            ServiceName = Service.Name;
-            Current.Log.Add("Service [" + Service.Name + "] Started", Message.EContentType.StartupSequence);
+            ServiceName = "NyanServiceLauncher";
+            Current.Log.Add("Service(s) " + _serviceDescriptor + " Started", Message.EContentType.StartupSequence);
         }
 
         private static void Main(string[] args)
@@ -27,7 +30,7 @@ namespace Nyan.Core.Startup
 
                 if (Environment.UserInteractive)
                 {
-                    Current.Log.Add("Service           : [" + Service.Name + "] Interactive mode",
+                    Current.Log.Add("Service(s)        : [" + _serviceDescriptor + "] Interactive mode",
                         Message.EContentType.StartupSequence);
                     var parameter = string.Concat(args);
                     switch (parameter)
@@ -35,61 +38,79 @@ namespace Nyan.Core.Startup
                         case "--install":
                             ManagedInstallerClass.InstallHelper(new[]
                                 {System.Reflection.Assembly.GetEntryAssembly().Location});
-                            Current.Log.Add("Service [" + Service.Name + "] successfully installed.",
+                            Current.Log.Add("Service [NyanServiceLauncher] successfully installed.",
                                 Message.EContentType.Maintenance);
                             Environment.Exit(0);
                             break;
                         case "--uninstall":
                             ManagedInstallerClass.InstallHelper(new[]
                                 {"/u", System.Reflection.Assembly.GetEntryAssembly().Location});
-                            Current.Log.Add("Service [" + Service.Name + "] successfully uninstalled.",
+                            Current.Log.Add("Service [NyanServiceLauncher] successfully uninstalled.",
                                 Message.EContentType.Maintenance);
                             Environment.Exit(0);
                             break;
                         default:
-                            Service.Initialize();
+                            foreach (var sd in Services)
+                            {
+                                sd.Start();
+                            }
+
                             Console.ReadLine();
                             break;
                     }
                 }
                 else
                 {
-                    Current.Log.Add("Service           : [" + Service.Name + "] Headless mode",
+                    Current.Log.Add("Service           : [NyanServiceLauncher] Headless mode",
                         Message.EContentType.StartupSequence);
                     Run(new ServiceLauncher());
                 }
             }
             catch (Exception e)
             {
-                Current.Log.Add(e, "Service                : [" + Service.Name + "] fatal error: ");
+                Current.Log.Add(e, "Service                : [NyanServiceLauncher] fatal error: ");
                 Environment.Exit(-1);
             }
         }
 
         private static void CurrentDomainUnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            Current.Log.Add((Exception) e.ExceptionObject);
+            Current.Log.Add((Exception)e.ExceptionObject);
         }
 
         protected override void OnStart(string[] args)
         {
-            Service.Initialize();
-            Service.Start();
-            Current.Log.Add("Service           : [" + Service.Name + "] Starting.", Message.EContentType.StartupSequence);
+            foreach (var service in Services)
+            {
+                service.Start();
+                Current.Log.Add("Service           : [" + service.Config.Name + "] Starting.", Message.EContentType.StartupSequence);
+            }
         }
 
         protected override void OnStop()
         {
-            Service.Stop();
-            Current.Log.Add("Service           : [" + Service.Name + "] Stopped.", Message.EContentType.ShutdownSequence);
-            Environment.Exit(0);
+            foreach (var service in Services)
+            {
+                service.Stop();
+                Current.Log.Add("Service           : [" + service.Config.Name + "] Stopped.", Message.EContentType.ShutdownSequence);
+                Environment.Exit(0);
+            }
         }
 
         public static void Start(string[] args)
         {
-            var bootServices = Management.GetClassesByInterface<IServiceDefinition>();
+            var bootServices = Management.GetClassesByInterface<ServiceDescriptor>();
             if (!bootServices.Any()) return;
-            Service = bootServices[0].CreateInstance<IServiceDefinition>();
+
+            Current.Log.Add("NyanServiceLauncher: {0} services found.".format(bootServices.Count), Message.EContentType.Maintenance);
+
+            Services.Clear();
+
+            foreach (var bts in bootServices)
+                Services.Add(bts.CreateInstance<ServiceDescriptor>());
+
+            _serviceDescriptor = Services.Select(i => i.Config.Name).ToJson();
+
             Main(args);
         }
     }

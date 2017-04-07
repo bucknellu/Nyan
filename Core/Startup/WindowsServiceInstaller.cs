@@ -13,13 +13,13 @@ namespace Nyan.Core.Startup
             //set the privileges
             processInstaller.Account = ServiceAccount.LocalSystem;
 
-            serviceInstaller.DisplayName = ServiceLauncher.Service.Name;
-            serviceInstaller.Description = ServiceLauncher.Service.Description;
+            serviceInstaller.DisplayName = "NyanServiceLauncher";
+            serviceInstaller.Description = "Headless service orchestrator";
 
             serviceInstaller.StartType = ServiceStartMode.Automatic;
 
             //must be the same as what was set in Program's constructor
-            serviceInstaller.ServiceName = ServiceLauncher.Service.Name;
+            serviceInstaller.ServiceName = "NyanServiceLauncher";
 
             Installers.Add(processInstaller);
             Installers.Add(serviceInstaller);
