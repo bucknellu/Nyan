@@ -43,7 +43,7 @@ namespace Nyan.Modules.Data.MongoDB
             _client = new MongoClient(statementsConnectionString);
             _database = _client.GetDatabase("storage");
             _statements = MicroEntity<T>.Statements;
-            _sourceCollection = Current.Environment.CurrentCode + "." + MicroEntity<T>.TableData.TableName;
+            _sourceCollection = _statements.EnvironmentCode + "." + MicroEntity<T>.TableData.TableName;
             _collection = _database.GetCollection<BsonDocument>(_sourceCollection);
         }
 
