@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
 using Nyan.Core.Modules.Data;
 using Nyan.Core.Modules.Log;
@@ -41,6 +42,13 @@ namespace Nyan.Modules.Data.MongoDB
         public void Connect<T>(string statementsConnectionString) where T : MicroEntity<T>
         {
             _client = new MongoClient(statementsConnectionString);
+
+            // https://jira.mongodb.org/browse/CSHARP-965
+            // http://stackoverflow.com/questions/19521626/mongodb-convention-packs
+
+            var pack = new ConventionPack {new IgnoreExtraElementsConvention(true)};
+            ConventionRegistry.Register("ignore extra elements", pack, t=> true);
+
             _database = _client.GetDatabase("storage");
             _statements = MicroEntity<T>.Statements;
             _sourceCollection = _statements.EnvironmentCode + "." + MicroEntity<T>.TableData.TableName;
