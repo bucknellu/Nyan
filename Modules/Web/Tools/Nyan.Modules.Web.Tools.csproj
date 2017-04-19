@@ -62,6 +62,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Maintenance\IMaintenanceEventEntry.cs" />
+    <Compile Include="Maintenance\IMaintenanceEventHandler.cs" />
+    <Compile Include="Maintenance\Instances.cs" />
+    <Compile Include="Maintenance\MaintenanceEventEntry.cs" />
+    <Compile Include="Maintenance\NullMaintenanceEventHandler.cs" />
+    <Compile Include="Maintenance\PriorityAttribute.cs" />
+    <Compile Include="Maintenance\StackMaintenanceController.cs" />
     <Compile Include="Media\ImageController.cs" />
     <Compile Include="Media\Utilities.cs" />
     <Compile Include="Metadata\HostMetadataProvider.cs" />
