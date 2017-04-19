@@ -231,7 +231,16 @@ namespace Nyan.Core.Extensions
             }
             catch (Exception e)
             {
-                throw (e.InnerException.InnerException);
+                var refE = e;
+
+                if (e.InnerException == null) throw refE;
+
+                refE = e.InnerException;
+
+                if (e.InnerException.InnerException != null)
+                    refE = e.InnerException.InnerException;
+
+                throw refE;
             }
         }
 
