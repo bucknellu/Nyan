@@ -126,14 +126,15 @@ namespace Nyan.Core.Modules.Data
         {
             T ret;
 
-            if (Statements.Interceptor != null) {
+            if (Statements.Interceptor != null)
+            {
                 ret = Statements.Interceptor.Get<T>(identifier.ToString());
             }
             else
             {
                 var retCol = Statements.Adapter.useNumericPrimaryKeyOnly
-                    ? Query(Statements.SqlGetSingle, new {Id = Convert.ToInt32(identifier)})
-                    : Query(Statements.SqlGetSingle, new {Id = identifier});
+                    ? Query(Statements.SqlGetSingle, new { Id = Convert.ToInt32(identifier) })
+                    : Query(Statements.SqlGetSingle, new { Id = identifier });
 
                 ret = retCol.Count > 0 ? retCol[0] : null;
             }
@@ -283,32 +284,32 @@ namespace Nyan.Core.Modules.Data
             switch (nodeType)
             {
                 case ExpressionType.AndAlso:
-                    foreach (var leftSide in (IEnumerable<IOperator>) leftValue) yield return leftSide;
-                    foreach (var rightSide in (IEnumerable<IOperator>) rightValue) yield return rightSide;
+                    foreach (var leftSide in (IEnumerable<IOperator>)leftValue) yield return leftSide;
+                    foreach (var rightSide in (IEnumerable<IOperator>)rightValue) yield return rightSide;
                     break;
                 case ExpressionType.GreaterThan:
-                    yield return new SqlGreaterThan {FieldName = leftValue.ToString(), FieldValue = rightValue};
+                    yield return new SqlGreaterThan { FieldName = leftValue.ToString(), FieldValue = rightValue };
                     break;
                 case ExpressionType.GreaterThanOrEqual:
-                    yield return new SqlGreaterOrEqualThan {FieldName = leftValue.ToString(), FieldValue = rightValue};
+                    yield return new SqlGreaterOrEqualThan { FieldName = leftValue.ToString(), FieldValue = rightValue };
                     break;
                 case ExpressionType.LessThan:
-                    yield return new SqlLessThan {FieldName = leftValue.ToString(), FieldValue = rightValue};
+                    yield return new SqlLessThan { FieldName = leftValue.ToString(), FieldValue = rightValue };
                     break;
                 case ExpressionType.LessThanOrEqual:
-                    yield return new SqlLessOrEqualThan {FieldName = leftValue.ToString(), FieldValue = rightValue};
+                    yield return new SqlLessOrEqualThan { FieldName = leftValue.ToString(), FieldValue = rightValue };
                     break;
                 // TODO: Discuss later.
                 /* case ExpressionType.OrElse:
 yield return new Or { OperadoresInternos = new List<IOperator> { ((IEnumerable<IOperator>)leftValue).First(), ((IEnumerable<IOperator>)rightValue).First() } };
 break; */
                 case ExpressionType.NotEqual:
-                    if (rightValue != null) yield return new SqlNotEqual {FieldName = leftValue.ToString(), FieldValue = rightValue};
-                    else yield return new SqlNotNull {FieldName = leftValue.ToString()};
+                    if (rightValue != null) yield return new SqlNotEqual { FieldName = leftValue.ToString(), FieldValue = rightValue };
+                    else yield return new SqlNotNull { FieldName = leftValue.ToString() };
                     break;
                 default:
-                    if (rightValue != null) yield return new SqlEqual {FieldName = leftValue.ToString(), FieldValue = rightValue};
-                    else yield return new SqlNull {FieldName = leftValue.ToString()};
+                    if (rightValue != null) yield return new SqlEqual { FieldName = leftValue.ToString(), FieldValue = rightValue };
+                    else yield return new SqlNull { FieldName = leftValue.ToString() };
                     break;
             }
         }
@@ -344,7 +345,8 @@ break; */
             return ret;
         }
 
-        public static long Count() {
+        public static long Count()
+        {
             return Statements.Interceptor?.RecordCount<T>() ?? QuerySingleValue<long>(Statements.SqlRowCount);
         }
 
@@ -423,7 +425,7 @@ break; */
             if (TableData.IsReadOnly) throw new ReadOnlyException("This entity is set as read-only.");
 
             if (Statements.Interceptor != null) Statements.Interceptor.Remove<T>(identifier);
-            else Execute(Statements.SqlRemoveSingleParametrized, new {Id = identifier});
+            else Execute(Statements.SqlRemoveSingleParametrized, new { Id = identifier });
 
             if (!TableData.UseCaching) return;
 
@@ -549,7 +551,7 @@ break; */
             if (TableData.IsReadOnly) throw new ReadOnlyException("This entity is set as read-only.");
 
             if (Statements.Interceptor != null) Statements.Interceptor.Remove(this);
-            else Execute(Statements.SqlRemoveSingleParametrized, new {id = GetEntityIdentifier()});
+            else Execute(Statements.SqlRemoveSingleParametrized, new { id = GetEntityIdentifier() });
 
             var cKey = typeof(T).FullName + ":" + GetEntityIdentifier();
             Current.Cache.Remove(cKey);
@@ -568,7 +570,8 @@ break; */
             if (_isDeleted) return null;
             var ret = "";
 
-            if (Statements.Interceptor != null) {
+            if (Statements.Interceptor != null)
+            {
                 ret = Statements.Interceptor.Save(this);
             }
             else
@@ -628,7 +631,8 @@ break; */
 
             if (_isDeleted) return;
 
-            if (Statements.Interceptor != null) {
+            if (Statements.Interceptor != null)
+            {
                 Statements.Interceptor.Insert(this);
             }
             else
@@ -659,7 +663,7 @@ break; */
 
                 var o =
                     conn.Query(sqlStatement, null, null, false, null, CommandType.Text)
-                        .Select(a => (IDictionary<string, object>) a)
+                        .Select(a => (IDictionary<string, object>)a)
                         .ToList();
 
                 conn.Close();
@@ -689,7 +693,7 @@ break; */
                         {
                             var probe = m.Read<object>();
                             var buffer = probe
-                                .Select(a => (IDictionary<string, object>) a)
+                                .Select(a => (IDictionary<string, object>)a)
                                 .Select(v => v.ToDictionary(v2 => v2.Key, v2 => v2.Value))
                                 .ToList();
                             res.Add(buffer);
@@ -717,7 +721,8 @@ break; */
 
         public static List<T> Query(string sqlStatement, object rawObject = null)
         {
-            if (Statements.Interceptor != null) {
+            if (Statements.Interceptor != null)
+            {
                 return Statements.Interceptor.Query<T>(sqlStatement, rawObject);
             }
 
@@ -742,7 +747,7 @@ break; */
                     conn.Open();
 
                     var o = conn.Query(sqlStatement, sqlParameters, null, false, null, pCommandType)
-                        .Select(a => (IDictionary<string, object>) a)
+                        .Select(a => (IDictionary<string, object>)a)
                         .ToList();
                     conn.Close();
 
@@ -900,10 +905,12 @@ break; */
                     var a = p.ParameterNames.ToList();
 
                     foreach (var name in a)
-                        try {
+                        try
+                        {
                             result[name] = p.Get<dynamic>(name);
                         }
-                        catch {
+                        catch
+                        {
                             result[name] = null;
                         }
                 }
@@ -1027,27 +1034,27 @@ break; */
 
                     Statements.PropertyFieldMap =
                         (from pInfo in probeType.GetProperties()
-                                let p1 = pInfo.GetCustomAttributes(false).OfType<ColumnAttribute>().ToList()
-                                let fieldName = p1.Count != 0 ? (p1[0].Name ?? pInfo.Name) : pInfo.Name
-                                select new KeyValuePair<string, string>(pInfo.Name, fieldName))
+                         let p1 = pInfo.GetCustomAttributes(false).OfType<ColumnAttribute>().ToList()
+                         let fieldName = p1.Count != 0 ? (p1[0].Name ?? pInfo.Name) : pInfo.Name
+                         select new KeyValuePair<string, string>(pInfo.Name, fieldName))
                             .ToDictionary(x => x.Key, x => x.Value);
 
                     Statements.State.Step = "Setting up PropertyLengthMap";
 
                     Statements.PropertyLengthMap =
                         (from pInfo in probeType.GetProperties()
-                                let p1 = pInfo.GetCustomAttributes(false).OfType<ColumnAttribute>().ToList()
-                                let fieldLength = p1.Count != 0 ? (p1[0].Length != 0 ? p1[0].Length : 0) : 0
-                                select new KeyValuePair<string, long>(pInfo.Name, fieldLength))
+                         let p1 = pInfo.GetCustomAttributes(false).OfType<ColumnAttribute>().ToList()
+                         let fieldLength = p1.Count != 0 ? (p1[0].Length != 0 ? p1[0].Length : 0) : 0
+                         select new KeyValuePair<string, long>(pInfo.Name, fieldLength))
                             .ToDictionary(x => x.Key, x => x.Value);
 
                     Statements.State.Step = "Setting up PropertySerializationMap";
 
                     Statements.PropertySerializationMap =
                         (from pInfo in probeType.GetProperties()
-                                let p1 = pInfo.GetCustomAttributes(false).OfType<ColumnAttribute>().ToList()
-                                let isSerializable = (p1.Count != 0) && p1[0].Serialized
-                                select new KeyValuePair<string, bool>(pInfo.Name, isSerializable))
+                         let p1 = pInfo.GetCustomAttributes(false).OfType<ColumnAttribute>().ToList()
+                         let isSerializable = (p1.Count != 0) && p1[0].Serialized
+                         select new KeyValuePair<string, bool>(pInfo.Name, isSerializable))
                             .ToDictionary(x => x.Key, x => x.Value);
 
                     Statements.State.Step = "Setting up CredentialCypherKeys";
@@ -1060,14 +1067,14 @@ break; */
 
                         Statements.State.Step = "Setting up ConnectionCypherKeys";
 
-                        var refType = (ConnectionBundlePrimitive) Activator.CreateInstance(refBundle);
+                        var refType = (ConnectionBundlePrimitive)Activator.CreateInstance(refBundle);
 
                         Statements.Bundle = refType;
 
                         refType.ValidateDatabase();
                         si["Connection bundle"] = refType.GetType().Name;
                         Statements.State.Step = "Transferring configuration settings from Bundle to Entity Statements";
-                        Statements.Adapter = (DataAdapterPrimitive) Activator.CreateInstance(refType.AdapterType);
+                        Statements.Adapter = (DataAdapterPrimitive)Activator.CreateInstance(refType.AdapterType);
                         Statements.ConnectionCypherKeys = refType.ConnectionCypherKeys;
                     }
                     else
@@ -1083,8 +1090,7 @@ break; */
                     //Then pick Credential sets
 
                     Statements.State.Step = "determining CredentialSets to use";
-                    Statements.CredentialSet = Factory.GetCredentialSetPerConnectionBundle(Statements.Bundle,
-                        TableData.CredentialSetType);
+                    Statements.CredentialSet = Factory.GetCredentialSetPerConnectionBundle(Statements.Bundle, TableData.CredentialSetType);
                     Statements.CredentialCypherKeys = Statements.CredentialSet.CredentialCypherKeys;
 
                     var identifierColumnName = TableData.IdentifierColumnName;
@@ -1093,6 +1099,7 @@ break; */
                     {
                         var props =
                             probeType.GetProperties()
+
                                 .Where(prop => Attribute.IsDefined(prop, typeof(KeyAttribute)))
                                 .ToList();
 
@@ -1140,7 +1147,8 @@ break; */
                         Statements.ConnectionString.SafeArray("Data Source", "=", ";",
                             Transformation.ESafeArrayMode.Allow), Message.EContentType.MoreInfo);
 
-                    if (Statements.Interceptor != null) {
+                    if (Statements.Interceptor != null)
+                    {
                         Statements.Interceptor.Connect<T>(Statements.ConnectionString);
                     }
                     else
@@ -1233,7 +1241,7 @@ break; */
             get
             {
                 var atts = Attribute.GetCustomAttributes(typeof(T), typeof(MicroEntityEnvironmentMappingAttribute))
-                    .Select(i => (MicroEntityEnvironmentMappingAttribute) i)
+                    .Select(i => (MicroEntityEnvironmentMappingAttribute)i)
                     .ToList();
 
                 if (atts.Count <= 0) return new Dictionary<string, string>();
@@ -1266,7 +1274,7 @@ break; */
                     .Invoke(null, null);
             }
             // ReSharper disable once EmptyGeneralCatchClause
-            catch {}
+            catch { }
         }
 
         #endregion
@@ -1283,7 +1291,8 @@ break; */
                 LogLocal("Configuration changed", Message.EContentType.Maintenance);
                 Statements.Adapter.SetConnectionString<T>();
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 LogWrap(e);
             }
         }
