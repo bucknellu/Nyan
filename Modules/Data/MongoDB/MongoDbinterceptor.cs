@@ -47,11 +47,18 @@ namespace Nyan.Modules.Data.MongoDB
             // http://stackoverflow.com/questions/19521626/mongodb-convention-packs
 
             var pack = new ConventionPack {new IgnoreExtraElementsConvention(true)};
-            ConventionRegistry.Register("ignore extra elements", pack, t=> true);
+            ConventionRegistry.Register("ignore extra elements", pack, t => true);
 
             _database = _client.GetDatabase("storage");
             _statements = MicroEntity<T>.Statements;
-            _sourceCollection = _statements.EnvironmentCode + "." + MicroEntity<T>.TableData.TableName;
+
+            if (MicroEntity<T>.TableData.TableName == "") _sourceCollection = _statements.EnvironmentCode + "." + typeof(T).FullName;
+
+            _sourceCollection = _statements.EnvironmentCode + "."
+                                + (string.IsNullOrEmpty(MicroEntity<T>.TableData.TableName)
+                                    ? typeof(T).FullName
+                                    : MicroEntity<T>.TableData.TableName);
+
             _collection = _database.GetCollection<BsonDocument>(_sourceCollection);
         }
 
@@ -76,8 +83,7 @@ namespace Nyan.Modules.Data.MongoDB
 
             var document = BsonSerializer.Deserialize<BsonDocument>(obj.ToJson());
 
-            if (probe == null)
-            {
+            if (probe == null) {
                 _collection.InsertOne(document);
             }
             else
@@ -132,7 +138,9 @@ namespace Nyan.Modules.Data.MongoDB
 
             SortDefinition<BsonDocument> sortFilter = new BsonDocument();
 
-            var queryFilter = (parm.QueryTerm ?? "") != "" ? new BsonDocument { { "$text", new BsonDocument { { "$search", parm.QueryTerm } } } } : new BsonDocument();
+            var queryFilter = (parm.QueryTerm ?? "") != ""
+                ? new BsonDocument {{"$text", new BsonDocument {{"$search", parm.QueryTerm}}}}
+                : new BsonDocument();
 
             if (parm.OrderBy != null)
             {
@@ -167,8 +175,8 @@ namespace Nyan.Modules.Data.MongoDB
 
             if (parm.PageSize != 0)
             {
-                var pos = (int)(parm.PageIndex * parm.PageSize);
-                col = col.Skip(pos).Limit((int)parm.PageSize);
+                var pos = (int) (parm.PageIndex*parm.PageSize);
+                col = col.Skip(pos).Limit((int) parm.PageSize);
             }
 
             var colRes = col.ToListAsync();
@@ -180,17 +188,22 @@ namespace Nyan.Modules.Data.MongoDB
         }
 
         public long RecordCount<T>() where T : MicroEntity<T> { return _collection.Count(new BsonDocument()); }
-        public long RecordCount<T>(MicroEntityParametrizedGet qTerm) where T : MicroEntity<T> { return Get<T>(qTerm).Count; }
+
+        public long RecordCount<T>(MicroEntityParametrizedGet qTerm) where T : MicroEntity<T>
+        {
+            return Get<T>(qTerm).Count;
+        }
+
         public void Initialize<T>() where T : MicroEntity<T>
         {
             // Check for the presence of text indexes '$**'
-            try
-            {
+            try {
                 _collection.Indexes.CreateOne(Builders<BsonDocument>.IndexKeys.Text("$**"));
             }
             catch (Exception e)
             {
-                Current.Log.Add("ERR Creating index " + _sourceCollection + ": " + e.Message, Message.EContentType.Warning);
+                Current.Log.Add("ERR Creating index " + _sourceCollection + ": " + e.Message,
+                    Message.EContentType.Warning);
             }
         }
 
