@@ -9,7 +9,7 @@ using Nyan.Core.Wrappers;
 namespace Nyan.Core.Extensions
 {
     /// <summary>
-    /// Reflection-related extensions.
+    ///     Reflection-related extensions.
     /// </summary>
     public static class Reflections
     {
@@ -27,7 +27,8 @@ namespace Nyan.Core.Extensions
         };
 
         /// <summary>
-        /// Gets an object fo type T, transposing matching keys from a reference dictionary. Optionally consumes a translation dictionary that maps correlating keys.
+        ///     Gets an object fo type T, transposing matching keys from a reference dictionary. Optionally consumes a translation
+        ///     dictionary that maps correlating keys.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="dict">The reference dictionary.</param>
@@ -55,12 +56,11 @@ namespace Nyan.Core.Extensions
                 var kt = k.PropertyType;
 
                 if (k.PropertyType.IsPrimitiveType())
-                {
                     try
                     {
                         if (val is decimal) val = Convert.ToInt64(val);
-                        if (val is short && kt == typeof(bool)) val = (Convert.ToInt16(val) == 1);
-                        if (val is long && kt == typeof(string)) val = val.ToString();
+                        if (val is short && (kt == typeof(bool))) val = Convert.ToInt16(val) == 1;
+                        if (val is long && (kt == typeof(string))) val = val.ToString();
                         if (kt == typeof(decimal)) val = Convert.ToDecimal(val);
                         if (kt == typeof(short)) val = Convert.ToInt16(val);
                         if (kt == typeof(int)) val = Convert.ToInt32(val);
@@ -75,15 +75,14 @@ namespace Nyan.Core.Extensions
                         Current.Log.Add(e);
                         throw;
                     }
-                }
                 else k.SetValue(obj, kv.Value != null ? JsonConvert.DeserializeObject(kv.Value.ToString(), kt) : null);
             }
 
-            return (T)obj;
+            return (T) obj;
         }
 
         /// <summary>
-        /// Gets the method ext.
+        ///     Gets the method ext.
         /// </summary>
         /// <param name="thisType">Type of the this.</param>
         /// <param name="name">The name.</param>
@@ -102,7 +101,7 @@ namespace Nyan.Core.Extensions
         }
 
         /// <summary>
-        /// Gets the method ext.
+        ///     Gets the method ext.
         /// </summary>
         /// <param name="thisType">Type of the this.</param>
         /// <param name="name">The name.</param>
@@ -118,15 +117,13 @@ namespace Nyan.Core.Extensions
             GetMethodExt(ref matchingMethod, thisType, name, bindingFlags, parameterTypes);
 
             // If we're searching an interface, we have to manually search base interfaces
-            if (matchingMethod == null && thisType.IsInterface)
-            {
+            if ((matchingMethod == null) && thisType.IsInterface)
                 foreach (var interfaceType in thisType.GetInterfaces())
                     GetMethodExt(ref matchingMethod,
                         interfaceType,
                         name,
                         bindingFlags,
                         parameterTypes);
-            }
 
             return matchingMethod;
         }
@@ -139,7 +136,7 @@ namespace Nyan.Core.Extensions
                 MemberTypes.Method,
                 bindingFlags))
             {
-                var methodInfo = (MethodInfo)memberInfo;
+                var methodInfo = (MethodInfo) memberInfo;
                 // Check that the parameter counts and types match, 
                 // with 'loose' matching on generic parameters
                 var parameterInfos = methodInfo.GetParameters();
@@ -147,17 +144,13 @@ namespace Nyan.Core.Extensions
                 {
                     var i = 0;
                     for (; i < parameterInfos.Length; ++i)
-                    {
                         if (!parameterInfos[i].ParameterType
                             .IsSimilarType(parameterTypes[i])) break;
-                    }
                     if (i == parameterInfos.Length)
-                    {
                         if (matchingMethod == null) matchingMethod = methodInfo;
                         else
                             throw new AmbiguousMatchException(
                                 "More than one matching method found!");
-                    }
                 }
             }
         }
@@ -173,18 +166,15 @@ namespace Nyan.Core.Extensions
 
             // If the types are identical, or they're both generic parameters 
             // or the special 'T' type, treat as a match
-            if (thisType == type || ((thisType.IsGenericParameter || thisType == typeof(GetMethodExtT))
-                                     && (type.IsGenericParameter || type == typeof(GetMethodExtT)))) return true;
+            if ((thisType == type) || ((thisType.IsGenericParameter || (thisType == typeof(GetMethodExtT)))
+                                       && (type.IsGenericParameter || (type == typeof(GetMethodExtT))))) return true;
 
             // Handle any generic arguments
             if (thisType.IsGenericType && type.IsGenericType)
             {
                 var thisArguments = thisType.GetGenericArguments();
                 var arguments = type.GetGenericArguments();
-                if (thisArguments.Length == arguments.Length)
-                {
-                    return !thisArguments.Where((t, i) => !t.IsSimilarType(arguments[i])).Any();
-                }
+                if (thisArguments.Length == arguments.Length) return !thisArguments.Where((t, i) => !t.IsSimilarType(arguments[i])).Any();
             }
 
             return false;
@@ -220,14 +210,13 @@ namespace Nyan.Core.Extensions
                 type.IsValueType ||
                 type.IsPrimitive ||
                 PrimitiveTypes.Contains(type) ||
-                Convert.GetTypeCode(type) != TypeCode.Object;
+                (Convert.GetTypeCode(type) != TypeCode.Object);
         }
 
         public static T CreateInstance<T>(this Type typeRef)
         {
-            try
-            {
-                return (T)Activator.CreateInstance(typeRef);
+            try {
+                return (T) Activator.CreateInstance(typeRef);
             }
             catch (Exception e)
             {
@@ -237,8 +226,7 @@ namespace Nyan.Core.Extensions
 
                 refE = e.InnerException;
 
-                if (e.InnerException.InnerException != null)
-                    refE = e.InnerException.InnerException;
+                if (e.InnerException.InnerException != null) refE = e.InnerException.InnerException;
 
                 throw refE;
             }
@@ -250,11 +238,10 @@ namespace Nyan.Core.Extensions
 
             foreach (var i in source)
             {
-                var uo = (TU)Activator.CreateInstance(typeof(TU), null);
+                var uo = (TU) Activator.CreateInstance(typeof(TU), null);
 
                 i.CopyPropertiesTo(uo);
                 dest.Add(uo);
-
             }
         }
 
@@ -276,11 +263,22 @@ namespace Nyan.Core.Extensions
                 var val = sourceProp.GetValue(source, null);
                 var set = false;
 
-                try { p.SetValue(dest, val, null); set = true; } catch { }
-                if (!set) try { p.SetValue(dest, val.ToString(), null); set = true; } catch (Exception e) { }
+                try
+                {
+                    p.SetValue(dest, val, null);
+                    set = true;
+                }
+                catch {}
+                if (!set)
+                    try
+                    {
+                        p.SetValue(dest, val.ToString(), null);
+                        set = true;
+                    }
+                    catch (Exception e) {}
             }
         }
 
-        public class GetMethodExtT { }
+        public class GetMethodExtT {}
     }
 }
