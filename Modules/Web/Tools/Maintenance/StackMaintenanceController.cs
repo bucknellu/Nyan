@@ -25,10 +25,10 @@ namespace Nyan.Modules.Web.Tools.Maintenance
             try
             {
                 var instances = Instances.RegisteredMaintenanceTaskTypes.Select(i =>
-                    {
-                        currType = i.FullName;
-                        return i.CreateInstance<IMaintenanceTask>();
-                    }).ToList();
+                {
+                    currType = i.FullName;
+                    return i.CreateInstance<IMaintenanceTask>();
+                }).ToList();
 
                 foreach (var maintenanceTask in instances)
                 {
@@ -68,7 +68,9 @@ namespace Nyan.Modules.Web.Tools.Maintenance
                     ElapsedTime = TimeSpan.FromMilliseconds(msw.ElapsedMilliseconds)
                 };
 
-                Instances.Handler.HandleEvent(mRet);
+                try { Instances.Handler.HandleEvent(mRet); }
+                catch { }
+
 
                 return mRet;
             }
