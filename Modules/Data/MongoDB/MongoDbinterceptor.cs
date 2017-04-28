@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
+using MongoDB.Bson.Serialization.Options;
 using MongoDB.Driver;
 using Nyan.Core.Modules.Data;
 using Nyan.Core.Modules.Log;
@@ -46,8 +47,10 @@ namespace Nyan.Modules.Data.MongoDB
             // https://jira.mongodb.org/browse/CSHARP-965
             // http://stackoverflow.com/questions/19521626/mongodb-convention-packs
 
-            var pack = new ConventionPack {new IgnoreExtraElementsConvention(true)};
+            var pack = new ConventionPack { new IgnoreExtraElementsConvention(true) };
             ConventionRegistry.Register("ignore extra elements", pack, t => true);
+
+            ConventionRegistry.Register("DictionaryRepresentationConvention", new ConventionPack { new DictionaryRepresentationConvention(DictionaryRepresentation.ArrayOfArrays) }, _ => true);
 
             _database = _client.GetDatabase("storage");
             _statements = MicroEntity<T>.Statements;
@@ -83,7 +86,8 @@ namespace Nyan.Modules.Data.MongoDB
 
             var document = BsonSerializer.Deserialize<BsonDocument>(obj.ToJson());
 
-            if (probe == null) {
+            if (probe == null)
+            {
                 _collection.InsertOne(document);
             }
             else
@@ -139,7 +143,7 @@ namespace Nyan.Modules.Data.MongoDB
             SortDefinition<BsonDocument> sortFilter = new BsonDocument();
 
             var queryFilter = (parm.QueryTerm ?? "") != ""
-                ? new BsonDocument {{"$text", new BsonDocument {{"$search", parm.QueryTerm}}}}
+                ? new BsonDocument { { "$text", new BsonDocument { { "$search", parm.QueryTerm } } } }
                 : new BsonDocument();
 
             if (parm.OrderBy != null)
@@ -175,8 +179,8 @@ namespace Nyan.Modules.Data.MongoDB
 
             if (parm.PageSize != 0)
             {
-                var pos = (int) (parm.PageIndex*parm.PageSize);
-                col = col.Skip(pos).Limit((int) parm.PageSize);
+                var pos = (int)(parm.PageIndex * parm.PageSize);
+                col = col.Skip(pos).Limit((int)parm.PageSize);
             }
 
             var colRes = col.ToListAsync();
@@ -197,7 +201,8 @@ namespace Nyan.Modules.Data.MongoDB
         public void Initialize<T>() where T : MicroEntity<T>
         {
             // Check for the presence of text indexes '$**'
-            try {
+            try
+            {
                 _collection.Indexes.CreateOne(Builders<BsonDocument>.IndexKeys.Text("$**"));
             }
             catch (Exception e)
