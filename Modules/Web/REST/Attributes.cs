@@ -29,6 +29,12 @@ namespace Nyan.Modules.Web.REST
         public string RemovePermission { get; set; }
     }
 
+    [AttributeUsage(AttributeTargets.Class)]
+    public class EndpointBehaviorAttribute : Attribute
+    {
+        public Type SummaryType { get; set; }
+    }
+
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public class WebApiMicroEntityReferenceAttribute : Attribute
     {

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -24,8 +23,6 @@ namespace Nyan.Modules.Web.REST
         // ReSharper disable once InconsistentNaming
         public Type RESTHeaderClassType = null;
         // ReSharper disable once InconsistentNaming
-        public string RESTHeaderQuery = null;
-
         private Dictionary<string, WebApiMicroEntityReferenceAttribute> EntityReferenceAttribute
         {
             get
@@ -46,14 +43,10 @@ namespace Nyan.Modules.Web.REST
         }
 
         public EndpointSecurityAttribute ClassSecurity
-        {
-            get
-            {
-                return
-                    (EndpointSecurityAttribute)
-                    Attribute.GetCustomAttribute(GetType(), typeof(EndpointSecurityAttribute));
-            }
-        }
+            => (EndpointSecurityAttribute) Attribute.GetCustomAttribute(GetType(), typeof(EndpointSecurityAttribute));
+
+        public EndpointBehaviorAttribute ClassBehavior
+            => (EndpointBehaviorAttribute) Attribute.GetCustomAttribute(GetType(), typeof(EndpointBehaviorAttribute));
 
         public virtual string SearchResultMoniker { get { return MicroEntity<T>.Statements.Label; } }
 
@@ -64,8 +57,7 @@ namespace Nyan.Modules.Web.REST
         }
 
         public virtual void PostAction(RequestType pRequestType, AccessType pAccessType, string pidentifier = null,
-            T pObject = null, string pContext = null)
-        { }
+            T pObject = null, string pContext = null) {}
 
         private void EvaluateAuthorization(EndpointSecurityAttribute attr, RequestType requestType,
             AccessType accessType, string parm = null, T parm2 = null, string parm3 = null)
@@ -95,8 +87,7 @@ namespace Nyan.Modules.Web.REST
             }
 
             if (!ret)
-                try
-                {
+                try {
                     ret = AuthorizeAction(requestType, accessType, parm, ref parm2, parm3);
                 }
                 catch (Exception e) // User may throw a custom error, and that's fine: let's just log it.
@@ -119,8 +110,28 @@ namespace Nyan.Modules.Web.REST
         [HttpGet]
         public virtual object WebApiGetAll()
         {
+            try
+            {
+                var mRet = InternalGetAll();
+
+                var ret = RenderJsonResult(mRet.Content);
+
+                if (!mRet.HasExtendedProperties) return ret;
+                ret.Headers.Add("X-Total-Count", mRet.TotalCount.ToString());
+                ret.Headers.Add("X-Total-Pages", mRet.TotalPages.ToString());
+
+                return ret;
+            }
+            catch (Exception e) {
+                return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e);
+            }
+        }
+
+        private InternalGetAllPayload InternalGetAll()
+        {
+            var ret = new InternalGetAllPayload();
+
             var sw = new Stopwatch();
-            var addCount = false;
 
             try
             {
@@ -128,59 +139,44 @@ namespace Nyan.Modules.Web.REST
 
                 sw.Start();
 
-                object preRet;
                 var parametrizedGet = new MicroEntityParametrizedGet();
                 long tot = 0;
 
-                if (RESTHeaderQuery == null)
+                var mustUseParametrizedGet = false;
+
+                var queryString = Request.GetQueryNameValuePairs().ToDictionary(x => x.Key, x => x.Value);
+
+                if (queryString.ContainsKey("sort"))
                 {
-                    var mustUseParametrizedGet = false;
+                    mustUseParametrizedGet = true;
+                    parametrizedGet.OrderBy = queryString["sort"];
+                }
 
-                    var queryString = Request.GetQueryNameValuePairs().ToDictionary(x => x.Key, x => x.Value);
+                if (queryString.ContainsKey("page"))
+                {
+                    ret.HasExtendedProperties = true;
+                    mustUseParametrizedGet = true;
+                    parametrizedGet.PageIndex = Convert.ToInt32(queryString["page"]);
+                    parametrizedGet.PageSize = queryString.ContainsKey("limit")
+                        ? Convert.ToInt32(queryString["limit"])
+                        : 50;
+                }
 
-                    if (queryString.ContainsKey("sort"))
-                    {
-                        mustUseParametrizedGet = true;
-                        parametrizedGet.OrderBy = queryString["sort"];
-                    }
-
-                    if (queryString.ContainsKey("page"))
-                    {
-                        addCount = true;
-                        mustUseParametrizedGet = true;
-                        parametrizedGet.PageIndex = Convert.ToInt32(queryString["page"]);
-                        parametrizedGet.PageSize = queryString.ContainsKey("limit")
-                            ? Convert.ToInt32(queryString["limit"])
-                            : 50;
-                    }
-
-                    if (queryString.ContainsKey("q"))
-                    {
-                        parametrizedGet.QueryTerm = queryString["q"].ToLower();
-                        tot = MicroEntity<T>.Count(parametrizedGet);
-                    }
-                    else
-                    {
-                        tot = MicroEntity<T>.Count();
-                    }
-
-                    preRet = mustUseParametrizedGet ? MicroEntity<T>.Get(parametrizedGet) : MicroEntity<T>.Get();
+                if (queryString.ContainsKey("q"))
+                {
+                    parametrizedGet.QueryTerm = queryString["q"].ToLower();
+                    tot = MicroEntity<T>.Count(parametrizedGet);
                 }
                 else
                 {
-                    if (RESTHeaderClassType != null)
-                    {
-                        var m = typeof(MicroEntity<T>).GetMethodExt("Query", RESTHeaderClassType);
-                        var mg = m.MakeGenericMethod(RESTHeaderClassType);
-                        preRet = mg.Invoke(null, new object[] { RESTHeaderQuery });
-                    }
-                    else
-                    {
-                        preRet = MicroEntity<T>.Query<object>(RESTHeaderQuery);
-                    }
+                    tot = MicroEntity<T>.Count();
                 }
 
-                PostCollectionAction(RequestType.GetAll, AccessType.Read, ref preRet, ref tot);
+                var preRet = mustUseParametrizedGet ? MicroEntity<T>.Get(parametrizedGet) : MicroEntity<T>.Get();
+
+                var oPreRet = (object) preRet;
+
+                PostCollectionAction(RequestType.GetAll, AccessType.Read, ref oPreRet, ref tot);
                 PostAction(RequestType.GetAll, AccessType.Read);
 
                 sw.Stop();
@@ -189,13 +185,12 @@ namespace Nyan.Modules.Web.REST
 
                 Current.Log.Add("GET " + typeof(T).FullName + " OK (" + sw.ElapsedMilliseconds + " ms)");
 
-                var ret = RenderJsonResult(preRet);
+                ret.Content = preRet;
 
-                if (addCount)
+                if (ret.HasExtendedProperties)
                 {
-                    ret.Headers.Add("X-Total-Count", tot.ToString());
-                    ret.Headers.Add("X-Total-Pages",
-                        (Math.Truncate((double)tot / parametrizedGet.PageSize) + 1).ToString(CultureInfo.InvariantCulture));
+                    ret.TotalCount = tot;
+                    ret.TotalPages = Convert.ToInt32(Math.Truncate((double) tot/parametrizedGet.PageSize) + 1);
                 }
 
                 return ret;
@@ -205,11 +200,61 @@ namespace Nyan.Modules.Web.REST
                 sw.Stop();
                 Current.Log.Add("GET " + typeof(T).FullName + " ERR (" + sw.ElapsedMilliseconds + " ms): " + e.Message,
                     e);
-                return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e);
+                throw e;
             }
         }
 
-        public virtual void PostCollectionAction(RequestType pRequestType, AccessType pAccessType, ref object collectionList, ref long totalRecords, string pidentifier = null, T pObject = null, string pContext = null) { }
+        public virtual void PostCollectionAction(RequestType pRequestType, AccessType pAccessType,
+            ref object collectionList, ref long totalRecords, string pidentifier = null, T pObject = null,
+            string pContext = null) {}
+
+        [Route("summary")]
+        [HttpGet]
+        public virtual HttpResponseMessage WebApiGetSummary()
+        {
+            var _step = "Initializing";
+            try
+            {
+                var mRet = InternalGetAll();
+                _step = "Preparing";
+                object preRet = null;
+
+                if (ClassBehavior != null)
+                    if (ClassBehavior.SummaryType != null)
+                    {
+                        _step = "Creating List type";
+                        var list = typeof(List<>).MakeGenericType(ClassBehavior.SummaryType);
+                        _step = "Preparing transform";
+                        var method = typeof(Serialization).GetMethod("FromJson");
+                        _step = "Setting up Generic method";
+                        var generic = method.MakeGenericMethod(list);
+                        _step = "Calling generic method";
+                        preRet = generic.Invoke(null, new object[] {mRet.Content.ToJson()});
+                    }
+
+                if (preRet == null)
+                {
+                    _step = "Copying results over";
+                    preRet = mRet.Content;
+                }
+
+                _step = "Preparing JSON payload";
+                var ret = RenderJsonResult(preRet);
+
+                if (!mRet.HasExtendedProperties) return ret;
+
+                _step = "Adding extra data";
+                ret.Headers.Add("X-Total-Count", mRet.TotalCount.ToString());
+                ret.Headers.Add("X-Total-Pages", mRet.TotalPages.ToString());
+                return ret;
+            }
+            catch (Exception e)
+            {
+                Current.Log.Add(e, _step);
+
+                throw e;
+            }
+        }
 
         [Route("new")]
         [HttpGet]
@@ -223,7 +268,7 @@ namespace Nyan.Modules.Web.REST
 
                 EvaluateAuthorization(ClassSecurity, RequestType.New, AccessType.Read, null);
 
-                var preRet = (T)Activator.CreateInstance(typeof(T), new object[] { });
+                var preRet = (T) Activator.CreateInstance(typeof(T), new object[] {});
                 sw.Stop();
                 Current.Log.Add("NEW " + typeof(T).FullName + " OK (" + sw.ElapsedMilliseconds + " ms)");
 
@@ -309,7 +354,7 @@ namespace Nyan.Modules.Web.REST
                 if (set.Count == 0)
                 {
                     if (idset == "") return res;
-                    set = new List<string> { idset };
+                    set = new List<string> {idset};
                 }
 
                 sw.Start();
@@ -550,8 +595,7 @@ namespace Nyan.Modules.Web.REST
 
                     ret = Request.CreateResponse(HttpStatusCode.OK, referenceCollection);
                 }
-                catch (Exception ex)
-                {
+                catch (Exception ex) {
                     ret = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, ex);
                 }
             return ret;
@@ -575,7 +619,7 @@ namespace Nyan.Modules.Web.REST
 
         public HttpResponseMessage RenderJsonResult(object contents)
         {
-            var ret = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(contents.ToJson()) };
+            var ret = new HttpResponseMessage(HttpStatusCode.OK) {Content = new StringContent(contents.ToJson())};
             ret.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
             return ret;
         }
@@ -585,6 +629,14 @@ namespace Nyan.Modules.Web.REST
             var httpError = new HttpError(message);
             var errorResponse = Request.CreateErrorResponse(eType, httpError);
             throw new HttpResponseException(errorResponse);
+        }
+
+        internal class InternalGetAllPayload
+        {
+            public bool HasExtendedProperties;
+            public IEnumerable<T> Content { get; set; }
+            public long TotalCount { get; set; }
+            public long TotalPages { get; set; }
         }
     }
 }
