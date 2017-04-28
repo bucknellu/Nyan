@@ -60,6 +60,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DictionaryRepresentationConvention.cs" />
     <Compile Include="MongoDbAdapter.cs" />
     <Compile Include="MongoDbinterceptor.cs" />
     <Compile Include="MongoDbDynamicParameters.cs" />
