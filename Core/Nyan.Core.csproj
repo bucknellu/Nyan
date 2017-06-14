@@ -62,6 +62,12 @@
     <Compile Include="Modules\Data\MicroEntityEnvironmentMappingAttribute.cs" />
     <Compile Include="Modules\Data\MicroEntityParametrizedGet.cs" />
     <Compile Include="Modules\Data\Model\LocalStorageModel.cs" />
+    <Compile Include="Modules\Data\Pipeline\IAfterActionPipeline.cs" />
+    <Compile Include="Modules\Data\Pipeline\IBeforeActionPipeline.cs" />
+    <Compile Include="Modules\Data\Pipeline\IPipelinePrimitive.cs" />
+    <Compile Include="Modules\Data\Pipeline\Moderation.cs" />
+    <Compile Include="Modules\Data\Pipeline\PipelineAttribute.cs" />
+    <Compile Include="Modules\Data\Pipeline\PipelinePrimitive.cs" />
     <Compile Include="Process\Operations.cs" />
     <Compile Include="Startup\IServiceDefinition.cs" />
     <Compile Include="Startup\ServiceLauncher.cs">
