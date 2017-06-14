@@ -20,6 +20,7 @@ using Nyan.Core.Modules.Data.Connection;
 using Nyan.Core.Modules.Data.Maintenance;
 using Nyan.Core.Modules.Data.Operators;
 using Nyan.Core.Modules.Data.Operators.AnsiSql;
+using Nyan.Core.Modules.Data.Pipeline;
 using Nyan.Core.Modules.Log;
 using Nyan.Core.Settings;
 
@@ -323,6 +324,40 @@ break; */
             return oOriginal.ToJson().FromJson<T>();
         }
 
+        private static void ProcAfterPipeline(Support.EAction action, T current, T  source)
+        {
+            if (Statements.AfterActionPipeline.Count <= 0) return;
+
+            foreach (var afterActionPipeline in Statements.AfterActionPipeline)
+                try
+                {
+                    afterActionPipeline.Process(action, current, source);
+                }
+                catch (Exception e)
+                {
+                    Current.Log.Add(e);
+                }
+        }
+
+        private static T ProcBeforePipeline(Support.EAction action, T  current, T  source)
+        {
+            if (current == null) return null;
+            if (Statements.BeforeActionPipeline.Count <= 0) return current;
+
+            foreach (var beforeActionPipeline in Statements.BeforeActionPipeline)
+                try
+                {
+                    current = (T)beforeActionPipeline.Process(action, current, source);
+                }
+                catch (Exception e)
+                {
+                    Current.Log.Add(e);
+                }
+
+            return current;
+        }
+
+
         /// <summary>
         ///     Get all entity entries.
         /// </summary>
@@ -354,13 +389,10 @@ break; */
         {
             if (Statements.Interceptor != null) { return Statements.Interceptor.RecordCount<T>(qTerm); }
 
-            else
-            {
-                var bag = GetNewDynamicParameterBag();
-                bag.Add("qParm", qTerm.QueryTerm);
-                var term = Statements.SqlRowCount + " WHERE " + Statements.SqlSimpleQueryTerm;
-                return QuerySingleValue<long>(term, bag);
-            }
+            var bag = GetNewDynamicParameterBag();
+            bag.Add("qParm", qTerm.QueryTerm);
+            var term = Statements.SqlRowCount + " WHERE " + Statements.SqlSimpleQueryTerm;
+            return QuerySingleValue<long>(term, bag);
         }
 
 
@@ -379,7 +411,10 @@ break; */
             }
             else
             {
-                if (parm.QueryTerm == null) { src = Statements.SqlGetAll; }
+                if (parm.QueryTerm == null)
+                {
+                    src = Statements.SqlGetAll;
+                }
                 else
                 {
                     src = string.Format(Statements.SqlAllFieldsQueryTemplate, Statements.SqlSimpleQueryTerm);
@@ -412,8 +447,13 @@ break; */
         {
             if (TableData.IsReadOnly) throw new ReadOnlyException("This entity is set as read-only.");
 
+            ProcBeforePipeline(Support.EAction.DeleteAll, null, null);
+
             if (Statements.Interceptor != null) Statements.Interceptor.RemoveAll<T>();
             else Execute(Statements.SqlTruncateTable);
+
+            ProcAfterPipeline(Support.EAction.DeleteAll, null, null);
+
 
             if (!TableData.UseCaching) return;
             if (Current.Cache.OperationalStatus != EOperationalStatus.Operational) return;
@@ -457,6 +497,8 @@ break; */
 
         public static IEnumerable<T> ReferenceQuery(object query)
         {
+            if (Statements.Interceptor != null) return Statements.Interceptor.ReferenceQueryByField<T>(query);
+
             var b = Statements.Adapter.Parameters<T>(query);
             var statement = string.Format(Statements.SqlAllFieldsQueryTemplate, b.SqlWhereClause);
             var set = Query(statement, b);
@@ -470,6 +512,8 @@ break; */
 
         public static IEnumerable<T> ReferenceQueryByField(string field, string id)
         {
+            if (Statements.Interceptor != null) return Statements.Interceptor.ReferenceQueryByField<T>(field, id);
+
             var b = GetNewDynamicParameterBag();
             b.Add(field, id);
 
@@ -550,17 +594,20 @@ break; */
         {
             if (TableData.IsReadOnly) throw new ReadOnlyException("This entity is set as read-only.");
 
+            var rec = Get(GetEntityIdentifier());
+
+            rec = ProcBeforePipeline(Support.EAction.Remove, rec, rec);
+
             if (Statements.Interceptor != null) Statements.Interceptor.Remove(this);
             else Execute(Statements.SqlRemoveSingleParametrized, new { id = GetEntityIdentifier() });
 
             var cKey = typeof(T).FullName + ":" + GetEntityIdentifier();
             Current.Cache.Remove(cKey);
 
-            //if (Cache.Contains(cKey))
-            //    Cache.Remove(cKey);
-
             _isDeleted = true;
             OnRemove();
+
+            ProcAfterPipeline(Support.EAction.Remove, rec, rec);
         }
 
         public string Save()
@@ -570,18 +617,18 @@ break; */
             if (_isDeleted) return null;
             var ret = "";
 
+            var isNew = IsNew();
+
+            var rec = this;
+            rec = ProcBeforePipeline(isNew ? Support.EAction.Insert : Support.EAction.Update, (T)rec, null);
+
             if (Statements.Interceptor != null)
             {
-                ret = Statements.Interceptor.Save(this);
+                ret = Statements.Interceptor.Save(rec);
             }
             else
             {
-                DynamicParametersPrimitive obj;
-
-                var isNew = IsNew();
-
-                if (!isNew) obj = Statements.Adapter.Parameters<T>(this);
-                else obj = Statements.Adapter.InsertableParameters<T>(this);
+                var obj = !isNew ? Statements.Adapter.Parameters<T>(rec) : Statements.Adapter.InsertableParameters<T>(rec);
 
                 if (Statements.IdColumn == null) Execute(Statements.SqlInsertSingle, obj);
                 else if (isNew) ret = SaveAndGetId(obj);
@@ -598,13 +645,17 @@ break; */
                 var types = Management.GetGenericsByBaseClass(typeof(T));
                 foreach (var t in types)
                 {
-                    var _key = CacheKey(t, ret);
-                    //Current.Log.Add("FLUSHCACHE " + _key);
-                    Current.Cache.Remove(_key);
+                    var key = CacheKey(t, ret);
+                    Current.Cache.Remove(key);
                 }
             }
 
             OnSave(ret);
+
+            if (Statements.AfterActionPipeline.Count <= 0) return ret;
+
+            rec = Get(ret);
+            ProcAfterPipeline(isNew ? Support.EAction.Insert : Support.EAction.Update, (T)rec, null);
 
             return ret;
         }
@@ -721,10 +772,7 @@ break; */
 
         public static List<T> Query(string sqlStatement, object rawObject = null)
         {
-            if (Statements.Interceptor != null)
-            {
-                return Statements.Interceptor.Query<T>(sqlStatement, rawObject);
-            }
+            if (Statements.Interceptor != null) return Statements.Interceptor.Query<T>(sqlStatement, rawObject);
 
             var primitive = rawObject as DynamicParametersPrimitive;
             var obj = primitive ?? Statements.Adapter.Parameters<T>(rawObject);
@@ -998,6 +1046,23 @@ break; */
                 try
                 {
                     ClassRegistration.TryAdd(typeof(T), new MicroEntityCompiledStatements());
+
+                    var ps = typeof(T).GetCustomAttributes(false).OfType<PipelineAttribute>();
+
+                    Statements.BeforeActionPipeline =
+                        (from pipelineAttribute in ps
+                         from type in pipelineAttribute.Types
+                         where typeof(IBeforeActionPipeline).IsAssignableFrom(type)
+                         select (IBeforeActionPipeline)type.GetConstructor(new Type[] { }).Invoke(new object[] { }))
+                            .ToList();
+
+                    Statements.AfterActionPipeline =
+                        (from pipelineAttribute in ps
+                         from type in pipelineAttribute.Types
+                         where typeof(IAfterActionPipeline).IsAssignableFrom(type)
+                         select (IAfterActionPipeline)type.GetConstructor(new Type[] { }).Invoke(new object[] { })).ToList
+                            ();
+
                     Statements.State.Status = MicroEntityCompiledStatements.EStatus.Initializing;
                     Statements.State.Step = "Starting TableData/Statements setup";
 
@@ -1064,7 +1129,6 @@ break; */
                     //First, probe for a valid Connection bundle
                     if (refBundle != null)
                     {
-
                         Statements.State.Step = "Setting up ConnectionCypherKeys";
 
                         var refType = (ConnectionBundlePrimitive)Activator.CreateInstance(refBundle);
@@ -1090,7 +1154,8 @@ break; */
                     //Then pick Credential sets
 
                     Statements.State.Step = "determining CredentialSets to use";
-                    Statements.CredentialSet = Factory.GetCredentialSetPerConnectionBundle(Statements.Bundle, TableData.CredentialSetType);
+                    Statements.CredentialSet = Factory.GetCredentialSetPerConnectionBundle(Statements.Bundle,
+                        TableData.CredentialSetType);
                     Statements.CredentialCypherKeys = Statements.CredentialSet.CredentialCypherKeys;
 
                     var identifierColumnName = TableData.IdentifierColumnName;
@@ -1099,7 +1164,6 @@ break; */
                     {
                         var props =
                             probeType.GetProperties()
-
                                 .Where(prop => Attribute.IsDefined(prop, typeof(KeyAttribute)))
                                 .ToList();
 
@@ -1149,7 +1213,7 @@ break; */
 
                     if (Statements.Interceptor != null)
                     {
-                        Statements.Interceptor.Connect<T>(Statements.ConnectionString);
+                        Statements.Interceptor.Connect<T>(Statements.ConnectionString, Statements.Bundle);
                     }
                     else
                     {
