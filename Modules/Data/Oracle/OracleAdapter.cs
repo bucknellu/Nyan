@@ -376,7 +376,7 @@ namespace Nyan.Modules.Data.Oracle
 
                 var colSql = "SELECT COLUMN_NAME, DATA_TYPE FROM user_tab_cols WHERE table_name = '" +
                              refs.SchemaElements["Table"].Value +
-                             "'AND DATA_TYPE != 'RAW'";
+                             "'AND DATA_TYPE != 'RAW' AND COLUMN_ID IS NOT NULL";
                 List<IDictionary<string, object>> cols = refType.QueryObject(colSql);
 
                 var canBuffer = cols.All(o => (string)o["DATA_TYPE"] != "CLOB");
