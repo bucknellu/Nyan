@@ -33,9 +33,12 @@ namespace Nyan.Modules.Storage.FileSystem
 
         public FileStream Get(string key)
         {
-            Current.Log.Add("Stream GET " + FullKeyPath(key));
-            return new FileStream(FullKeyPath(key), FileMode.Open);
+            Current.Log.Add("Stream GET " + GetFullPath(key));
+            return new FileStream(GetFullPath(key), FileMode.Open);
         }
+
+        public string GetFullPath(string key) { return Configuration.StoragePath + key + Suffix; }
+        public string GetBasePath() { return Configuration.StoragePath; }
 
         public IEnumerable<string> GetKeys()
         {
@@ -47,12 +50,12 @@ namespace Nyan.Modules.Storage.FileSystem
             return files;
         }
 
-        public bool Exists(string key) { return File.Exists(FullKeyPath(key)); }
+        public bool Exists(string key) { return File.Exists(GetFullPath(key)); }
 
         public void Remove(string key)
         {
-            Current.Log.Add("Stream DEL " + FullKeyPath(key));
-            File.Delete(FullKeyPath(key));
+            Current.Log.Add("Stream DEL " + GetFullPath(key));
+            File.Delete(GetFullPath(key));
         }
 
         public void RemoveAll()
@@ -84,15 +87,14 @@ namespace Nyan.Modules.Storage.FileSystem
             source.CopyTo(ms);
             var buffer = ms.ToArray();
 
-            File.WriteAllBytes(FullKeyPath(fileKey), buffer);
+            File.WriteAllBytes(GetFullPath(fileKey), buffer);
 
-            Current.Log.Add("Stream PUT " + buffer.Length + "b @ " +FullKeyPath(fileKey));
+            Current.Log.Add("Stream PUT " + buffer.Length + "b @ " + GetFullPath(fileKey));
 
             ms.Dispose();
 
             return fileKey;
         }
 
-        public string FullKeyPath(string key) { return Configuration.StoragePath + key + Suffix; }
     }
 }
