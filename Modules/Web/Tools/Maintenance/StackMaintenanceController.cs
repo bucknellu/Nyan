@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Web.Http;
 using Nyan.Core.Extensions;
+using Nyan.Core.Modules.Log;
 using Nyan.Core.Settings;
 
 namespace Nyan.Modules.Web.Tools.Maintenance
@@ -32,6 +33,9 @@ namespace Nyan.Modules.Web.Tools.Maintenance
 
                 foreach (var maintenanceTask in instances)
                 {
+
+                    Current.Log.Add("DoMaintenance: START " + maintenanceTask.GetType().FullName, Message.EContentType.Maintenance);
+
                     var sw = new Stopwatch();
                     sw.Start();
 

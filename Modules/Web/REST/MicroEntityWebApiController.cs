@@ -210,7 +210,7 @@ namespace Nyan.Modules.Web.REST
 
         [Route("summary")]
         [HttpGet]
-        public virtual HttpResponseMessage WebApiGetSummary()
+        public virtual object WebApiGetSummary()
         {
             var _step = "Initializing";
             try

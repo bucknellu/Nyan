@@ -65,14 +65,11 @@ namespace Nyan.Core.Assembly
             //2nd cycle: Directories/assemblies referenced by system
 
             //    First by process-specific variables...
-            LoadAssembliesFromDirectory(Environment.GetEnvironmentVariable("nyan_ac_net40",
-                EnvironmentVariableTarget.Process));
+            LoadAssembliesFromDirectory(Environment.GetEnvironmentVariable("nyan_ac_net40", EnvironmentVariableTarget.Process));
             //    then by user-specific variables...
-            LoadAssembliesFromDirectory(Environment.GetEnvironmentVariable("nyan_ac_net40",
-                EnvironmentVariableTarget.User));
+            LoadAssembliesFromDirectory(Environment.GetEnvironmentVariable("nyan_ac_net40", EnvironmentVariableTarget.User));
             //    and finally system-wide variables.
-            LoadAssembliesFromDirectory(Environment.GetEnvironmentVariable("nyan_ac_net40",
-                EnvironmentVariableTarget.Machine));
+            LoadAssembliesFromDirectory(Environment.GetEnvironmentVariable("nyan_ac_net40", EnvironmentVariableTarget.Machine));
 
             //Now try to load:
 
@@ -89,7 +86,8 @@ namespace Nyan.Core.Assembly
 
                     errCount = 0;
 
-                    try {
+                    try
+                    {
                         item.Value.GetTypes();
                     }
                     catch (Exception)
@@ -110,8 +108,7 @@ namespace Nyan.Core.Assembly
 
         private static System.Reflection.Assembly GetAssemblyByName(string name)
         {
-            return AppDomain.CurrentDomain.GetAssemblies().
-                SingleOrDefault(assembly => assembly.GetName().Name == name);
+            return AppDomain.CurrentDomain.GetAssemblies().SingleOrDefault(assembly => assembly.GetName().Name == name);
         }
 
         private static System.Reflection.Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
@@ -249,17 +246,18 @@ namespace Nyan.Core.Assembly
             Modules.Log.System.Add("[" + e.FullPath + "]: Change detected", Message.EContentType.ShutdownSequence);
 
             //For Web apps
-            try {
+            try
+            {
                 HttpRuntime.UnloadAppDomain();
             }
-            catch {}
+            catch { }
 
             //For WinForm apps
             try
             {
                 //Application.Restart(); Environment.Exit(0);
             }
-            catch {}
+            catch { }
         }
 
         private static void LoadAssemblyFromPath(string path)
@@ -335,12 +333,13 @@ namespace Nyan.Core.Assembly
                             {
                                 foreach (var gta in st.BaseType.GenericTypeArguments) if (gta == refType) classCol.Add(st);
                             }
-                            catch {}
+                            catch { }
                         }
 
                     GetGenericsByBaseClassCache.Add(refType, classCol);
                 }
-                catch (Exception e) {
+                catch (Exception e)
+                {
                     Current.Log.Add(e);
                 }
 
@@ -374,7 +373,8 @@ namespace Nyan.Core.Assembly
 
                     Type[] preTypes;
 
-                    try {
+                    try
+                    {
                         preTypes = item.GetTypes();
                     }
                     catch (Exception e)
@@ -411,7 +411,7 @@ namespace Nyan.Core.Assembly
 
                     var attrs = item.GetCustomAttributes(typeof(PriorityAttribute), true);
 
-                    if (attrs.Length > 0) level = ((PriorityAttribute) attrs[0]).Level;
+                    if (attrs.Length > 0) level = ((PriorityAttribute)attrs[0]).Level;
 
                     priorityList.Add(new KeyValuePair<int, Type>(level, item));
                 }

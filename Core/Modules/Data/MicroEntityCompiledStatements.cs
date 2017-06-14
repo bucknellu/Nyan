@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Nyan.Core.Modules.Data.Adapter;
 using Nyan.Core.Modules.Data.Connection;
+using Nyan.Core.Modules.Data.Pipeline;
 
 namespace Nyan.Core.Modules.Data
 {
@@ -27,7 +29,7 @@ namespace Nyan.Core.Modules.Data
         }
 
         protected internal DataAdapterPrimitive Adapter;
-        protected internal ConnectionBundlePrimitive Bundle;
+        public ConnectionBundlePrimitive Bundle;
         protected internal CredentialSetPrimitive CredentialSet;
 
         public IInterceptor Interceptor;
@@ -46,6 +48,9 @@ namespace Nyan.Core.Modules.Data
         public Dictionary<string, long> PropertyLengthMap;
         public Dictionary<string, bool> PropertySerializationMap;
         public Dictionary<string, KeyValuePair<string, string>> SchemaElements;
+
+        public List<IBeforeActionPipeline> BeforeActionPipeline = new List<IBeforeActionPipeline>();
+        public List<IAfterActionPipeline> AfterActionPipeline = new List<IAfterActionPipeline>();
 
         /// <summary>
         ///     The SQL query template for queries returning all fields. 
