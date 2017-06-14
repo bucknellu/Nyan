@@ -22,10 +22,10 @@ namespace Nyan.Modules.Web.REST
             // Force load of all Controllers:
             if (Current.WebApiCORSDomains != null)
             {
-
                 var items = Current.WebApiCORSDomains.Split(',');
                 var corsAttr = new EnableCorsAttribute(Current.WebApiCORSDomains, "*", "*") {SupportsCredentials = true};
-                Current.Log.Add("WebApi REST       : {0} CORS domains allowed.".format(items.Length), Message.EContentType.Info);
+                Current.Log.Add("WebApi REST       : {0} CORS domains allowed.".format(items.Length),
+                    Message.EContentType.Info);
 
                 config.EnableCors(corsAttr);
             }
@@ -35,6 +35,7 @@ namespace Nyan.Modules.Web.REST
             config.SuppressHostPrincipal(); //Isolates WebApi Auth form Host (IIS) Auth
 
             config.Filters.Add(new NyanAuthenticationFilter());
+            config.Filters.Add(new HandleApiExceptionAttribute());
 
             config.MapHttpAttributeRoutes(new CustomDirectRouteProvider());
 
