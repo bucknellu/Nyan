@@ -141,6 +141,11 @@ namespace Nyan.Core.Extensions
 
         public static ShortGuid ToShortGuid(this Guid oRef) { return new ShortGuid(oRef); }
 
+        public static string FancyString(this Exception source)
+        {
+            return new StackTrace(source, true).FancyString();
+        }
+
         public static string FancyString(this StackTrace source)
         {
             var ret = "";
