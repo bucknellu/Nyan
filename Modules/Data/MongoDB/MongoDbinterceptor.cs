@@ -7,7 +7,9 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.Options;
 using MongoDB.Driver;
+using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Data;
+using Nyan.Core.Modules.Data.Connection;
 using Nyan.Core.Modules.Log;
 using Nyan.Core.Settings;
 
@@ -22,6 +24,9 @@ namespace Nyan.Modules.Data.MongoDB
         private string _idProp;
         private string _sourceCollection;
         private MicroEntityCompiledStatements _statements;
+        private MicroEntitySetupAttribute _tabledata;
+        private Type _refType;
+        private object _instance;
 
         public MongoDbinterceptor(MongoDbAdapter mongoDbAdapter) { AdapterInstance = mongoDbAdapter; }
 
@@ -40,29 +45,63 @@ namespace Nyan.Modules.Data.MongoDB
             }
         }
 
-        public void Connect<T>(string statementsConnectionString) where T : MicroEntity<T>
+        public void Connect<T>(string statementsConnectionString, ConnectionBundlePrimitive bundle)
+            where T : MicroEntity<T>
         {
+            _refType = typeof(T);
+
             _client = new MongoClient(statementsConnectionString);
+            var dbname = MongoUrl.Create(statementsConnectionString).DatabaseName;
+
+            try
+            {
+                dynamic resolverRef = bundle;
+                dbname = resolverRef.GetDatabaseName();
+            }
+            catch (Exception e)
+            {
+                Current.Log.Add("MongoDbinterceptor: Failed to resolve database - " + e.Message,
+                    Message.EContentType.Warning);
+                dbname = "storage";
+            }
 
             // https://jira.mongodb.org/browse/CSHARP-965
             // http://stackoverflow.com/questions/19521626/mongodb-convention-packs
 
             var pack = new ConventionPack { new IgnoreExtraElementsConvention(true) };
             ConventionRegistry.Register("ignore extra elements", pack, t => true);
+            ConventionRegistry.Register("DictionaryRepresentationConvention",
+                new ConventionPack { new DictionaryRepresentationConvention(DictionaryRepresentation.ArrayOfArrays) },
+                _ => true);
+            ConventionRegistry.Register("EnumStringConvention",
+                new ConventionPack { new EnumRepresentationConvention(BsonType.String) }, t => true);
 
-            ConventionRegistry.Register("DictionaryRepresentationConvention", new ConventionPack { new DictionaryRepresentationConvention(DictionaryRepresentation.ArrayOfArrays) }, _ => true);
-
-            _database = _client.GetDatabase("storage");
+            _database = _client.GetDatabase(dbname);
             _statements = MicroEntity<T>.Statements;
+            _tabledata = MicroEntity<T>.TableData;
 
-            if (MicroEntity<T>.TableData.TableName == "") _sourceCollection = _statements.EnvironmentCode + "." + typeof(T).FullName;
+            SetSourceSollection();
+        }
 
-            _sourceCollection = _statements.EnvironmentCode + "."
-                                + (string.IsNullOrEmpty(MicroEntity<T>.TableData.TableName)
-                                    ? typeof(T).FullName
-                                    : MicroEntity<T>.TableData.TableName);
+        private void SetSourceSollection()
+        {
+            string s;
 
-            _collection = _database.GetCollection<BsonDocument>(_sourceCollection);
+            if (typeof(IMongoDbCollectionResolver).IsAssignableFrom(_refType))
+            {
+                _instance = _refType.GetConstructor(new Type[] {}).Invoke(new object[] {});
+                s = ((IMongoDbCollectionResolver) _instance).GetCollectionName();
+
+            }
+            else
+            {
+                s = (string.IsNullOrEmpty(_tabledata.TableName)
+                    ? _refType.FullName
+                    : _tabledata.TableName);
+            }
+
+            _sourceCollection = _statements.EnvironmentCode + "." + s;
+            SetCollection();
         }
 
         public T Get<T>(string locator) where T : MicroEntity<T>
@@ -125,7 +164,7 @@ namespace Nyan.Modules.Data.MongoDB
 
         public List<T> Query<T>(string sqlStatement, object rawObject) where T : MicroEntity<T>
         {
-            var rawQuery = sqlStatement ?? rawObject.ToJson();
+            var rawQuery = sqlStatement ?? BsonExtensionMethods.ToJson(rawObject);
 
             Current.Log.Add(typeof(T).FullName + ": QUERY " + rawQuery);
 
@@ -198,6 +237,48 @@ namespace Nyan.Modules.Data.MongoDB
             return Get<T>(qTerm).Count;
         }
 
+        public List<T> ReferenceQueryByField<T>(string field, string id) where T : MicroEntity<T>
+        {
+            var q = $"{{'{field}': '{id}'}}";
+            return Query<T>(q, null);
+        }
+
+        public List<T> ReferenceQueryByField<T>(object query) where T : MicroEntity<T>
+        {
+            var q = query
+                .ToDictionary()
+                .ToJson();
+
+            return Query<T>(q, null);
+        }
+
+        public List<TU> Query<TU>(string statement, object rawObject, InterceptorQuery.EType ptype)
+        {
+            List<TU> ret = null;
+
+            switch (ptype)
+            {
+                case InterceptorQuery.EType.StaticArray:
+
+                    switch (statement)
+                    {
+                        case "distinct":
+
+                            var parm = rawObject.ToString();
+
+                            ret = _collection.Distinct<TU>(parm, new BsonDocument()).ToList();
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(ptype), ptype, null);
+            }
+
+            return ret;
+        }
+
         public void Initialize<T>() where T : MicroEntity<T>
         {
             // Check for the presence of text indexes '$**'
@@ -229,6 +310,15 @@ namespace Nyan.Modules.Data.MongoDB
                 Current.Log.Add(e);
                 throw;
             }
+        }
+
+        private void SetCollection() { _collection = _database.GetCollection<BsonDocument>(_sourceCollection); }
+
+        public void AddSourceCollectionSuffix(string suffix)
+        {
+            _sourceCollection += "." + suffix;
+
+            SetCollection();
         }
     }
 }
