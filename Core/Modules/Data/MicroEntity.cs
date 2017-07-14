@@ -324,7 +324,7 @@ break; */
             return oOriginal.ToJson().FromJson<T>();
         }
 
-        private static void ProcAfterPipeline(Support.EAction action, T current, T  source)
+        private static void ProcAfterPipeline(string action, T current, T source)
         {
             if (Statements.AfterActionPipeline.Count <= 0) return;
 
@@ -339,7 +339,7 @@ break; */
                 }
         }
 
-        private static T ProcBeforePipeline(Support.EAction action, T  current, T  source)
+        private static T ProcBeforePipeline(string action, T current, T source)
         {
             if (current == null) return null;
             if (Statements.BeforeActionPipeline.Count <= 0) return current;
@@ -347,7 +347,8 @@ break; */
             foreach (var beforeActionPipeline in Statements.BeforeActionPipeline)
                 try
                 {
-                    current = (T)beforeActionPipeline.Process(action, current, source);
+                    if (current != null)
+                        current = beforeActionPipeline.Process(action, current, source);
                 }
                 catch (Exception e)
                 {
@@ -356,7 +357,6 @@ break; */
 
             return current;
         }
-
 
         /// <summary>
         ///     Get all entity entries.
@@ -441,7 +441,12 @@ break; */
             return ret;
         }
 
-        public static void Remove(long identifier) { Remove(identifier.ToString(CultureInfo.InvariantCulture)); }
+        public static bool Remove(long identifier) { return Remove(identifier.ToString(CultureInfo.InvariantCulture)); }
+
+        public static void Remove(List<T> objs)
+        {
+            foreach (var obj in objs) { obj.Remove(); }
+        }
 
         public static void RemoveAll()
         {
@@ -460,16 +465,25 @@ break; */
             Current.Cache.RemoveAll();
         }
 
-        public static void Remove(string identifier)
+        public static bool Remove(string identifier)
         {
             if (TableData.IsReadOnly) throw new ReadOnlyException("This entity is set as read-only.");
+
+            var rec = Get(identifier);
+            rec = ProcBeforePipeline(Support.EAction.Remove, rec, rec);
+
+            if (rec == null) return false;
 
             if (Statements.Interceptor != null) Statements.Interceptor.Remove<T>(identifier);
             else Execute(Statements.SqlRemoveSingleParametrized, new { Id = identifier });
 
-            if (!TableData.UseCaching) return;
+            ProcAfterPipeline(Support.EAction.Remove, rec, rec);
+
+            if (!TableData.UseCaching) return true;
 
             Current.Cache.Remove(CacheKey(identifier));
+
+            return true;
         }
 
         public static void Insert(List<T> objs)
@@ -564,11 +578,16 @@ break; */
 
         public bool IsNew()
         {
+            T ignore = null;
+            return IsNew(ref ignore);
+        }
+        public bool IsNew(ref T oProbe)
+        {
             var probe = GetEntityIdentifier();
 
             if (!TableData.IsInsertableIdentifier) if ((probe == "") || (probe == "0")) return true;
 
-            var oProbe = Get(probe);
+            oProbe = Get(probe);
             return oProbe == null;
         }
 
@@ -590,13 +609,15 @@ break; */
             refProp.SetValue(oRef, Convert.ChangeType(value, refProp.PropertyType));
         }
 
-        public void Remove()
+        public bool Remove()
         {
             if (TableData.IsReadOnly) throw new ReadOnlyException("This entity is set as read-only.");
 
             var rec = Get(GetEntityIdentifier());
 
             rec = ProcBeforePipeline(Support.EAction.Remove, rec, rec);
+
+            if (rec == null) return false;
 
             if (Statements.Interceptor != null) Statements.Interceptor.Remove(this);
             else Execute(Statements.SqlRemoveSingleParametrized, new { id = GetEntityIdentifier() });
@@ -608,6 +629,8 @@ break; */
             OnRemove();
 
             ProcAfterPipeline(Support.EAction.Remove, rec, rec);
+
+            return true;
         }
 
         public string Save()
@@ -617,10 +640,13 @@ break; */
             if (_isDeleted) return null;
             var ret = "";
 
-            var isNew = IsNew();
+            T oldRec = null;
+            var isNew = IsNew(ref oldRec);
 
             var rec = this;
-            rec = ProcBeforePipeline(isNew ? Support.EAction.Insert : Support.EAction.Update, (T)rec, null);
+            rec = ProcBeforePipeline(isNew ? Support.EAction.Insert : Support.EAction.Update, (T)rec, oldRec);
+
+            if (rec == null) return null;
 
             if (Statements.Interceptor != null)
             {
@@ -628,7 +654,9 @@ break; */
             }
             else
             {
-                var obj = !isNew ? Statements.Adapter.Parameters<T>(rec) : Statements.Adapter.InsertableParameters<T>(rec);
+                var obj = !isNew
+                    ? Statements.Adapter.Parameters<T>(rec)
+                    : Statements.Adapter.InsertableParameters<T>(rec);
 
                 if (Statements.IdColumn == null) Execute(Statements.SqlInsertSingle, obj);
                 else if (isNew) ret = SaveAndGetId(obj);
@@ -1045,9 +1073,16 @@ break; */
             {
                 try
                 {
+
+                    LogLocal($"Initializing {typeof(T).FullName}", Message.EContentType.StartupSequence);
+
                     ClassRegistration.TryAdd(typeof(T), new MicroEntityCompiledStatements());
 
-                    var ps = typeof(T).GetCustomAttributes(false).OfType<PipelineAttribute>();
+                    var ps = typeof(T).GetCustomAttributes(true).OfType<PipelineAttribute>().ToList();
+
+                    if (ps.Count != 0)
+                        LogLocal($"PipelineAttribute: {ps.Count} items", Message.EContentType.StartupSequence);
+
 
                     Statements.BeforeActionPipeline =
                         (from pipelineAttribute in ps
@@ -1060,8 +1095,15 @@ break; */
                         (from pipelineAttribute in ps
                          from type in pipelineAttribute.Types
                          where typeof(IAfterActionPipeline).IsAssignableFrom(type)
-                         select (IAfterActionPipeline)type.GetConstructor(new Type[] { }).Invoke(new object[] { })).ToList
-                            ();
+                         select (IAfterActionPipeline)type.GetConstructor(new Type[] { }).Invoke(new object[] { }))
+                         .ToList();
+
+
+                    if (Statements.BeforeActionPipeline.Count != 0)
+                        LogLocal($"BeforeActionPipeline: {Statements.BeforeActionPipeline.Count} items", Message.EContentType.StartupSequence);
+
+                    if (Statements.AfterActionPipeline.Count != 0)
+                        LogLocal($"AfterActionPipeline: {Statements.AfterActionPipeline.Count} items", Message.EContentType.StartupSequence);
 
                     Statements.State.Status = MicroEntityCompiledStatements.EStatus.Initializing;
                     Statements.State.Step = "Starting TableData/Statements setup";
