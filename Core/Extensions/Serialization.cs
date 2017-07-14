@@ -11,7 +11,6 @@ using System.Xml;
 using System.Xml.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Nyan.Core.Settings;
 using static System.String;
 
 namespace Nyan.Core.Extensions
@@ -24,7 +23,7 @@ namespace Nyan.Core.Extensions
 
             using (var writer = new Utf8StringWriter())
             {
-                using (var xmlWriter = XmlWriter.Create(writer, new XmlWriterSettings {Indent = false}))
+                using (var xmlWriter = XmlWriter.Create(writer, new XmlWriterSettings { Indent = false }))
                 {
                     var ns = new XmlSerializerNamespaces();
 
@@ -38,14 +37,14 @@ namespace Nyan.Core.Extensions
 
         public static byte[] GetBytes(this string str)
         {
-            var bytes = new byte[str.Length*sizeof(char)];
+            var bytes = new byte[str.Length * sizeof(char)];
             Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, bytes.Length);
             return bytes;
         }
 
         public static string GetString(this byte[] bytes)
         {
-            var chars = new char[bytes.Length/sizeof(char)];
+            var chars = new char[bytes.Length / sizeof(char)];
             Buffer.BlockCopy(bytes, 0, chars, 0, bytes.Length);
             return new string(chars);
         }
@@ -61,8 +60,8 @@ namespace Nyan.Core.Extensions
         {
             var jo = JObject.Parse(obj);
             var myTest = jo.Descendants()
-                .Where(t => (t.Type == JTokenType.Property) && (((JProperty) t).Name == nodeName))
-                .Select(p => ((JProperty) p).Value)
+                .Where(t => t.Type == JTokenType.Property && ((JProperty)t).Name == nodeName)
+                .Select(p => ((JProperty)p).Value)
                 .FirstOrDefault();
             return myTest.ToString();
         }
@@ -84,7 +83,7 @@ namespace Nyan.Core.Extensions
                     if (colpos > 0) sb.Append(", ");
                     sb.Append("\"" + column + "\":");
 
-                    if (obj[colpos].GetType().Name == "DateTime") sb.Append("\"" + ((DateTime) obj[colpos]).ToString("o") + "\"");
+                    if (obj[colpos].GetType().Name == "DateTime") sb.Append("\"" + ((DateTime)obj[colpos]).ToString("o") + "\"");
                     else sb.Append(CleanupJsonData(obj[colpos]));
                 }
 
@@ -152,10 +151,86 @@ namespace Nyan.Core.Extensions
         public static string ToQueryString(this object obj)
         {
             var properties = from p in obj.GetType().GetProperties()
-                where p.GetValue(obj, null) != null
-                select p.Name + "=" + HttpUtility.UrlEncode(p.GetValue(obj, null).ToString());
+                             where p.GetValue(obj, null) != null
+                             select p.Name + "=" + HttpUtility.UrlEncode(p.GetValue(obj, null).ToString());
 
             return Join("&", properties.ToArray());
+        }
+
+        public static string ToFriendlyUrl(this string title)
+        {
+            if (title == null) return "";
+
+            const int maxlen = 80;
+            var len = title.Length;
+            var prevdash = false;
+            var sb = new StringBuilder(len);
+            char c;
+
+            for (var i = 0; i < len; i++)
+            {
+                c = title[i];
+                if (c >= 'a' && c <= 'z' || c >= '0' && c <= '9')
+                {
+                    sb.Append(c);
+                    prevdash = false;
+                }
+                else if (c >= 'A' && c <= 'Z')
+                {
+                    // tricky way to convert to lowercase
+                    sb.Append((char)(c | 32));
+                    prevdash = false;
+                }
+                else if (c == ' ' || c == ',' || c == '.' || c == '/' ||
+                         c == '\\' || c == '-' || c == '_' || c == '=')
+                {
+                    if (!prevdash && sb.Length > 0)
+                    {
+                        sb.Append('-');
+                        prevdash = true;
+                    }
+                }
+                else if (c >= 128)
+                {
+                    var prevlen = sb.Length;
+                    sb.Append(RemapInternationalCharToAscii(c));
+                    if (prevlen != sb.Length) prevdash = false;
+                }
+                if (i == maxlen) break;
+            }
+
+            if (prevdash) return sb.ToString().Substring(0, sb.Length - 1);
+            return sb.ToString();
+        }
+
+        public static string RemapInternationalCharToAscii(char c)
+        {
+            var s = c.ToString().ToLowerInvariant();
+            if ("àåáâäãåą".Contains(s)) return "a";
+            if ("èéêëę".Contains(s)) return "e";
+            if ("ìíîïı".Contains(s)) return "i";
+            if ("òóôõöøőð".Contains(s)) return "o";
+            if ("ùúûüŭů".Contains(s)) return "u";
+            if ("çćčĉ".Contains(s)) return "c";
+            if ("żźž".Contains(s)) return "z";
+            if ("śşšŝ".Contains(s)) return "s";
+            if ("ñń".Contains(s)) return "n";
+            if ("ýÿ".Contains(s)) return "y";
+            if ("ğĝ".Contains(s)) return "g";
+            if (c == 'ř') return "r";
+            if (c == 'ł') return "l";
+            if (c == 'đ') return "d";
+            if (c == 'ß') return "ss";
+            if (c == 'Þ') return "th";
+            if (c == 'ĥ') return "h";
+            if (c == 'ĵ') return "j";
+            return "";
+        }
+
+        // ReSharper disable once InconsistentNaming
+        public static string ToISODateString(this DateTime obj)
+        {
+            return $"ISODate(\"{obj:o}\")";
         }
 
         public static string ToJson(this object obj, int pLevels = 0)
@@ -163,12 +238,7 @@ namespace Nyan.Core.Extensions
             //var s = new JavaScriptSerializer {MaxJsonLength = 50000000};
             //if (pLevels != 0) s.RecursionLimit = pLevels;
             //return s.Serialize(obj);
-            try {
-                return JsonConvert.SerializeObject(obj);
-            }
-            catch {
-                return null;
-            }
+            try { return JsonConvert.SerializeObject(obj); } catch { return null; }
         }
 
         public static Dictionary<string, string> ToPathValueDictionary(this JObject source)
@@ -177,28 +247,19 @@ namespace Nyan.Core.Extensions
 
             foreach (var jToken in (JToken)source)
             {
-                var t = (JProperty) jToken;
+                var t = (JProperty)jToken;
 
                 var k = t.Name;
                 var v = t.Value;
 
-                if (v is JObject)
-                    ret = ret.Concat(ToPathValueDictionary((JObject)v)).ToDictionary(x => x.Key, x => x.Value);
-                else
-                {
-                   ret.Add(t.Path, v.ToString()); 
-                }
+                if (v is JObject) ret = ret.Concat(ToPathValueDictionary((JObject)v)).ToDictionary(x => x.Key, x => x.Value);
+                else ret.Add(t.Path, v.ToString());
             }
 
             return ret;
         }
 
-
-
-        public static T FromJson<T>(this string obj)
-        {
-            return obj == null ? default(T) : JsonConvert.DeserializeObject<T>(obj);
-        }
+        public static T FromJson<T>(this string obj) { return obj == null ? default(T) : JsonConvert.DeserializeObject<T>(obj); }
 
         public static byte[] ToSerializedBytes(this object obj)
         {
@@ -217,7 +278,7 @@ namespace Nyan.Core.Extensions
             using (var stream = new MemoryStream(obj))
             {
                 var ser = new BinaryFormatter();
-                return (T) ser.Deserialize(stream);
+                return (T)ser.Deserialize(stream);
             }
         }
 
@@ -238,17 +299,13 @@ namespace Nyan.Core.Extensions
         public static string GetString(this HttpWebResponse a)
         {
             var streamReader = new StreamReader(a.GetResponseStream(), true);
-            try {
-                return streamReader.ReadToEnd();
-            }
-            finally {
-                streamReader.Close();
-            }
+            try { return streamReader.ReadToEnd(); }
+            finally { streamReader.Close(); }
         }
 
         public static bool IsSubclassOfRawGeneric(this Type toCheck, Type generic)
         {
-            while ((toCheck != null) && (toCheck != typeof(object)))
+            while (toCheck != null && toCheck != typeof(object))
             {
                 var cur = toCheck.IsGenericType ? toCheck.GetGenericTypeDefinition() : toCheck;
                 if (generic == cur) return true;
@@ -266,15 +323,15 @@ namespace Nyan.Core.Extensions
 
         public static bool IsBetween<T>(this T item, T start, T end)
         {
-            return (Comparer<T>.Default.Compare(item, start) >= 0)
-                   && (Comparer<T>.Default.Compare(item, end) <= 0);
+            return Comparer<T>.Default.Compare(item, start) >= 0
+                   && Comparer<T>.Default.Compare(item, end) <= 0;
         }
 
         public class Utf8StringWriter : StringWriter
         {
-            public override Encoding Encoding { get { return Encoding.UTF8; } }
+            public override Encoding Encoding => Encoding.UTF8;
 
-            public override string NewLine { get { return ""; } }
+            public override string NewLine => "";
         }
     }
 }
