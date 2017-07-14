@@ -58,6 +58,16 @@
     <Compile Include="Extensions\Reflections.cs" />
     <Compile Include="Extensions\Serialization.cs" />
     <Compile Include="Configuration.cs" />
+    <Compile Include="Modules\Maintenance\IMaintenanceEventHandler.cs" />
+    <Compile Include="Modules\Maintenance\Instances.cs" />
+    <Compile Include="Modules\Maintenance\MaintenanceEventEntry.cs" />
+    <Compile Include="Modules\Maintenance\MaintenanceTaskSetupAttribute.cs" />
+    <Compile Include="Modules\Maintenance\NullMaintenanceEventHandler.cs" />
+    <Compile Include="Modules\Maintenance\IMaintenanceEventEntry.cs" />
+    <Compile Include="Modules\Maintenance\IMaintenanceTask.cs" />
+    <Compile Include="Modules\Maintenance\MaintenanceTaskResult.cs" />
+    <Compile Include="Modules\Maintenance\MaintenanceSchedule.cs" />
+    <Compile Include="Modules\Maintenance\Factory.cs" />
     <Compile Include="Modules\Data\Interceptor.cs" />
     <Compile Include="Modules\Data\MicroEntityEnvironmentMappingAttribute.cs" />
     <Compile Include="Modules\Data\MicroEntityParametrizedGet.cs" />
@@ -65,7 +75,6 @@
     <Compile Include="Modules\Data\Pipeline\IAfterActionPipeline.cs" />
     <Compile Include="Modules\Data\Pipeline\IBeforeActionPipeline.cs" />
     <Compile Include="Modules\Data\Pipeline\IPipelinePrimitive.cs" />
-    <Compile Include="Modules\Data\Pipeline\Moderation.cs" />
     <Compile Include="Modules\Data\Pipeline\PipelineAttribute.cs" />
     <Compile Include="Modules\Data\Pipeline\PipelinePrimitive.cs" />
     <Compile Include="Process\Operations.cs" />

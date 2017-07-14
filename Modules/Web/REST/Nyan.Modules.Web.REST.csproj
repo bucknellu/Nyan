@@ -73,6 +73,7 @@
     <Compile Include="auth\AddChallengeOnUnauthorizedResult.cs" />
     <Compile Include="auth\AuthenticationFailureResult.cs" />
     <Compile Include="auth\NyanAuthenticationFilter.cs" />
+    <Compile Include="ControllerHelper.cs" />
     <Compile Include="Environment.cs" />
     <Compile Include="formatters\CsvMediaTypeFormatter.cs" />
     <Compile Include="GlobalAssemblyResolver.cs" />
