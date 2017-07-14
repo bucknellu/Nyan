@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -69,18 +70,63 @@ namespace Nyan.Modules.Data.MongoDB
             // http://stackoverflow.com/questions/19521626/mongodb-convention-packs
 
             var pack = new ConventionPack { new IgnoreExtraElementsConvention(true) };
+
             ConventionRegistry.Register("ignore extra elements", pack, t => true);
-            ConventionRegistry.Register("DictionaryRepresentationConvention",
-                new ConventionPack { new DictionaryRepresentationConvention(DictionaryRepresentation.ArrayOfArrays) },
-                _ => true);
-            ConventionRegistry.Register("EnumStringConvention",
-                new ConventionPack { new EnumRepresentationConvention(BsonType.String) }, t => true);
+            ConventionRegistry.Register("DictionaryRepresentationConvention", new ConventionPack { new DictionaryRepresentationConvention(DictionaryRepresentation.ArrayOfArrays) }, _ => true);
+            ConventionRegistry.Register("EnumStringConvention", new ConventionPack { new EnumRepresentationConvention(BsonType.String) }, t => true);
 
             _database = _client.GetDatabase(dbname);
             _statements = MicroEntity<T>.Statements;
             _tabledata = MicroEntity<T>.TableData;
 
+            RegisterGenericChain(typeof(T));
+
+
             SetSourceSollection();
+        }
+
+        private static List<Type> _typeCache = new List<Type>();
+
+        private void RegisterGenericChain(Type type)
+        {
+            try
+            {
+                while (type != null && type.BaseType != null)
+                {
+                    if (!_typeCache.Contains(type))
+                    {
+                        _typeCache.Add(type);
+
+                        if (!type.IsGenericType)
+                        {
+
+                            if (!BsonClassMap.IsClassMapRegistered(type))
+                            {
+                                Current.Log.Add("MongoDbinterceptor: Registering " + type.FullName);
+
+                                var method = typeof(BsonClassMap).GetMethod("RegisterClassMap", new Type[] { });
+                                var generic = method.MakeGenericMethod(type);
+                                generic.Invoke(this, null);
+                            }
+                        }
+                        else
+                        {
+                            foreach (var t in type.GetTypeInfo().GenericTypeArguments)
+                            {
+                                RegisterGenericChain(t);
+                            }
+                        }
+
+                    }
+
+                    type = type.BaseType;
+                }
+
+            }
+            catch (Exception e)
+            {
+                Current.Log.Add(e, "Error registering class " + type.Name + ": " + e.Message);
+            }
         }
 
         private void SetSourceSollection()
@@ -89,8 +135,8 @@ namespace Nyan.Modules.Data.MongoDB
 
             if (typeof(IMongoDbCollectionResolver).IsAssignableFrom(_refType))
             {
-                _instance = _refType.GetConstructor(new Type[] {}).Invoke(new object[] {});
-                s = ((IMongoDbCollectionResolver) _instance).GetCollectionName();
+                _instance = _refType.GetConstructor(new Type[] { }).Invoke(new object[] { });
+                s = ((IMongoDbCollectionResolver)_instance).GetCollectionName();
 
             }
             else
