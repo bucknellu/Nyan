@@ -2,6 +2,6 @@
 {
     public interface IAfterActionPipeline : IPipelinePrimitive
     {
-        void Process<T>(Support.EAction action, T current, T source) where T : MicroEntity<T>;
+        void Process<T>(string action, T current, T source) where T : MicroEntity<T>;
     }
 }

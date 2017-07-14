@@ -2,6 +2,6 @@
 {
     public interface IBeforeActionPipeline : IPipelinePrimitive
     {
-        T Process<T>(Support.EAction action, T current, T source) where T : MicroEntity<T>;
+        T Process<T>(string action, T current, T source) where T : MicroEntity<T>;
     }
 }

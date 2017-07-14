@@ -2,12 +2,13 @@
 {
     public class Support
     {
-        public enum EAction
+        public static class EAction
         {
-            Insert = 'c',
-            Update = 'u',
-            Remove = 'r',
-            DeleteAll = 'D',
+            public const string Insert = "Insert";
+            public const string Update = "Update";
+            public const string Remove = "Remove";
+            public const string DeleteAll = "DeleteAll";
+            public const string Patch = "Patch";
         }
     }
 }
