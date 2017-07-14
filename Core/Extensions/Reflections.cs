@@ -155,6 +155,35 @@ namespace Nyan.Core.Extensions
             }
         }
 
+        public static bool SetPropertyValue(this object o, string property, object value)
+        {
+            try
+            {
+                var propertyInfo = o.GetType().GetProperty(property);
+                if (propertyInfo == null) return false;
+
+                propertyInfo.SetValue(o, value, null);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public static object GetPropertyValue(this object o, string property)
+        {
+            try
+            {
+                var propertyInfo = o.GetType().GetProperty(property);
+                return propertyInfo?.GetValue(o);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         public static bool IsSimilarType(this Type thisType, Type type)
         {
             // Ignore any 'ref' types
