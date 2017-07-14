@@ -43,10 +43,10 @@ namespace Nyan.Modules.Web.REST
         }
 
         public EndpointSecurityAttribute ClassSecurity
-            => (EndpointSecurityAttribute) Attribute.GetCustomAttribute(GetType(), typeof(EndpointSecurityAttribute));
+            => (EndpointSecurityAttribute)Attribute.GetCustomAttribute(GetType(), typeof(EndpointSecurityAttribute));
 
         public EndpointBehaviorAttribute ClassBehavior
-            => (EndpointBehaviorAttribute) Attribute.GetCustomAttribute(GetType(), typeof(EndpointBehaviorAttribute));
+            => (EndpointBehaviorAttribute)Attribute.GetCustomAttribute(GetType(), typeof(EndpointBehaviorAttribute));
 
         public virtual string SearchResultMoniker { get { return MicroEntity<T>.Statements.Label; } }
 
@@ -57,7 +57,8 @@ namespace Nyan.Modules.Web.REST
         }
 
         public virtual void PostAction(RequestType pRequestType, AccessType pAccessType, string pidentifier = null,
-            T pObject = null, string pContext = null) {}
+            T pObject = null, string pContext = null)
+        { }
 
         private void EvaluateAuthorization(EndpointSecurityAttribute attr, RequestType requestType,
             AccessType accessType, string parm = null, T parm2 = null, string parm3 = null)
@@ -87,7 +88,8 @@ namespace Nyan.Modules.Web.REST
             }
 
             if (!ret)
-                try {
+                try
+                {
                     ret = AuthorizeAction(requestType, accessType, parm, ref parm2, parm3);
                 }
                 catch (Exception e) // User may throw a custom error, and that's fine: let's just log it.
@@ -114,7 +116,9 @@ namespace Nyan.Modules.Web.REST
             {
                 var mRet = InternalGetAll();
 
-                var ret = RenderJsonResult(mRet.Content);
+                var ret = ControllerHelper.RenderJsonResult(mRet.Content);
+
+                ControllerHelper.ProcessPipelineHeaders<T>(ret.Headers);
 
                 if (!mRet.HasExtendedProperties) return ret;
                 ret.Headers.Add("X-Total-Count", mRet.TotalCount.ToString());
@@ -122,7 +126,9 @@ namespace Nyan.Modules.Web.REST
 
                 return ret;
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
+                Current.Log.Add(e);
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e);
             }
         }
@@ -174,7 +180,7 @@ namespace Nyan.Modules.Web.REST
 
                 var preRet = mustUseParametrizedGet ? MicroEntity<T>.Get(parametrizedGet) : MicroEntity<T>.Get();
 
-                var oPreRet = (object) preRet;
+                var oPreRet = (object)preRet;
 
                 PostCollectionAction(RequestType.GetAll, AccessType.Read, ref oPreRet, ref tot);
                 PostAction(RequestType.GetAll, AccessType.Read);
@@ -190,7 +196,7 @@ namespace Nyan.Modules.Web.REST
                 if (ret.HasExtendedProperties)
                 {
                     ret.TotalCount = tot;
-                    ret.TotalPages = Convert.ToInt32(Math.Truncate((double) tot/parametrizedGet.PageSize) + 1);
+                    ret.TotalPages = Convert.ToInt32(Math.Truncate((double)tot / parametrizedGet.PageSize) + 1);
                 }
 
                 return ret;
@@ -206,7 +212,8 @@ namespace Nyan.Modules.Web.REST
 
         public virtual void PostCollectionAction(RequestType pRequestType, AccessType pAccessType,
             ref object collectionList, ref long totalRecords, string pidentifier = null, T pObject = null,
-            string pContext = null) {}
+            string pContext = null)
+        { }
 
         [Route("summary")]
         [HttpGet]
@@ -229,7 +236,7 @@ namespace Nyan.Modules.Web.REST
                         _step = "Setting up Generic method";
                         var generic = method.MakeGenericMethod(list);
                         _step = "Calling generic method";
-                        preRet = generic.Invoke(null, new object[] {mRet.Content.ToJson()});
+                        preRet = generic.Invoke(null, new object[] { mRet.Content.ToJson() });
                     }
 
                 if (preRet == null)
@@ -239,7 +246,9 @@ namespace Nyan.Modules.Web.REST
                 }
 
                 _step = "Preparing JSON payload";
-                var ret = RenderJsonResult(preRet);
+                var ret = ControllerHelper.RenderJsonResult(preRet);
+
+                ControllerHelper.ProcessPipelineHeaders<T>(ret.Headers);
 
                 if (!mRet.HasExtendedProperties) return ret;
 
@@ -268,13 +277,13 @@ namespace Nyan.Modules.Web.REST
 
                 EvaluateAuthorization(ClassSecurity, RequestType.New, AccessType.Read, null);
 
-                var preRet = (T) Activator.CreateInstance(typeof(T), new object[] {});
+                var preRet = (T)Activator.CreateInstance(typeof(T), new object[] { });
                 sw.Stop();
                 Current.Log.Add("NEW " + typeof(T).FullName + " OK (" + sw.ElapsedMilliseconds + " ms)");
 
                 PostAction(RequestType.New, AccessType.Read);
 
-                return RenderJsonResult(preRet);
+                return ControllerHelper.RenderJsonResult(preRet);
             }
             catch (Exception e)
             {
@@ -298,7 +307,7 @@ namespace Nyan.Modules.Web.REST
                 EvaluateAuthorization(ClassSecurity, RequestType.Get, AccessType.Read, id);
 
                 var preRet = InternalGet(id);
-                if (preRet == null) throw new HttpResponseException(HttpStatusCode.NotFound);
+                if (preRet == null) return Request.CreateResponse(HttpStatusCode.NotFound);
 
                 if (MicroEntity<T>.TableData.AuditAccess) AuditRequest("ACCESS", typeof(T).FullName + ":" + id);
 
@@ -306,7 +315,7 @@ namespace Nyan.Modules.Web.REST
 
                 PostAction(RequestType.Get, AccessType.Read, id, preRet);
 
-                return RenderJsonResult(preRet);
+                return ControllerHelper.RenderJsonResult(preRet);
             }
             catch (Exception e)
             {
@@ -325,14 +334,14 @@ namespace Nyan.Modules.Web.REST
         public virtual HttpResponseMessage WebApiGetSetByPost()
         {
             var idset = Request.Content.ReadAsStringAsync().Result;
-            return RenderJsonResult(InternalGetSet(idset));
+            return ControllerHelper.RenderJsonResult(InternalGetSet(idset));
         }
 
         [Route("subset/{idset}")]
         [HttpGet]
         public virtual HttpResponseMessage WebApiGetSetByGet(string idset)
         {
-            return RenderJsonResult(InternalGetSet(idset));
+            return ControllerHelper.RenderJsonResult(InternalGetSet(idset));
         }
 
         public virtual List<T> InternalGetSet(string idset)
@@ -354,7 +363,7 @@ namespace Nyan.Modules.Web.REST
                 if (set.Count == 0)
                 {
                     if (idset == "") return res;
-                    set = new List<string> {idset};
+                    set = new List<string> { idset };
                 }
 
                 sw.Start();
@@ -373,9 +382,8 @@ namespace Nyan.Modules.Web.REST
                 sw.Stop();
                 Current.Log.Add(
                     "InternalGetSet " + typeof(T).FullName + ":" + idset + " ERR (" + sw.ElapsedMilliseconds + " ms): "
-                    +
-                    e.Message, e);
-                RenderException(HttpStatusCode.InternalServerError, e.Message);
+                    + e.Message, e);
+                ControllerHelper.RenderException(HttpStatusCode.InternalServerError, e.Message, Request);
                 return null;
             }
         }
@@ -402,15 +410,22 @@ namespace Nyan.Modules.Web.REST
 
                 var preRet = MicroEntity<T>.Get(item.Save());
 
-                if (MicroEntity<T>.TableData.AuditChange) AuditRequest("CHANGE", typeof(T).FullName + ":" + item.GetEntityIdentifier(), item.ToJson());
+                if (preRet != null)
+                {
 
-                Current.Log.Add("UPD " + typeof(T).FullName + ":" + item.GetEntityIdentifier() + " OK ("
-                                + sw.ElapsedMilliseconds + " ms)");
+                    if (MicroEntity<T>.TableData.AuditChange)
+                        AuditRequest("CHANGE", typeof(T).FullName + ":" + item.GetEntityIdentifier(), item.ToJson());
 
-                PostAction(RequestType.Post, AccessType.Write, preRet.GetEntityIdentifier(), preRet,
-                    preRet.GetEntityIdentifier() != originalId ? "CREATE" : "UPDATE");
+                    Current.Log.Add("UPD " + typeof(T).FullName + ":" + item.GetEntityIdentifier() + " OK ("
+                                    + sw.ElapsedMilliseconds + " ms)");
 
-                return RenderJsonResult(preRet);
+                    PostAction(RequestType.Post, AccessType.Write, preRet.GetEntityIdentifier(), preRet, preRet.GetEntityIdentifier() != originalId ? "CREATE" : "UPDATE");
+
+                    return ControllerHelper.RenderJsonResult(preRet);
+                }
+
+                Current.Log.Add("UPD " + typeof(T).FullName + ":" + item.GetEntityIdentifier() + " ACCEPTED (" + sw.ElapsedMilliseconds + " ms)");
+                return new HttpResponseMessage(HttpStatusCode.Accepted);
             }
             catch (Exception e)
             {
@@ -447,7 +462,7 @@ namespace Nyan.Modules.Web.REST
 
                 PostAction(RequestType.Patch, AccessType.Write, preRet.GetEntityIdentifier(), preRet);
 
-                return RenderJsonResult(preRet);
+                return ControllerHelper.RenderJsonResult(preRet);
             }
             catch (Exception e)
             {
@@ -509,9 +524,7 @@ namespace Nyan.Modules.Web.REST
         {
             var sw = new Stopwatch();
 
-            if (MicroEntity<T>.TableData.IsReadOnly)
-                return Request.CreateErrorResponse(HttpStatusCode.MethodNotAllowed,
-                    "This entity is market as read-only.");
+            if (MicroEntity<T>.TableData.IsReadOnly) return Request.CreateErrorResponse(HttpStatusCode.MethodNotAllowed, "This entity is market as read-only.");
 
             T probe = null;
 
@@ -523,21 +536,32 @@ namespace Nyan.Modules.Web.REST
 
                 EvaluateAuthorization(ClassSecurity, RequestType.Delete, AccessType.Remove, id, probe);
 
+                sw.Start();
+                var ret = MicroEntity<T>.Remove(id);
+
                 if (probe == null)
                 {
                     sw.Stop();
                     return Request.CreateErrorResponse(HttpStatusCode.NotFound, "No Entity was found for ID " + id);
                 }
-                sw.Start();
-                MicroEntity<T>.Remove(id);
+
                 sw.Stop();
-                Current.Log.Add("DEL " + typeof(T).FullName + ":" + id + " OK (" + sw.ElapsedMilliseconds + " ms)");
 
-                if (MicroEntity<T>.TableData.AuditChange) AuditRequest("REMOVAL", typeof(T).FullName + ":" + id, probe.ToJson());
+                if (ret)
+                {
 
-                PostAction(RequestType.Delete, AccessType.Remove, id, probe);
+                    Current.Log.Add("DEL " + typeof(T).FullName + ":" + id + " OK (" + sw.ElapsedMilliseconds + " ms)");
 
-                return Request.CreateResponse(HttpStatusCode.NoContent, "Entity removed successfully.");
+                    if (MicroEntity<T>.TableData.AuditChange)
+                        AuditRequest("REMOVAL", typeof(T).FullName + ":" + id, probe.ToJson());
+
+                    PostAction(RequestType.Delete, AccessType.Remove, id, probe);
+
+                    return Request.CreateResponse(HttpStatusCode.NoContent, "Entity removed successfully.");
+                }
+
+                Current.Log.Add("DEL " + typeof(T).FullName + ":" + id + " ACCEPTED (" + sw.ElapsedMilliseconds + " ms)");
+                return new HttpResponseMessage(HttpStatusCode.Accepted);
             }
             catch (Exception e)
             {
@@ -595,7 +619,8 @@ namespace Nyan.Modules.Web.REST
 
                     ret = Request.CreateResponse(HttpStatusCode.OK, referenceCollection);
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     ret = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, ex);
                 }
             return ret;
@@ -615,20 +640,6 @@ namespace Nyan.Modules.Web.REST
 
             var set = MicroEntity<T>.Query(statement, entbag);
             return set;
-        }
-
-        public HttpResponseMessage RenderJsonResult(object contents)
-        {
-            var ret = new HttpResponseMessage(HttpStatusCode.OK) {Content = new StringContent(contents.ToJson())};
-            ret.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-            return ret;
-        }
-
-        public void RenderException(HttpStatusCode eType, string message)
-        {
-            var httpError = new HttpError(message);
-            var errorResponse = Request.CreateErrorResponse(eType, httpError);
-            throw new HttpResponseException(errorResponse);
         }
 
         internal class InternalGetAllPayload
