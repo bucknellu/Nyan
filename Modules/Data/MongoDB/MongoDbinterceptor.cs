@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
 using MongoDB.Bson;
@@ -39,9 +40,8 @@ namespace Nyan.Modules.Data.MongoDB
             {
                 if (_idProp != null) return _idProp;
 
-                _idProp = _statements.IdPropertyRaw.ToLower();
-                if (_idProp == "id") _idProp = "_id";
-
+                _idProp = _statements.IdPropertyRaw;
+                // if (_idProp.ToLower() == "id") _idProp = "_id";
                 return _idProp;
             }
         }
@@ -87,6 +87,7 @@ namespace Nyan.Modules.Data.MongoDB
 
         private static List<Type> _typeCache = new List<Type>();
 
+
         private void RegisterGenericChain(Type type)
         {
             try
@@ -104,9 +105,18 @@ namespace Nyan.Modules.Data.MongoDB
                             {
                                 Current.Log.Add("MongoDbinterceptor: Registering " + type.FullName);
 
-                                var method = typeof(BsonClassMap).GetMethod("RegisterClassMap", new Type[] { });
-                                var generic = method.MakeGenericMethod(type);
-                                generic.Invoke(this, null);
+
+
+                                var classMapDefinition = typeof(BsonClassMap<>);
+                                var classMapType = classMapDefinition.MakeGenericType(type);
+                                var classMap = (BsonClassMap)Activator.CreateInstance(classMapType);
+
+                                // Do custom initialization here, e.g. classMap.SetDiscriminator, AutoMap etc
+
+                                classMap.AutoMap();
+                                classMap.MapIdProperty(Identifier);
+
+                                BsonClassMap.RegisterClassMap(classMap);
                             }
                         }
                         else
@@ -127,6 +137,12 @@ namespace Nyan.Modules.Data.MongoDB
             {
                 Current.Log.Add(e, "Error registering class " + type.Name + ": " + e.Message);
             }
+        }
+
+        private void ClassMapInitializer(BsonClassMap<MongoDbinterceptor> cm)
+        {
+            cm.AutoMap();
+            cm.MapIdMember(c => c.Identifier);
         }
 
         private void SetSourceSollection()
@@ -152,17 +168,17 @@ namespace Nyan.Modules.Data.MongoDB
 
         public T Get<T>(string locator) where T : MicroEntity<T>
         {
-            var filter = Builders<BsonDocument>.Filter.Eq(Identifier, locator);
-            var col = _collection.Find(filter).ToListAsync();
-            col.Wait();
-
-            var target = col.Result.FirstOrDefault();
+            var filter = Builders<BsonDocument>.Filter.Eq("_id", locator);
+            var col = _collection.Find(filter).ToList();
+            var target = col.FirstOrDefault();
 
             return target == null ? null : BsonSerializer.Deserialize<T>(target);
         }
 
         public string Save<T>(MicroEntity<T> obj) where T : MicroEntity<T>
         {
+            try { 
+
             if (obj.GetEntityIdentifier() == "") obj.SetEntityIdentifier(Guid.NewGuid().ToString());
 
             var id = obj.GetEntityIdentifier();
@@ -177,16 +193,23 @@ namespace Nyan.Modules.Data.MongoDB
             }
             else
             {
-                var filter = Builders<BsonDocument>.Filter.Eq(Identifier, id);
+                var filter = Builders<BsonDocument>.Filter.Eq("_id", id);
                 _collection.ReplaceOne(filter, document);
             }
 
             return id;
+            }
+            catch (Exception e)
+            {
+                Current.Log.Add(e);
+                Current.Log.Add(obj.ToJson(), Message.EContentType.Info);
+                throw;
+            }
         }
 
         public void Remove<T>(string locator) where T : MicroEntity<T>
         {
-            var filter = Builders<BsonDocument>.Filter.Eq(Identifier, locator);
+            var filter = Builders<BsonDocument>.Filter.Eq("_id", locator);
             _collection.DeleteOne(filter);
         }
 
@@ -214,10 +237,9 @@ namespace Nyan.Modules.Data.MongoDB
 
             Current.Log.Add(typeof(T).FullName + ": QUERY " + rawQuery);
 
-            var col = _collection.Find(BsonDocument.Parse(rawQuery)).ToListAsync();
-            col.Wait();
+            var col = _collection.Find(BsonDocument.Parse(rawQuery)).ToList();
 
-            var transform = col.Result.Select(a => BsonSerializer.Deserialize<T>(a)).ToList();
+            var transform = col.Select(a => BsonSerializer.Deserialize<T>(a)).ToList();
             return transform;
         }
 
