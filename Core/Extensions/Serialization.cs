@@ -233,6 +233,11 @@ namespace Nyan.Core.Extensions
             return $"ISODate(\"{obj:o}\")";
         }
 
+        // ReSharper disable once InconsistentNaming
+        public static string ToFutureISODateString(this TimeSpan obj) { return DateTime.Now.Add(obj).ToISODateString(); }
+        // ReSharper disable once InconsistentNaming
+        public static string ToPastISODateString(this TimeSpan obj) { return DateTime.Now.Subtract(obj).ToISODateString(); }
+
         public static string ToJson(this object obj, int pLevels = 0)
         {
             //var s = new JavaScriptSerializer {MaxJsonLength = 50000000};
