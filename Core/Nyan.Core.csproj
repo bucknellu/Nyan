@@ -58,6 +58,7 @@
     <Compile Include="Extensions\Reflections.cs" />
     <Compile Include="Extensions\Serialization.cs" />
     <Compile Include="Configuration.cs" />
+    <Compile Include="Modules\Maintenance\Clicker.cs" />
     <Compile Include="Modules\Maintenance\IMaintenanceEventHandler.cs" />
     <Compile Include="Modules\Maintenance\Instances.cs" />
     <Compile Include="Modules\Maintenance\MaintenanceEventEntry.cs" />
