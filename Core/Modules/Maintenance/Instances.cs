@@ -11,7 +11,7 @@ namespace Nyan.Core.Modules.Maintenance
     {
         internal static readonly IEnumerable<Type> RegisteredMaintenanceTaskTypes = Management.GetClassesByInterface<IMaintenanceTask>();
 
-        public static readonly List<MaintenanceSchedule> Schedule = new List<MaintenanceSchedule>();
+        public static readonly List<MaintenanceSchedule> Schedule;
 
         internal static readonly Type MaintenanceEventHandlerType = Management.GetClassesByInterface<IMaintenanceEventHandler>()[0];
 
@@ -26,7 +26,9 @@ namespace Nyan.Core.Modules.Maintenance
                 var setup = (MaintenanceTaskSetupAttribute) i.GetMethod("MaintenanceTask").GetCustomAttributes(typeof(MaintenanceTaskSetupAttribute), false).FirstOrDefault()
                             ?? new MaintenanceTaskSetupAttribute {Name = "Maintenance Task"};
 
-                var priority = (PriorityAttribute) i.GetMethod("MaintenanceTask").GetCustomAttributes(typeof(PriorityAttribute), false).FirstOrDefault()
+                var priority = (PriorityAttribute) i.GetMethod("MaintenanceTask")
+                                   .GetCustomAttributes(typeof(PriorityAttribute), false)
+                                   .FirstOrDefault()
                                ?? new PriorityAttribute {Level = 99};
 
                 var entry = new MaintenanceSchedule

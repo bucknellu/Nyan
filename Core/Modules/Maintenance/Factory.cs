@@ -8,7 +8,7 @@ namespace Nyan.Core.Modules.Maintenance
 {
     public static class Factory
     {
-        public static IMaintenanceEventEntry DoMaintenance(bool saveLog = true)
+        public static IMaintenanceEventEntry DoMaintenance(bool force = false, bool saveLog = true)
         {
             var ret = new List<MaintenanceTaskResult>();
             var msw = new Stopwatch();
@@ -21,18 +21,24 @@ namespace Nyan.Core.Modules.Maintenance
 
             msw.Start();
 
+            Current.Log.Add($"Starting Maintenance: {Instances.Schedule} tasks, force:{force}, saveLog: {saveLog}", Message.EContentType.Maintenance);
+
             try
             {
                 foreach (var maintenanceTask in Instances.Schedule)
                 {
                     var proc = new MaintenanceTaskResult { Id = maintenanceTask.Id };
+                    var mustSkip = false;
 
-                    if (!Instances.Handler.CanRun(maintenanceTask))
-                    {
-                        proc.Status = MaintenanceTaskResult.EResultStatus.Skipped;
-                        proc.Message = "Skipped: cooldown";
-                    }
-                    else
+                    if (!force)
+                        if (!Instances.Handler.CanRun(maintenanceTask))
+                        {
+                            proc.Status = MaintenanceTaskResult.EResultStatus.Skipped;
+                            proc.Message = "Skipped: cooldown";
+                            mustSkip = true;
+                        }
+
+                    if (!mustSkip)
                     {
                         Current.Log.Add("START " + maintenanceTask.Id, Message.EContentType.Maintenance);
 
