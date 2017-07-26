@@ -427,5 +427,78 @@ namespace Nyan.Core.Assembly
                 return ret;
             }
         }
+        public static List<Type> GetClassesByInterface<T, TU>(bool excludeCoreNullDefinitions = true)
+        {
+            lock (Lock)
+            {
+                var typeT = typeof(T);
+                var typeU = typeof(TU);
+                var preRet = new List<Type>();
+
+
+                Modules.Log.System.Add("Scanning for " + typeT + "+" + typeU);
+
+                foreach (var item in AssemblyCache.Values)
+                {
+                    if (excludeCoreNullDefinitions && (item == System.Reflection.Assembly.GetExecutingAssembly())) continue;
+
+                    Type[] preTypes;
+
+                    try
+                    {
+                        preTypes = item.GetTypes();
+                    }
+                    catch (Exception e)
+                    {
+                        if (e is ReflectionTypeLoadException)
+                        {
+                            var typeLoadException = e as ReflectionTypeLoadException;
+                            var loaderExceptions = typeLoadException.LoaderExceptions.ToList();
+
+                            if (loaderExceptions.Count > 0) Modules.Log.System.Add("    Fail " + item + ": " + loaderExceptions[0].Message);
+                            else Modules.Log.System.Add("    Fail " + item + ": Undefined.");
+                        }
+                        else Modules.Log.System.Add("    Fail " + item + ": " + e.Message);
+                        // Well, this loading can fail by a (long) variety of reasons. 
+                        // It's not a real problem not to catch exceptions here. 
+                        continue;
+                    }
+
+                    foreach (var item3 in preTypes)
+                    {
+                        if (item3.IsInterface) continue;
+
+                        if (!typeT.IsAssignableFrom(item3)) continue;
+                        if (!typeU.IsAssignableFrom(item3)) continue;
+
+                        if (typeT == item3) continue;
+                        if (typeU != item3) preRet.Add(item3);
+                    }
+                }
+
+                var priorityList = new List<KeyValuePair<int, Type>>();
+
+                Modules.Log.System.Add("    " + preRet.Count + " [" + typeT + "] items");
+
+                foreach (var item in preRet)
+                {
+                    var level = 0;
+
+                    var attrs = item.GetCustomAttributes(typeof(PriorityAttribute), true);
+
+                    if (attrs.Length > 0) level = ((PriorityAttribute)attrs[0]).Level;
+
+                    priorityList.Add(new KeyValuePair<int, Type>(level, item));
+                }
+
+                priorityList.Sort((firstPair, nextPair) => nextPair.Key - firstPair.Key);
+
+                foreach (var item in priorityList) Modules.Log.System.Add("        " + item.Key + " " + item.Value.Name);
+
+                var ret = priorityList.Select(item => item.Value).ToList();
+
+                return ret;
+            }
+        }
     }
 }
