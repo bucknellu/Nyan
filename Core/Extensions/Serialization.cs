@@ -23,7 +23,7 @@ namespace Nyan.Core.Extensions
 
             using (var writer = new Utf8StringWriter())
             {
-                using (var xmlWriter = XmlWriter.Create(writer, new XmlWriterSettings { Indent = false }))
+                using (var xmlWriter = XmlWriter.Create(writer, new XmlWriterSettings {Indent = false}))
                 {
                     var ns = new XmlSerializerNamespaces();
 
@@ -60,8 +60,8 @@ namespace Nyan.Core.Extensions
         {
             var jo = JObject.Parse(obj);
             var myTest = jo.Descendants()
-                .Where(t => t.Type == JTokenType.Property && ((JProperty)t).Name == nodeName)
-                .Select(p => ((JProperty)p).Value)
+                .Where(t => t.Type == JTokenType.Property && ((JProperty) t).Name == nodeName)
+                .Select(p => ((JProperty) p).Value)
                 .FirstOrDefault();
             return myTest.ToString();
         }
@@ -83,7 +83,7 @@ namespace Nyan.Core.Extensions
                     if (colpos > 0) sb.Append(", ");
                     sb.Append("\"" + column + "\":");
 
-                    if (obj[colpos].GetType().Name == "DateTime") sb.Append("\"" + ((DateTime)obj[colpos]).ToString("o") + "\"");
+                    if (obj[colpos].GetType().Name == "DateTime") sb.Append("\"" + ((DateTime) obj[colpos]).ToString("o") + "\"");
                     else sb.Append(CleanupJsonData(obj[colpos]));
                 }
 
@@ -151,8 +151,8 @@ namespace Nyan.Core.Extensions
         public static string ToQueryString(this object obj)
         {
             var properties = from p in obj.GetType().GetProperties()
-                             where p.GetValue(obj, null) != null
-                             select p.Name + "=" + HttpUtility.UrlEncode(p.GetValue(obj, null).ToString());
+                where p.GetValue(obj, null) != null
+                select p.Name + "=" + HttpUtility.UrlEncode(p.GetValue(obj, null).ToString());
 
             return Join("&", properties.ToArray());
         }
@@ -178,7 +178,7 @@ namespace Nyan.Core.Extensions
                 else if (c >= 'A' && c <= 'Z')
                 {
                     // tricky way to convert to lowercase
-                    sb.Append((char)(c | 32));
+                    sb.Append((char) (c | 32));
                     prevdash = false;
                 }
                 else if (c == ' ' || c == ',' || c == '.' || c == '/' ||
@@ -228,15 +228,18 @@ namespace Nyan.Core.Extensions
         }
 
         // ReSharper disable once InconsistentNaming
-        public static string ToISODateString(this DateTime obj)
-        {
-            return $"ISODate(\"{obj:o}\")";
-        }
+        public static string ToISODateString(this DateTime obj) { return $"ISODate(\"{obj:o}\")"; }
 
         // ReSharper disable once InconsistentNaming
         public static string ToFutureISODateString(this TimeSpan obj) { return DateTime.Now.Add(obj).ToISODateString(); }
+
         // ReSharper disable once InconsistentNaming
         public static string ToPastISODateString(this TimeSpan obj) { return DateTime.Now.Subtract(obj).ToISODateString(); }
+
+        public static string ToBase64(this string obj)
+        {
+            return obj == null ? null : Convert.ToBase64String(Encoding.UTF8.GetBytes(obj));
+        }
 
         public static string ToJson(this object obj, int pLevels = 0)
         {
@@ -245,6 +248,8 @@ namespace Nyan.Core.Extensions
             //return s.Serialize(obj);
             try { return JsonConvert.SerializeObject(obj); } catch { return null; }
         }
+
+        public static IDictionary<string, object> ToKeyValueDictionary(this string source) { return source.FromJson<IDictionary<string, object>>(); }
 
         public static Dictionary<string, string> ToPathValueDictionary(this JObject source)
         {
@@ -283,7 +288,7 @@ namespace Nyan.Core.Extensions
             using (var stream = new MemoryStream(obj))
             {
                 var ser = new BinaryFormatter();
-                return (T)ser.Deserialize(stream);
+                return (T) ser.Deserialize(stream);
             }
         }
 
