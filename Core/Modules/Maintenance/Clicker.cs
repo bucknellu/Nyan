@@ -36,7 +36,7 @@ namespace Nyan.Core.Modules.Maintenance
             var part = (double) _pIndex / _pCount;
             var invPart = TimeSpan.FromMilliseconds(_s.ElapsedMilliseconds * (1 / part));
 
-            Current.Log.Add($"    {_pIndex}/{_pCount} ({part:P2} / {invPart.Subtract(_s.Elapsed)} left, ~{invPart} Total)", Message.EContentType.MoreInfo);
+            Current.Log.Add($"    {_pMessage}: {_pIndex}/{_pCount} ({part:P2} / {invPart.Subtract(_s.Elapsed)} left, ~{invPart} Total)", Message.EContentType.MoreInfo);
         }
     }
 }
