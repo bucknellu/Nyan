@@ -15,7 +15,8 @@ namespace Nyan.Core.Modules.Maintenance
 
             var currType = "";
 
-            if (!Instances.Handler.CanStart()) throw new Exception("Cannot start maintenance.");
+            if (!Instances.Handler.CanStart()) { }
+            //throw new Exception("Cannot start maintenance.");}
 
             Instances.Handler.HandleStart();
 
@@ -47,7 +48,7 @@ namespace Nyan.Core.Modules.Maintenance
 
                         try
                         {
-                            proc = maintenanceTask.Task.MaintenanceTask();
+                            proc = maintenanceTask.Task.MaintenanceTask(force);
                             if (proc.Status == MaintenanceTaskResult.EResultStatus.Undefined) proc.Status = MaintenanceTaskResult.EResultStatus.Success;
                             if (proc.Message == null) proc.Message = "SUCCESS";
                         }

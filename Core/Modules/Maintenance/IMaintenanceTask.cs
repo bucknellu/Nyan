@@ -2,6 +2,6 @@
 {
     public interface IMaintenanceTask
     {
-        MaintenanceTaskResult MaintenanceTask();
+        MaintenanceTaskResult MaintenanceTask(bool force);
     }
 }
