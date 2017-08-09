@@ -236,9 +236,16 @@ namespace Nyan.Core.Extensions
         // ReSharper disable once InconsistentNaming
         public static string ToPastISODateString(this TimeSpan obj) { return DateTime.Now.Subtract(obj).ToISODateString(); }
 
-        public static string ToBase64(this string obj)
+        public static string ToBase64(this string obj) { return obj == null ? null : Convert.ToBase64String(Encoding.UTF8.GetBytes(obj)); }
+
+        public static string FromBase64(this string obj)
         {
-            return obj == null ? null : Convert.ToBase64String(Encoding.UTF8.GetBytes(obj));
+            if (obj == null) return null;
+
+            var data = Convert.FromBase64String(obj);
+            var decodedString = Encoding.UTF8.GetString(data);
+
+            return decodedString;
         }
 
         public static string ToJson(this object obj, int pLevels = 0)
@@ -255,14 +262,14 @@ namespace Nyan.Core.Extensions
         {
             var ret = new Dictionary<string, string>();
 
-            foreach (var jToken in (JToken)source)
+            foreach (var jToken in (JToken) source)
             {
-                var t = (JProperty)jToken;
+                var t = (JProperty) jToken;
 
                 var k = t.Name;
                 var v = t.Value;
 
-                if (v is JObject) ret = ret.Concat(ToPathValueDictionary((JObject)v)).ToDictionary(x => x.Key, x => x.Value);
+                if (v is JObject) ret = ret.Concat(ToPathValueDictionary((JObject) v)).ToDictionary(x => x.Key, x => x.Value);
                 else ret.Add(t.Path, v.ToString());
             }
 
