@@ -1080,8 +1080,8 @@ break; */
 
                     var ps = typeof(T).GetCustomAttributes(true).OfType<PipelineAttribute>().ToList();
 
-                    if (ps.Count != 0)
-                        LogLocal($"PipelineAttribute: {ps.Count} items", Message.EContentType.StartupSequence);
+                    //if (ps.Count != 0)
+                    //    LogLocal($"PipelineAttribute: {ps.Count} items", Message.EContentType.StartupSequence);
 
 
                     Statements.BeforeActionPipeline =
@@ -1099,11 +1099,11 @@ break; */
                          .ToList();
 
 
-                    if (Statements.BeforeActionPipeline.Count != 0)
-                        LogLocal($"BeforeActionPipeline: {Statements.BeforeActionPipeline.Count} items", Message.EContentType.StartupSequence);
+                    //if (Statements.BeforeActionPipeline.Count != 0)
+                    //    LogLocal($"BeforeActionPipeline: {Statements.BeforeActionPipeline.Count} items", Message.EContentType.StartupSequence);
 
-                    if (Statements.AfterActionPipeline.Count != 0)
-                        LogLocal($"AfterActionPipeline: {Statements.AfterActionPipeline.Count} items", Message.EContentType.StartupSequence);
+                    //if (Statements.AfterActionPipeline.Count != 0)
+                    //    LogLocal($"AfterActionPipeline: {Statements.AfterActionPipeline.Count} items", Message.EContentType.StartupSequence);
 
                     Statements.State.Status = MicroEntityCompiledStatements.EStatus.Initializing;
                     Statements.State.Step = "Starting TableData/Statements setup";
@@ -1204,12 +1204,8 @@ break; */
 
                     if (identifierColumnName == null)
                     {
-                        var props =
-                            probeType.GetProperties()
-                                .Where(prop => Attribute.IsDefined(prop, typeof(KeyAttribute)))
-                                .ToList();
-
-                        if (props != null) if (props.Count > 0) identifierColumnName = props[0].Name;
+                        var props = probeType.GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(KeyAttribute), true)).ToList();
+                        if (props.Count > 0) identifierColumnName = props[0].Name;
                     }
 
                     if (identifierColumnName != null)
@@ -1252,6 +1248,9 @@ break; */
                     LogLocal(
                         Statements.ConnectionString.SafeArray("Data Source", "=", ";",
                             Transformation.ESafeArrayMode.Allow), Message.EContentType.MoreInfo);
+
+
+                    Statements.State.Step = "Evaluating Interceptor";
 
                     if (Statements.Interceptor != null)
                     {
