@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.Options;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
+using Newtonsoft.Json.Linq;
 using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Data;
 using Nyan.Core.Modules.Data.Connection;
@@ -55,6 +57,7 @@ namespace Nyan.Modules.Data.MongoDB
 
             // There's probably a better way (I hope) but for now...
             try { BsonSerializer.RegisterSerializer(typeof(DateTime), DateTimeSerializer.LocalInstance); } catch { }
+            try { BsonTypeMapper.RegisterCustomTypeMapper(typeof(JObject), new JObjectMapper()); } catch { }
 
             _client = new MongoClient(statementsConnectionString);
             var dbname = MongoUrl.Create(statementsConnectionString).DatabaseName;
@@ -148,12 +151,9 @@ namespace Nyan.Modules.Data.MongoDB
         public List<T> Query<T>(string sqlStatement, object rawObject) where T : MicroEntity<T>
         {
             var rawQuery = sqlStatement ?? BsonExtensionMethods.ToJson(rawObject);
-
-            Current.Log.Add(typeof(T).FullName + ": QUERY " + rawQuery);
-
-            var col = _collection.Find(BsonDocument.Parse(rawQuery)).ToList();
-
-            var transform = col.Select(a => BsonSerializer.Deserialize<T>(a)).ToList();
+            Current.Log.Add($"{typeof(T).FullName}: QUERY {rawQuery}");
+            var col = _collection.Find(BsonDocument.Parse(rawQuery)).ToEnumerable();
+            var transform = col.AsParallel().Select(a => BsonSerializer.Deserialize<T>(a)).ToList();
             return transform;
         }
 
@@ -208,7 +208,7 @@ namespace Nyan.Modules.Data.MongoDB
 
             Task.WhenAll(colRes);
 
-            var res = colRes.Result.Select(v => BsonSerializer.Deserialize<T>(v)).ToList();
+            var res = colRes.Result.AsParallel().Select(v => BsonSerializer.Deserialize<T>(v)).ToList();
             return res;
         }
 
@@ -296,6 +296,7 @@ namespace Nyan.Modules.Data.MongoDB
                     {
                         _typeCache.Add(type);
 
+                        if (!type.IsAbstract)
                         if (!type.IsGenericType)
                         {
                             if (!BsonClassMap.IsClassMapRegistered(type))
