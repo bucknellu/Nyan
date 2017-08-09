@@ -8,11 +8,56 @@ using Nyan.Core.Wrappers;
 
 namespace Nyan.Core.Extensions
 {
+
+
+
     /// <summary>
     ///     Reflection-related extensions.
     /// </summary>
     public static class Reflections
     {
+
+        public static PropertyInfo[] GetPublicProperties(this Type type)
+        {
+            // https://stackoverflow.com/a/2444090/1845714
+
+            if (type.IsInterface)
+            {
+                var propertyInfos = new List<PropertyInfo>();
+
+                var considered = new List<Type>();
+                var queue = new Queue<Type>();
+                considered.Add(type);
+                queue.Enqueue(type);
+                while (queue.Count > 0)
+                {
+                    var subType = queue.Dequeue();
+                    foreach (var subInterface in subType.GetInterfaces())
+                    {
+                        if (considered.Contains(subInterface)) continue;
+
+                        considered.Add(subInterface);
+                        queue.Enqueue(subInterface);
+                    }
+
+                    var typeProperties = subType.GetProperties(
+                        BindingFlags.FlattenHierarchy
+                        | BindingFlags.Public
+                        | BindingFlags.Instance);
+
+                    var newPropertyInfos = typeProperties
+                        .Where(x => !propertyInfos.Contains(x));
+
+                    propertyInfos.InsertRange(0, newPropertyInfos);
+                }
+
+                return propertyInfos.ToArray();
+            }
+
+            return type.GetProperties(BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.Instance);
+        }
+
+
         private static readonly Type[] PrimitiveTypes =
         {
             typeof(string),
@@ -78,7 +123,7 @@ namespace Nyan.Core.Extensions
                 else k.SetValue(obj, kv.Value != null ? JsonConvert.DeserializeObject(kv.Value.ToString(), kt) : null);
             }
 
-            return (T) obj;
+            return (T)obj;
         }
 
         /// <summary>
@@ -136,7 +181,7 @@ namespace Nyan.Core.Extensions
                 MemberTypes.Method,
                 bindingFlags))
             {
-                var methodInfo = (MethodInfo) memberInfo;
+                var methodInfo = (MethodInfo)memberInfo;
                 // Check that the parameter counts and types match, 
                 // with 'loose' matching on generic parameters
                 var parameterInfos = methodInfo.GetParameters();
@@ -244,8 +289,9 @@ namespace Nyan.Core.Extensions
 
         public static T CreateInstance<T>(this Type typeRef)
         {
-            try {
-                return (T) Activator.CreateInstance(typeRef);
+            try
+            {
+                return (T)Activator.CreateInstance(typeRef);
             }
             catch (Exception e)
             {
@@ -267,7 +313,7 @@ namespace Nyan.Core.Extensions
 
             foreach (var i in source)
             {
-                var uo = (TU) Activator.CreateInstance(typeof(TU), null);
+                var uo = (TU)Activator.CreateInstance(typeof(TU), null);
 
                 i.CopyPropertiesTo(uo);
                 dest.Add(uo);
@@ -297,17 +343,17 @@ namespace Nyan.Core.Extensions
                     p.SetValue(dest, val, null);
                     set = true;
                 }
-                catch {}
+                catch { }
                 if (!set)
                     try
                     {
                         p.SetValue(dest, val.ToString(), null);
                         set = true;
                     }
-                    catch (Exception e) {}
+                    catch (Exception e) { }
             }
         }
 
-        public class GetMethodExtT {}
+        public class GetMethodExtT { }
     }
 }
