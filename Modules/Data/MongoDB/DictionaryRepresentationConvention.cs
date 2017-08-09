@@ -4,6 +4,8 @@ using MongoDB.Bson.Serialization.Options;
 
 namespace Nyan.Modules.Data.MongoDB
 {
+
+    // https://stackoverflow.com/a/28111847/1845714
     internal class DictionaryRepresentationConvention : ConventionBase, IMemberMapConvention
     {
         private readonly DictionaryRepresentation _dictionaryRepresentation;
