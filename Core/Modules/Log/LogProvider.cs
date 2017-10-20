@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using Nyan.Core.Extensions;
-using Nyan.Core.Factories;
 using Nyan.Core.Process;
 
 namespace Nyan.Core.Modules.Log
@@ -11,24 +9,21 @@ namespace Nyan.Core.Modules.Log
     public abstract class LogProvider
     {
         private static bool _isResetting;
-        private readonly Queue<Message> _messageQueue = new Queue<Message>();
-        private bool _shutdown;
 
+        private bool _shutdown;
 
         private bool _useScheduler;
         private Thread _workerThread;
 
         public List<string> ShutdownTriggerTerms = new List<string>();
 
-        public virtual string Protocol { get { return null; } }
+        public virtual string Protocol => null;
 
-        public virtual string Uri { get { return null; } }
-
-        public bool HasMessage { get; private set; } = true;
+        public virtual string Uri => null;
 
         public bool UseScheduler
         {
-            get { return _useScheduler; }
+            get => _useScheduler;
             set
             {
                 _useScheduler = value;
@@ -39,13 +34,12 @@ namespace Nyan.Core.Modules.Log
 
                     _workerThread.Abort();
                     _workerThread = null;
-                    DispatchQueue();
                 }
                 else
                 {
                     if (_workerThread != null) return;
 
-                    _workerThread = new Thread(DispatcherWorker) { IsBackground = false };
+                    _workerThread = new Thread(DispatcherWorker) {IsBackground = false};
                     _workerThread.Start();
                 }
             }
@@ -54,33 +48,9 @@ namespace Nyan.Core.Modules.Log
         private void DispatcherWorker()
         {
             while (_useScheduler)
-                if (!HasMessage) Thread.Sleep(100);
-                else
-                {
-                    HasMessage = false;
-
-                    DispatchQueue();
-                }
-        }
-
-        private void DispatchQueue()
-        {
-            while (_messageQueue.Count != 0)
             {
-                var a = _messageQueue.Peek();
-
-                if (_shutdown) return;
-
-                try
-                {
-                    doDispatchCycle(a);
-                }
-                catch (Exception e)
-                {
-                    System.Add(e); // Log locally.
-                }
-
-                if (_messageQueue.Count != 0) _messageQueue.Dequeue();
+                Local.ManageInventory();
+                Thread.Sleep(250);
             }
         }
 
@@ -88,7 +58,6 @@ namespace Nyan.Core.Modules.Log
 
         public virtual void Shutdown()
         {
-            _messageQueue.Clear();
             _shutdown = true;
             UseScheduler = false;
         }
@@ -101,36 +70,17 @@ namespace Nyan.Core.Modules.Log
 
         public virtual void Add(bool content) { Add(content.ToString()); }
 
-        public virtual void Add(string pattern, params object[] replacementStrings)
-        {
-            Add(string.Format(pattern, replacementStrings));
-        }
+        public virtual void Add(string pattern, params object[] replacementStrings) { Add(string.Format(pattern, replacementStrings)); }
 
         public virtual void Add(Exception e) { Add(e, null, null); }
 
         public virtual void Add(Exception e, string message, string token = null)
         {
-            if (token == null) token = Identifier.MiniGuid();
-
-            if (message == null) message = e.Message;
-
-            var ctx = token + " : " + message;
-
-            try
-            {
-                ctx += " @ " + new StackTrace(e, true).FancyString();
-            }
-            catch { }
-
-            Add(ctx, Message.EContentType.Exception);
-
-            if (e.InnerException != null) Add(e.InnerException, null, token);
+            Add(Converter.ToMessage(e));
+            if (e.InnerException != null) Add(e.InnerException);
         }
 
-        public virtual void Add(Type t, string message, Message.EContentType type = Message.EContentType.Generic)
-        {
-            Add(t.FullName + " : " + message, type);
-        }
+        public virtual void Add(Type t, string message, Message.EContentType type = Message.EContentType.Generic) { Add(t.FullName + " : " + message, type); }
 
         public virtual void Add(string pMessage, Exception e) { Add(e, pMessage, null); }
 
@@ -143,27 +93,18 @@ namespace Nyan.Core.Modules.Log
             if (Settings.replicateLocally) System.Add(payload.Content);
         }
 
-        public virtual void doDispatchCycle(Message payload)
+        public virtual bool doDispatchCycle(Message payload)
         {
             try
             {
                 BeforeDispatch(payload);
-            }
-            catch { }
-            try
-            {
                 Dispatch(payload);
-            }
-            catch { }
-            try
-            {
                 AfterDispatch(payload);
-            }
-            catch { }
+                return true;
+            } catch { return false; }
         }
 
-        public virtual bool
-            CheckShutdownTriggerTerms(string payload)
+        public virtual bool CheckShutdownTriggerTerms(string payload)
         {
             try
             {
@@ -183,16 +124,14 @@ namespace Nyan.Core.Modules.Log
                     return true;
                 }
                 return false;
-            }
-            catch
-            {
-                return false;
-            }
+            } catch { return false; }
         }
 
         public virtual void Add(string content, Message.EContentType type = Message.EContentType.Generic)
         {
             if (_shutdown) return;
+
+            if (string.IsNullOrEmpty(content)) return;
 
             //if (CheckShutdownTriggerTerms(content)) return;
 
@@ -200,30 +139,19 @@ namespace Nyan.Core.Modules.Log
 
             if (type > Settings.VerbosityThreshold) return;
 
-            var payload = new Message { Content = content, Subject = type.ToString(), Type = type };
+            var payload = Converter.ToMessage(content, type);
 
-            if (_useScheduler)
-            {
-                _messageQueue.Enqueue(payload);
-                HasMessage = true;
-            }
-            else
-            {
-                try
-                {
-                    doDispatchCycle(payload);
-                }
-                catch (Exception e)
-                {
-                    System.Add(e);
-                }
-            }
+            Add(payload);
         }
 
-        public virtual void Dispatch(Message payload)
+        public virtual void Add(Message m) { Local.Store(m); }
+
+        public virtual bool Dispatch(Message payload)
         {
             Console.WriteLine(payload.Content);
             Debug.Print(payload.Content);
+
+            return true;
         }
     }
 }
