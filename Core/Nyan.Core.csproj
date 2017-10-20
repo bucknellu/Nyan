@@ -49,6 +49,7 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
   </ItemGroup>
@@ -58,6 +59,9 @@
     <Compile Include="Extensions\Reflections.cs" />
     <Compile Include="Extensions\Serialization.cs" />
     <Compile Include="Configuration.cs" />
+    <Compile Include="Modules\Identity\Helper.cs" />
+    <Compile Include="Modules\Log\Converter.cs" />
+    <Compile Include="Modules\Log\Local.cs" />
     <Compile Include="Modules\Maintenance\Clicker.cs" />
     <Compile Include="Modules\Maintenance\IMaintenanceEventHandler.cs" />
     <Compile Include="Modules\Maintenance\Instances.cs" />
@@ -78,8 +82,10 @@
     <Compile Include="Modules\Data\Pipeline\IPipelinePrimitive.cs" />
     <Compile Include="Modules\Data\Pipeline\PipelineAttribute.cs" />
     <Compile Include="Modules\Data\Pipeline\PipelinePrimitive.cs" />
+    <Compile Include="Modules\Maintenance\TagClicker.cs" />
+    <Compile Include="Modules\Process\TagClicker.cs" />
     <Compile Include="Process\Operations.cs" />
-    <Compile Include="Startup\IServiceDefinition.cs" />
+    <Compile Include="Startup\ServiceDescriptor.cs" />
     <Compile Include="Startup\ServiceLauncher.cs">
       <SubType>Component</SubType>
     </Compile>

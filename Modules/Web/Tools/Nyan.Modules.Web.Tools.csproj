@@ -73,6 +73,7 @@
     <Compile Include="Resource\Proxy.cs" />
     <Compile Include="Resource\Summary.cs" />
     <Compile Include="Search\Global.cs" />
+    <Compile Include="Search\PartialSearch.cs" />
     <Compile Include="Search\SearchController.cs" />
     <Compile Include="Security\Network.cs" />
     <Compile Include="Security\NetworkController.cs" />

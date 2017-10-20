@@ -70,6 +70,8 @@ namespace Nyan.Tools.LogMonitor
 
                 if (oMessage.Type == Message.EContentType.Generic && chkIgGen.Checked) return;
 
+                if ((int)oMessage.Type < 10) oMessage.Type = (Message.EContentType)Enum.ToObject(typeof(Message.EContentType), (int)oMessage.Type * 10);
+
                 try
                 {
                     var a = new ListViewItem
@@ -98,7 +100,7 @@ namespace Nyan.Tools.LogMonitor
                     mustUpdate = true;
 
                 }
-                catch { }
+                catch (Exception e) { }
             }
         }
 
