@@ -67,6 +67,7 @@
     <Compile Include="MongoDbAdapter.cs" />
     <Compile Include="MongoDbinterceptor.cs" />
     <Compile Include="MongoDbDynamicParameters.cs" />
+    <Compile Include="MongoMicroEntity.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
