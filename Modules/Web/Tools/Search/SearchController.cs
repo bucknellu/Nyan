@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Web.Http;
 using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Cache;
-using Nyan.Core.Modules.Data.Contracts;
 using Nyan.Core.Settings;
 
 namespace Nyan.Modules.Web.Tools.Search
@@ -11,9 +10,8 @@ namespace Nyan.Modules.Web.Tools.Search
     [RoutePrefix("stack/tools/search")]
     public class SearchController : ApiController
     {
-        [Route("{term}")]
-        [HttpGet]
-        public Dictionary<string, object> Search(string term)
+        [Route("{term}"), HttpGet]
+        public object Search(string term, [FromUri] int? limit = 32)
         {
             try
             {
@@ -24,6 +22,8 @@ namespace Nyan.Modules.Web.Tools.Search
 
                 var ret = Helper.FetchCacheableSingleResultByKey(doSearch, a.ToJson(), "GlobalSearch");
 
+                if (limit.HasValue) return ret.ToPartialSearch(limit.Value);
+
                 return ret;
             }
             catch (Exception e)
@@ -33,8 +33,7 @@ namespace Nyan.Modules.Web.Tools.Search
             }
         }
 
-        [Route("{term}/{categories}")]
-        [HttpGet]
+        [Route("{term}/{categories}"), HttpGet]
         public Dictionary<string, object> Search(string term, string categories)
         {
             try
@@ -58,8 +57,9 @@ namespace Nyan.Modules.Web.Tools.Search
         private Dictionary<string, object> doSearch(string terms)
         {
             var term = terms.FromJson<ParmSet>();
+            var ret = Global.Run(term.Term, term.Categories);
 
-            return Global.Run(term.Term, term.Categories);
+            return ret;
         }
 
         public class ParmSet
