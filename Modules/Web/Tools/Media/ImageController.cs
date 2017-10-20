@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -18,6 +19,22 @@ namespace Nyan.Modules.Web.Tools.Media
         [Route("external"), HttpGet]
         public virtual HttpResponseMessage GetReference([FromUri] string url, [FromUri] int? width = null, [FromUri] int? height = null)
         {
+
+            var redirects = new[] { ".svg" };
+
+            var uri = new Uri(url);
+
+            if (Path.HasExtension(uri.AbsoluteUri))
+            {
+                if (redirects.Any(i => Path.GetExtension(uri.AbsoluteUri).ToLower() == i))
+                {
+                    var response = Request.CreateResponse(HttpStatusCode.Moved);
+                    response.Headers.Location = uri;
+                    return response;
+                }
+            }
+
+
             return InternalGetReference(url, width, height);
         }
 
