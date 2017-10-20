@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
+using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Log;
 using Nyan.Core.Settings;
 
@@ -26,48 +28,73 @@ namespace Nyan.Core.Modules.Maintenance
 
             try
             {
-                foreach (var maintenanceTask in Instances.Schedule)
+                var scheByPrio = Instances.GetScheduledTasksByPriority();
+
+                Current.Log.Add("    Warm-up summary:", Message.EContentType.Maintenance);
+
+                foreach (var instSche in scheByPrio) Current.Log.Add($"        Priority {instSche.Key}: {instSche.Value.Count} Task(s)", Message.EContentType.Maintenance);
+
+                foreach (var instSche in scheByPrio)
                 {
-                    var proc = new MaintenanceTaskResult { Id = maintenanceTask.Id };
-                    var mustSkip = false;
+                    Current.Log.Add($"    START: Priority {instSche.Key} tasks ", Message.EContentType.Maintenance);
 
-                    if (!force)
-                        if (!Instances.Handler.CanRun(maintenanceTask))
-                        {
-                            proc.Status = MaintenanceTaskResult.EResultStatus.Skipped;
-                            proc.Message = "Skipped: cooldown";
-                            mustSkip = true;
-                        }
-
-                    if (!mustSkip)
+                    try
                     {
-                        Current.Log.Add("START " + maintenanceTask.Id, Message.EContentType.Maintenance);
-
-                        var sw = new Stopwatch();
-                        sw.Start();
-
-                        try
+                        Parallel.ForEach(instSche.Value, maintenanceTask =>
                         {
-                            proc = maintenanceTask.Task.MaintenanceTask(force);
-                            if (proc.Status == MaintenanceTaskResult.EResultStatus.Undefined) proc.Status = MaintenanceTaskResult.EResultStatus.Success;
-                            if (proc.Message == null) proc.Message = "SUCCESS";
-                        }
-                        catch (Exception e)
-                        {
-                            proc.Status = MaintenanceTaskResult.EResultStatus.Failed;
-                            proc.Message = "ERROR " + e.Message;
-                        }
+                            try
+                            {
+                                var proc = new MaintenanceTaskResult {Id = maintenanceTask.Id};
+                                var mustSkip = false;
 
-                        proc.Id = maintenanceTask.Id;
+                                if (!force)
+                                    if (!Instances.Handler.CanRun(maintenanceTask))
+                                    {
+                                        proc.Status = MaintenanceTaskResult.EResultStatus.Skipped;
+                                        proc.Message = "Skipped: cooldown";
+                                        mustSkip = true;
+                                    }
 
-                        sw.Stop();
+                                if (!mustSkip)
+                                {
+                                    Current.Log.Add("START " + maintenanceTask.Id, Message.EContentType.Maintenance);
 
-                        proc.Duration = TimeSpan.FromMilliseconds(sw.ElapsedMilliseconds);
+                                    var sw = new Stopwatch();
+                                    sw.Start();
+
+                                    try
+                                    {
+                                        proc = maintenanceTask.Task.MaintenanceTask(force);
+                                        if (proc.Status == MaintenanceTaskResult.EResultStatus.Undefined) proc.Status = MaintenanceTaskResult.EResultStatus.Success;
+                                        if (proc.Message == null) proc.Message = "SUCCESS";
+                                    } catch (Exception e)
+                                    {
+                                        proc.Status = MaintenanceTaskResult.EResultStatus.Failed;
+                                        proc.Message = $"ERROR: {e.Message} @ {e.FancyString()}";
+                                    }
+
+                                    proc.Id = maintenanceTask.Id;
+                                    proc.Priority = maintenanceTask.Priority;
+
+                                    sw.Stop();
+
+                                    proc.Duration = TimeSpan.FromMilliseconds(sw.ElapsedMilliseconds);
+                                }
+
+                                ret.Add(proc);
+
+                                Instances.Handler.AfterRun(maintenanceTask, proc);
+                            } catch (Exception e)
+                            {
+                                Current.Log.Add($"    TASK {maintenanceTask.Id} FAILURE: {e.Message} @ {e.FancyString()}", Message.EContentType.Maintenance);
+                                Current.Log.Add(e);
+                            }
+                        });
+                    } catch (Exception e)
+                    {
+                        Current.Log.Add($"    FAILURE: {e.Message} @ {e.FancyString()}", Message.EContentType.Maintenance);
+                        Current.Log.Add(e);
                     }
-
-                    ret.Add(proc);
-
-                    Instances.Handler.AfterRun(maintenanceTask, proc);
                 }
 
                 msw.Stop();
@@ -78,9 +105,17 @@ namespace Nyan.Core.Modules.Maintenance
                 var mRet = new MaintenanceEventEntry
                 {
                     TaskCount = Instances.Schedule.Count,
-                    Results = ret,
-                    ElapsedTime = TimeSpan.FromMilliseconds(msw.ElapsedMilliseconds)
+                    ElapsedTime = TimeSpan.FromMilliseconds(msw.ElapsedMilliseconds),
+                    Process = Configuration.ApplicationAssemblyName,
+                    Path = Configuration.BaseDirectory
                 };
+
+                foreach (var mtr in ret)
+                {
+                    if (mtr.Status == MaintenanceTaskResult.EResultStatus.Skipped) continue;
+                    if (!mRet.Results.ContainsKey(mtr.Priority)) mRet.Results.Add(mtr.Priority, new List<MaintenanceTaskResult>());
+                    mRet.Results[mtr.Priority].Add(mtr);
+                }
 
                 if (!saveLog) return mRet;
                 try { Instances.Handler.HandleEvent(mRet); } catch { }
@@ -88,8 +123,7 @@ namespace Nyan.Core.Modules.Maintenance
                 Instances.Handler.HandleEnd();
 
                 return mRet;
-            }
-            catch (Exception e)
+            } catch (Exception e)
             {
                 if (currType == "") Current.Log.Add(e);
                 else Current.Log.Add(e, currType);

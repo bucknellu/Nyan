@@ -13,6 +13,19 @@ namespace Nyan.Core.Modules.Maintenance
 
         public static readonly List<MaintenanceSchedule> Schedule;
 
+        public static Dictionary<int, List<MaintenanceSchedule>> GetScheduledTasksByPriority()
+        {
+            var ret = new Dictionary<int, List<MaintenanceSchedule>>();
+
+            foreach (var ms in Schedule)
+            {
+                if (!ret.ContainsKey(ms.Priority)) ret.Add(ms.Priority, new List<MaintenanceSchedule>());
+                ret[ms.Priority].Add(ms);
+            }
+
+            return ret;
+        }
+
         internal static readonly Type MaintenanceEventHandlerType = Management.GetClassesByInterface<IMaintenanceEventHandler>()[0];
 
         private static IMaintenanceEventHandler _handler;
@@ -23,13 +36,13 @@ namespace Nyan.Core.Modules.Maintenance
 
             foreach (var i in RegisteredMaintenanceTaskTypes)
             {
-                var setup = (MaintenanceTaskSetupAttribute) i.GetMethod("MaintenanceTask").GetCustomAttributes(typeof(MaintenanceTaskSetupAttribute), false).FirstOrDefault()
-                            ?? new MaintenanceTaskSetupAttribute {Name = "Maintenance Task"};
+                var setup = (MaintenanceTaskSetupAttribute)i.GetMethod("MaintenanceTask").GetCustomAttributes(typeof(MaintenanceTaskSetupAttribute), false).FirstOrDefault()
+                            ?? new MaintenanceTaskSetupAttribute { Name = "Maintenance Task" };
 
-                var priority = (PriorityAttribute) i.GetMethod("MaintenanceTask")
+                var priority = (PriorityAttribute)i.GetMethod("MaintenanceTask")
                                    .GetCustomAttributes(typeof(PriorityAttribute), false)
                                    .FirstOrDefault()
-                               ?? new PriorityAttribute {Level = 99};
+                               ?? new PriorityAttribute { Level = 0 };
 
                 var entry = new MaintenanceSchedule
                 {
@@ -43,7 +56,7 @@ namespace Nyan.Core.Modules.Maintenance
                 ret.Add(entry);
             }
 
-            ret = ret.OrderBy(i => i.Priority).ToList();
+            ret = ret.OrderBy(i => i.Priority * -1).ToList();
 
             Schedule = ret;
         }
