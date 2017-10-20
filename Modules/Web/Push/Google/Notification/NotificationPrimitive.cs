@@ -10,7 +10,6 @@ namespace Nyan.Modules.Web.Push.Google.Notification
 
         // https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerRegistration/showNotification
 
-
         public string title { get; set; }
         public class Options
         {
@@ -24,6 +23,7 @@ namespace Nyan.Modules.Web.Push.Google.Notification
             public List<int> vibrate { get; set; } = new List<int>();
             public Dictionary<string, string> data { get; set; } = new Dictionary<string, string>();
             public string icon { get; set; }
+            public string image { get; set; }
             public string badge { get; set; }
             public class Action
             {
