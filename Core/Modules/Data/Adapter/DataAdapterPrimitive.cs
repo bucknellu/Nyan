@@ -141,36 +141,7 @@ namespace Nyan.Core.Modules.Data.Adapter
             var statements = MicroEntity<T>.Statements;
             var tableData = MicroEntity<T>.TableData;
 
-            var mapping = MicroEntity<T>.EnvironmentMappingData;
-
-            var mappedEnvCode = mapping.ContainsKey(Current.Environment.CurrentCode) ? mapping[Current.Environment.CurrentCode] : null;
-
-            var envCode = tableData.PersistentEnvironmentCode;
-
-            var mapSrc = "";
-
-            if (envCode == null)
-            {
-                if (mappedEnvCode != null)
-                {
-                    mapSrc = "Mapping";
-                    envCode = mappedEnvCode;
-                }
-            }
-            else
-            {
-                mapSrc = "PersistentEnvironmentCode";
-            }
-
-            if (envCode == null)
-            {
-                mapSrc = "Environment.CurrentCode";
-                envCode = Current.Environment.CurrentCode;
-            }
-
-            if (envCode == "UND") envCode = "DEV";
-
-            if (!tableData.SuppressErrors) Current.Log.Add(typeof(T), "Environment [" + envCode + "] set by " + mapSrc);
+            var envCode = statements.EnvironmentCode;
 
             if (!statements.ConnectionCypherKeys.ContainsKey(envCode))
             {
