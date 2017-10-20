@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 namespace Nyan.Core.Modules.Data.Contracts
 {
+    public interface ISearchDisabled { } // Marker for deprecated Search entities.
+
     public interface ISearch
     {
         string SearchResultMoniker { get; }
