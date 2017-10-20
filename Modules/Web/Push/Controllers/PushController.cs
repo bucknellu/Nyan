@@ -58,7 +58,7 @@ namespace Nyan.Modules.Web.Push.Controllers
             try
             {
                 Instances.Dispatcher.Deregister(ep);
-                Current.Log.Add(ep.ToJson());
+                // Current.Log.Add(ep.ToJson());
                 return true;
             }
             catch (Exception e)
