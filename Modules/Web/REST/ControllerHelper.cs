@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -12,28 +13,28 @@ namespace Nyan.Modules.Web.REST
 {
     public static class ControllerHelper
     {
+        internal static void HandleHeaders(HttpHeaders retHeaders, Dictionary<string, object> hs)
+        {
+            if (hs == null) return;
+
+            foreach (var j in hs)
+            {
+                if (retHeaders.Contains(j.Key)) retHeaders.Remove(j.Key);
+                retHeaders.Add(j.Key, j.Value.ToJson());
+            }
+        }
         public static void ProcessPipelineHeaders<T>(HttpHeaders retHeaders) where T : MicroEntity<T>
         {
-            foreach (var i in MicroEntity<T>.Statements.BeforeActionPipeline)
-            {
-                var hs = i.Headers<T>();
-                if (hs == null) continue;
-                foreach (var j in hs) retHeaders.Add(j.Key, j.Value);
-            }
 
-            foreach (var i in MicroEntity<T>.Statements.AfterActionPipeline)
-            {
-                var hs = i.Headers<T>();
-                if (hs == null) continue;
-                foreach (var j in hs) retHeaders.Add(j.Key, j.Value);
-            }
+            foreach (var i in MicroEntity<T>.Statements.BeforeActionPipeline) HandleHeaders(retHeaders, i.Headers<T>());
+            foreach (var i in MicroEntity<T>.Statements.AfterActionPipeline) HandleHeaders(retHeaders, i.Headers<T>());
         }
 
         public static HttpResponseMessage RenderJsonResult(object contents)
         {
             try
             {
-                var ret = new HttpResponseMessage(HttpStatusCode.OK) {Content = new StringContent(contents.ToJson())};
+                var ret = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(contents.ToJson()) };
                 ret.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
                 return ret;
             }
