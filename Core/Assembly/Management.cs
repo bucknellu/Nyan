@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Web;
+using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Log;
 using Nyan.Core.Process;
 using Nyan.Core.Settings;
@@ -18,9 +19,7 @@ namespace Nyan.Core.Assembly
     /// </summary>
     public static class Management
     {
-        public static readonly Dictionary<string, System.Reflection.Assembly> AssemblyCache =
-            new Dictionary<string, System.Reflection.Assembly>();
-
+        public static readonly Dictionary<string, System.Reflection.Assembly> AssemblyCache = new Dictionary<string, System.Reflection.Assembly>();
         private static readonly Dictionary<Type, List<Type>> InterfaceClassesCache = new Dictionary<Type, List<Type>>();
         private static readonly object Lock = new object();
         private static readonly List<FileSystemWatcher> FsMonitors = new List<FileSystemWatcher>();
@@ -41,14 +40,20 @@ namespace Nyan.Core.Assembly
 
         static Management()
         {
+            Modules.Log.System.Add("Warm-up START", Message.EContentType.StartupSequence);
+
 #pragma warning disable 618
             AppDomain.CurrentDomain.SetShadowCopyFiles();
+
+
 
             var targetScDir = Configuration.DataDirectory + "\\sc";
 
             if (!Directory.Exists(targetScDir)) Directory.CreateDirectory(targetScDir);
 
-            AppDomain.CurrentDomain.SetCachePath(Configuration.DataDirectory + "\\sc");
+            AppDomain.CurrentDomain.SetCachePath(targetScDir);
+
+            Modules.Log.System.Add($"    ShadowCopy @ {targetScDir}", Message.EContentType.Info);
 
 #pragma warning restore 618
 
@@ -80,9 +85,12 @@ namespace Nyan.Core.Assembly
             {
                 lastErrCount = errCount;
 
+                //var modList = AssemblyCache.Select(i => i.Value.ToString().Split(',')[0]).ToJson();
+
+                //Modules.Log.System.Add("   Loading " + modList, Message.EContentType.MoreInfo);
+
                 foreach (var item in AssemblyCache)
                 {
-                    Modules.Log.System.Add("   LOAD " + item.Value.ToString().Split(',')[0]);
 
                     errCount = 0;
 
@@ -90,20 +98,23 @@ namespace Nyan.Core.Assembly
                     {
                         item.Value.GetTypes();
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
-                        Modules.Log.System.Add("    ERR " + item.Value);
+                        Modules.Log.System.Add("   ERR loading " + item.Value.ToString().Split(',')[0]);
+                        Modules.Log.System.Add(e);
                         errCount++;
                     }
                 }
 
                 Modules.Log.System.Add("    Previous " + lastErrCount + ", current " + errCount + " errors");
             }
-            Modules.Log.System.Add("Loaded modules: ");
 
-            foreach (var item in AssemblyCache) Modules.Log.System.Add("    " + item.Value.Location + " (" + item.Value + ")");
+            //Modules.Log.System.Add("Loaded modules: ");
+            //foreach (var item in AssemblyCache) Modules.Log.System.Add("    " + item.Value.Location + " (" + item.Value + ")");
 
-            Modules.Log.System.Add("Fatal Errors: " + errCount);
+            Modules.Log.System.Add("Fatal Load Errors: " + errCount);
+
+            Modules.Log.System.Add("Warm-up FINISH", Message.EContentType.StartupSequence);
         }
 
         private static System.Reflection.Assembly GetAssemblyByName(string name)
@@ -165,7 +176,7 @@ namespace Nyan.Core.Assembly
 
                     FsMonitors.Add(watcher);
 
-                    Modules.Log.System.Add("Monitoring [" + path + "]", Message.EContentType.StartupSequence);
+                    Modules.Log.System.Add($"    Watching {path}", Message.EContentType.Info);
                 }
                 else
                 {
