@@ -45,10 +45,7 @@ namespace Nyan.Core.Modules.Data
 
         #region Maintenance
 
-        public static DataAdapterPrimitive.ModelDefinition ModelDefinition
-        {
-            get { return Statements.Adapter.GetModel<T>(Definition.DdlContent.All); }
-        }
+        public static DataAdapterPrimitive.ModelDefinition ModelDefinition => Statements.Adapter.GetModel<T>(Definition.DdlContent.All);
 
         #endregion
 
@@ -127,10 +124,7 @@ namespace Nyan.Core.Modules.Data
         {
             T ret;
 
-            if (Statements.Interceptor != null)
-            {
-                ret = Statements.Interceptor.Get<T>(identifier.ToString());
-            }
+            if (Statements.Interceptor != null) { ret = Statements.Interceptor.Get<T>(identifier.ToString()); }
             else
             {
                 var retCol = Statements.Adapter.useNumericPrimaryKeyOnly
@@ -141,7 +135,6 @@ namespace Nyan.Core.Modules.Data
             }
             return ret;
         }
-
 
         /// <summary>
         /// </summary>
@@ -165,7 +158,7 @@ namespace Nyan.Core.Modules.Data
                 var qryparm = "'" + string.Join("','", innerList) + "'";
 
                 var q = string.Format(Statements.SqlAllFieldsQueryTemplate,
-                    Statements.IdPropertyRaw + " IN (" + qryparm + ")");
+                                      Statements.IdPropertyRaw + " IN (" + qryparm + ")");
 
                 tasks.Add(new Task<List<T>>(() => Query(q)));
             }
@@ -209,7 +202,7 @@ namespace Nyan.Core.Modules.Data
             queryParm.Add(leftSideValue.ToString(), rightSideValue);
 
             var querySpec = ResolveNodeType(body.NodeType, leftSideValue,
-                Statements.Adapter.ParameterDefinition.ToString() + leftSideValue);
+                                            Statements.Adapter.ParameterDefinition.ToString() + leftSideValue);
 
             var q = string.Format(Statements.SqlAllFieldsQueryTemplate, querySpec.First());
 
@@ -224,11 +217,11 @@ namespace Nyan.Core.Modules.Data
 
         private static void ValidateEntityState()
         {
-            if ((Statements.State.Status != MicroEntityCompiledStatements.EStatus.Operational) &&
-                (Statements.State.Status != MicroEntityCompiledStatements.EStatus.Initializing))
+            if (Statements.State.Status != MicroEntityCompiledStatements.EStatus.Operational &&
+                Statements.State.Status != MicroEntityCompiledStatements.EStatus.Initializing)
                 throw new InvalidDataException(
                     "Class is not operational: {0}, {1} ({2})".format(Statements.State.Status.ToString(),
-                        Statements.State.Description, Statements.State.Stack));
+                                                                      Statements.State.Description, Statements.State.Stack));
         }
 
         /// <summary>
@@ -243,8 +236,7 @@ namespace Nyan.Core.Modules.Data
                 case "System.Linq.Expressions.LogicalBinaryExpression":
                 case "System.Linq.Expressions.MethodBinaryExpression":
                 // TODO: Finish
-                case "System.Linq.Expressions.UnaryExpression":
-                    return ResolveExpression((expression as UnaryExpression).Operand);
+                case "System.Linq.Expressions.UnaryExpression": return ResolveExpression((expression as UnaryExpression).Operand);
                 case "System.Linq.Expressions.PropertyExpression":
                     // return ResolveMemberExpression(expression as MemberExpression);
 
@@ -280,7 +272,7 @@ namespace Nyan.Core.Modules.Data
         /// <param name="rightValue">The right value. Can be a value or enumeration.</param>
         /// <returns></returns>
         private static IEnumerable<IOperator> ResolveNodeType(ExpressionType nodeType, object leftValue,
-            object rightValue)
+                                                              object rightValue)
         {
             switch (nodeType)
             {
@@ -328,15 +320,7 @@ break; */
         {
             if (Statements.AfterActionPipeline.Count <= 0) return;
 
-            foreach (var afterActionPipeline in Statements.AfterActionPipeline)
-                try
-                {
-                    afterActionPipeline.Process(action, current, source);
-                }
-                catch (Exception e)
-                {
-                    Current.Log.Add(e);
-                }
+            foreach (var afterActionPipeline in Statements.AfterActionPipeline) try { afterActionPipeline.Process(action, current, source); } catch (Exception e) { Current.Log.Add(e); }
         }
 
         private static T ProcBeforePipeline(string action, T current, T source)
@@ -344,16 +328,7 @@ break; */
             if (current == null) return null;
             if (Statements.BeforeActionPipeline.Count <= 0) return current;
 
-            foreach (var beforeActionPipeline in Statements.BeforeActionPipeline)
-                try
-                {
-                    if (current != null)
-                        current = beforeActionPipeline.Process(action, current, source);
-                }
-                catch (Exception e)
-                {
-                    Current.Log.Add(e);
-                }
+            foreach (var beforeActionPipeline in Statements.BeforeActionPipeline) try { if (current != null) current = beforeActionPipeline.Process(action, current, source); } catch (Exception e) { Current.Log.Add(e); }
 
             return current;
         }
@@ -364,30 +339,28 @@ break; */
         /// <returns>An enumeration with all the entries from database.</returns>
         public static IEnumerable<T> Get()
         {
+            return GetAll();
+        }
+
+        public static IEnumerable<T> GetAll(string extraParms = null) { return GetAll<T>(); }
+
+        public static IEnumerable<TU> GetAll<TU>(string extraParms = null)
+        {
             ValidateEntityState();
 
             //GetAll should never use cache, always hitting the DB.
+            var ret = Statements.Interceptor != null ? Statements.Interceptor.GetAll<T, TU>(extraParms) : Query<TU>(Statements.SqlGetAll);
 
-            var ret = Statements.Interceptor != null ? Statements.Interceptor.Get<T>() : Query(Statements.SqlGetAll);
-
-            if (!TableData.UseCaching) return ret;
-
-            //...but it populates the cache with all the individual results, saving time for future FETCHes.
-
-            if (Current.Cache.OperationalStatus != EOperationalStatus.Operational) return ret;
-
-            foreach (var o in ret) Current.Cache[CacheKey(o.GetEntityIdentifier())] = o.ToJson();
             return ret;
         }
 
-        public static long Count()
-        {
-            return Statements.Interceptor?.RecordCount<T>() ?? QuerySingleValue<long>(Statements.SqlRowCount);
-        }
+        public static long Count() { return Statements.Interceptor?.RecordCount<T>() ?? QuerySingleValue<long>(Statements.SqlRowCount); }
 
-        public static long Count(MicroEntityParametrizedGet qTerm)
+
+
+        public static long Count(MicroEntityParametrizedGet qTerm, string extraParms = null)
         {
-            if (Statements.Interceptor != null) { return Statements.Interceptor.RecordCount<T>(qTerm); }
+            if (Statements.Interceptor != null) return Statements.Interceptor.RecordCount<T>(qTerm, extraParms);
 
             var bag = GetNewDynamicParameterBag();
             bag.Add("qParm", qTerm.QueryTerm);
@@ -396,31 +369,28 @@ break; */
         }
 
 
-        public static IEnumerable<T> Get(MicroEntityParametrizedGet parm)
+
+
+        public static IEnumerable<T> Get(MicroEntityParametrizedGet parm) { return Get(parm, null); }
+        public static IEnumerable<T> Get(MicroEntityParametrizedGet parm, string extraParms)
         {
             ValidateEntityState();
 
-            var op = "";
-            var src = "";
             var bag = GetNewDynamicParameterBag();
-            List<T> ret = null;
+            List<T> ret;
 
-            if (Statements.Interceptor != null)
-            {
-                ret = Statements.Interceptor.Get<T>(parm);
-            }
+            if (Statements.Interceptor != null) { ret = Statements.Interceptor.GetAll<T>(parm, extraParms); }
             else
             {
-                if (parm.QueryTerm == null)
-                {
-                    src = Statements.SqlGetAll;
-                }
+                string src;
+                if (parm.QueryTerm == null) { src = Statements.SqlGetAll; }
                 else
                 {
                     src = string.Format(Statements.SqlAllFieldsQueryTemplate, Statements.SqlSimpleQueryTerm);
                     bag.Add("qParm", "%" + parm.QueryTerm + "%");
                 }
 
+                var op = "";
                 if (parm.OrderBy != null)
                     op = src + " " + Statements.SqlOrderByCommand + " " +
                          Statements.Adapter.GetOrderByClausefromSerializedQueryParameters<T>(parm.OrderBy);
@@ -440,12 +410,29 @@ break; */
             foreach (var o in ret) Current.Cache[CacheKey(o.GetEntityIdentifier())] = o.ToJson();
             return ret;
         }
+        public static IEnumerable<TU> Get<TU>(MicroEntityParametrizedGet parm, string extraParms)
+        {
+            ValidateEntityState();
+
+            List<TU> ret = null;
+
+            if (Statements.Interceptor != null) { ret = Statements.Interceptor.GetAll<T, TU>(parm, extraParms); }
+            else
+            {
+                var tmp = Query<TU>(Statements.SqlGetAll);
+                if (parm.QueryTerm != null) tmp = tmp.Where(i => i.ToJson().IndexOf(parm.QueryTerm, StringComparison.Ordinal) != -1).ToList();
+                if (parm.PageSize != 0) tmp = tmp.Skip((int)((parm.PageIndex) * parm.PageSize)).Take((int)parm.PageSize).ToList();
+                ret = tmp;
+            }
+
+            return ret;
+        }
 
         public static bool Remove(long identifier) { return Remove(identifier.ToString(CultureInfo.InvariantCulture)); }
 
         public static void Remove(List<T> objs)
         {
-            foreach (var obj in objs) { obj.Remove(); }
+            foreach (var obj in objs) obj.Remove();
         }
 
         public static void RemoveAll()
@@ -458,7 +445,6 @@ break; */
             else Execute(Statements.SqlTruncateTable);
 
             ProcAfterPipeline(Support.EAction.DeleteAll, null, null);
-
 
             if (!TableData.UseCaching) return;
             if (Current.Cache.OperationalStatus != EOperationalStatus.Operational) return;
@@ -519,10 +505,7 @@ break; */
             return set;
         }
 
-        public static IEnumerable<T> ReferenceQueryByField(string field, long id)
-        {
-            return ReferenceQueryByField(field, id.ToString());
-        }
+        public static IEnumerable<T> ReferenceQueryByField(string field, long id) { return ReferenceQueryByField(field, id.ToString()); }
 
         public static IEnumerable<T> ReferenceQueryByField(string field, string id)
         {
@@ -536,10 +519,7 @@ break; */
             return set;
         }
 
-        public static IEnumerable<T> ReferenceQueryByStringField(string field, string id)
-        {
-            return ReferenceQueryByField(field, id);
-        }
+        public static IEnumerable<T> ReferenceQueryByStringField(string field, string id) { return ReferenceQueryByField(field, id); }
 
         public static IEnumerable<T> QueryByWhereClause(string clause, object b = null)
         {
@@ -555,22 +535,13 @@ break; */
             return set;
         }
 
-        public static ParameterDefinition ParameterDefinition { get { return Statements.Adapter.ParameterDefinition; } }
+        public static ParameterDefinition ParameterDefinition => Statements.Adapter.ParameterDefinition;
 
-        public static DynamicParametersPrimitive GetNewDynamicParameterBag(bool pRaw = false)
-        {
-            return Statements.Adapter.Parameters<T>(null, pRaw);
-        }
+        public static DynamicParametersPrimitive GetNewDynamicParameterBag(bool pRaw = false) { return Statements.Adapter.Parameters<T>(null, pRaw); }
 
-        public static bool IsCached(long identifier)
-        {
-            return IsCached(identifier.ToString(CultureInfo.InvariantCulture));
-        }
+        public static bool IsCached(long identifier) { return IsCached(identifier.ToString(CultureInfo.InvariantCulture)); }
 
-        public static bool IsCached(string identifier)
-        {
-            return TableData.UseCaching && Current.Cache.Contains(CacheKey(identifier));
-        }
+        public static bool IsCached(string identifier) { return TableData.UseCaching && Current.Cache.Contains(CacheKey(identifier)); }
 
         #endregion
 
@@ -581,11 +552,12 @@ break; */
             T ignore = null;
             return IsNew(ref ignore);
         }
+
         public bool IsNew(ref T oProbe)
         {
             var probe = GetEntityIdentifier();
 
-            if (!TableData.IsInsertableIdentifier) if ((probe == "") || (probe == "0")) return true;
+            if (!TableData.IsInsertableIdentifier) if (probe == "" || probe == "0") return true;
 
             oProbe = Get(probe);
             return oProbe == null;
@@ -648,18 +620,17 @@ break; */
 
             if (rec == null) return null;
 
-            if (Statements.Interceptor != null)
-            {
-                ret = Statements.Interceptor.Save(rec);
-            }
+            BeforeSave();
+
+            if (Statements.Interceptor != null) { ret = Statements.Interceptor.Save(rec); }
             else
             {
                 var obj = !isNew
                     ? Statements.Adapter.Parameters<T>(rec)
                     : Statements.Adapter.InsertableParameters<T>(rec);
 
-                if (Statements.IdColumn == null) Execute(Statements.SqlInsertSingle, obj);
-                else if (isNew) ret = SaveAndGetId(obj);
+                if (Statements.IdColumn == null) { Execute(Statements.SqlInsertSingle, obj); }
+                else if (isNew) { ret = SaveAndGetId(obj); }
                 else
                 {
                     Execute(Statements.SqlUpdateSingle, obj);
@@ -710,10 +681,7 @@ break; */
 
             if (_isDeleted) return;
 
-            if (Statements.Interceptor != null)
-            {
-                Statements.Interceptor.Insert(this);
-            }
+            if (Statements.Interceptor != null) { Statements.Interceptor.Insert(this); }
             else
             {
                 var parm = TableData.IsInsertableIdentifier
@@ -752,7 +720,7 @@ break; */
         }
 
         public static List<List<Dictionary<string, object>>> QueryMultiple(string sqlStatement,
-            object sqlParameters = null, CommandType pCommandType = CommandType.Text)
+                                                                           object sqlParameters = null, CommandType pCommandType = CommandType.Text)
         {
             ValidateEntityState();
 
@@ -787,10 +755,10 @@ break; */
             catch (Exception e)
             {
                 LogWrap(e,
-                    GetTypeName() +
-                    ": Entity/Dapper Query: Error while issuing statements to the database. Statement: [" + sqlStatement
-                    +
-                    "]. Database: " + cDebug);
+                        GetTypeName() +
+                        ": Entity/Dapper Query: Error while issuing statements to the database. Statement: [" + sqlStatement
+                        +
+                        "]. Database: " + cDebug);
                 throw new DataException(
                     GetTypeName() +
                     "Entity/Dapper Query: Error while issuing statements to the database. Error:  [" + e.Message + "].",
@@ -809,7 +777,7 @@ break; */
         }
 
         public static List<T> Query(string sqlStatement, DynamicParametersPrimitive sqlParameters,
-            CommandType pCommandType)
+                                    CommandType pCommandType)
         {
             ValidateEntityState();
 
@@ -870,13 +838,10 @@ break; */
             }
         }
 
-        public static void Execute(string sqlStatement, object sourceObj)
-        {
-            Execute(sqlStatement, Statements.Adapter.Parameters<T>(sourceObj));
-        }
+        public static void Execute(string sqlStatement, object sourceObj) { Execute(sqlStatement, Statements.Adapter.Parameters<T>(sourceObj)); }
 
         public static void Execute(string sqlStatement, DynamicParametersPrimitive sqlParameters = null,
-            CommandType pCommandType = CommandType.Text)
+                                   CommandType pCommandType = CommandType.Text)
         {
             ValidateEntityState();
 
@@ -932,7 +897,7 @@ break; */
         public static List<TU> Query<TU>(string sqlStatement) { return Query<TU>(sqlStatement, null); }
 
         public static List<TU> Query<TU>(string sqlStatement, object sqlParameters = null,
-            CommandType pCommandType = CommandType.Text)
+                                         CommandType pCommandType = CommandType.Text)
         {
             ValidateEntityState();
 
@@ -966,7 +931,7 @@ break; */
         }
 
         public static Dictionary<string, dynamic> ExecuteOutputParameters(string sqlStatement,
-            DynamicParametersPrimitive p)
+                                                                          DynamicParametersPrimitive p)
         {
             var result = new Dictionary<string, dynamic>();
 
@@ -980,15 +945,7 @@ break; */
 
                     var a = p.ParameterNames.ToList();
 
-                    foreach (var name in a)
-                        try
-                        {
-                            result[name] = p.Get<dynamic>(name);
-                        }
-                        catch
-                        {
-                            result[name] = null;
-                        }
+                    foreach (var name in a) try { result[name] = p.Get<dynamic>(name); } catch { result[name] = null; }
                 }
             }
             catch (Exception e)
@@ -1004,7 +961,7 @@ break; */
         }
 
         public static string InsertAndReturnIdentifier(DynamicParametersPrimitive p = null,
-            CommandType pCommandType = CommandType.Text)
+                                                       CommandType pCommandType = CommandType.Text)
         {
             var sqlStatement = Statements.Adapter.useIndependentStatementsForKeyExtraction
                 ? Statements.SqlInsertSingle
@@ -1033,7 +990,7 @@ break; */
                         {
                             p = GetNewDynamicParameterBag();
                             p.Add("newid", dbType: DynamicParametersPrimitive.DbGenericType.String,
-                                direction: ParameterDirection.Output, size: 38);
+                                  direction: ParameterDirection.Output, size: 38);
                             conn.Execute(Statements.SqlReturnNewIdentifier, p);
                             var ret = p.Get<object>("newid").ToString();
 
@@ -1046,7 +1003,7 @@ break; */
                     if (!Statements.Adapter.UseOutputParameterForInsertedKeyExtraction) return conn.ExecuteScalar<string>(sqlStatement, p);
 
                     p.Add("newid", dbType: DynamicParametersPrimitive.DbGenericType.String,
-                        direction: ParameterDirection.Output, size: 38);
+                          direction: ParameterDirection.Output, size: 38);
 
                     conn.Query<string>(sqlStatement, p, null, true, null, pCommandType);
                     return p.Get<object>("newid").ToString();
@@ -1057,7 +1014,7 @@ break; */
                 throw new DataException("Entity/Dapper Query/Get: Error while issuing statements to the database. "
                                         + "Error:  [" + e.Message + "]."
                                         + "Statement: [" + sqlStatement + "]. "
-                    , e);
+                                        , e);
             }
         }
 
@@ -1073,8 +1030,14 @@ break; */
             {
                 try
                 {
+                    var nm = typeof(T).FullName;
 
-                    LogLocal($"Initializing {typeof(T).FullName}", Message.EContentType.StartupSequence);
+                    if (typeof(T).Name == "Taxonomy")
+                    {
+                        LogLocal($"Initializing {nm}", Message.EContentType.StartupSequence);
+                    }
+
+                    LogLocal($"Initializing {nm}", Message.EContentType.StartupSequence);
 
                     ClassRegistration.TryAdd(typeof(T), new MicroEntityCompiledStatements());
 
@@ -1083,21 +1046,19 @@ break; */
                     //if (ps.Count != 0)
                     //    LogLocal($"PipelineAttribute: {ps.Count} items", Message.EContentType.StartupSequence);
 
-
                     Statements.BeforeActionPipeline =
                         (from pipelineAttribute in ps
                          from type in pipelineAttribute.Types
                          where typeof(IBeforeActionPipeline).IsAssignableFrom(type)
                          select (IBeforeActionPipeline)type.GetConstructor(new Type[] { }).Invoke(new object[] { }))
-                            .ToList();
+                        .ToList();
 
                     Statements.AfterActionPipeline =
                         (from pipelineAttribute in ps
                          from type in pipelineAttribute.Types
                          where typeof(IAfterActionPipeline).IsAssignableFrom(type)
                          select (IAfterActionPipeline)type.GetConstructor(new Type[] { }).Invoke(new object[] { }))
-                         .ToList();
-
+                        .ToList();
 
                     //if (Statements.BeforeActionPipeline.Count != 0)
                     //    LogLocal($"BeforeActionPipeline: {Statements.BeforeActionPipeline.Count} items", Message.EContentType.StartupSequence);
@@ -1121,13 +1082,12 @@ break; */
                     si["Machine"] = System.Environment.MachineName;
                     si["Environment"] = Current.Environment.Current.Code;
 
+
                     Statements.State.Step = "Setting up Statements.EnvironmentCode";
+                    Statements.EnvironmentCode = ResolveEnvironment();
 
-                    Statements.EnvironmentCode = TableData.PersistentEnvironmentCode ?? Current.Environment.Current.Code;
-
-                    if (TableData.PersistentEnvironmentCode != null)
-                        si["Environment"] = TableData.PersistentEnvironmentCode + " (overriding ["
-                                            + Current.Environment.Current.Code + "])";
+                    if (Statements.EnvironmentCode != Current.Environment.Current.Code)
+                        si["Environment"] = Statements.EnvironmentCode + " (overriding [" + Current.Environment.Current.Code + "])";
 
                     //LogLocal("INIT START", Message.EContentType.Info);
 
@@ -1144,7 +1104,7 @@ break; */
                          let p1 = pInfo.GetCustomAttributes(false).OfType<ColumnAttribute>().ToList()
                          let fieldName = p1.Count != 0 ? (p1[0].Name ?? pInfo.Name) : pInfo.Name
                          select new KeyValuePair<string, string>(pInfo.Name, fieldName))
-                            .ToDictionary(x => x.Key, x => x.Value);
+                        .ToDictionary(x => x.Key, x => x.Value);
 
                     Statements.State.Step = "Setting up PropertyLengthMap";
 
@@ -1153,16 +1113,16 @@ break; */
                          let p1 = pInfo.GetCustomAttributes(false).OfType<ColumnAttribute>().ToList()
                          let fieldLength = p1.Count != 0 ? (p1[0].Length != 0 ? p1[0].Length : 0) : 0
                          select new KeyValuePair<string, long>(pInfo.Name, fieldLength))
-                            .ToDictionary(x => x.Key, x => x.Value);
+                        .ToDictionary(x => x.Key, x => x.Value);
 
                     Statements.State.Step = "Setting up PropertySerializationMap";
 
                     Statements.PropertySerializationMap =
                         (from pInfo in probeType.GetProperties()
                          let p1 = pInfo.GetCustomAttributes(false).OfType<ColumnAttribute>().ToList()
-                         let isSerializable = (p1.Count != 0) && p1[0].Serialized
+                         let isSerializable = p1.Count != 0 && p1[0].Serialized
                          select new KeyValuePair<string, bool>(pInfo.Name, isSerializable))
-                            .ToDictionary(x => x.Key, x => x.Value);
+                        .ToDictionary(x => x.Key, x => x.Value);
 
                     Statements.State.Step = "Setting up CredentialCypherKeys";
 
@@ -1197,7 +1157,7 @@ break; */
 
                     Statements.State.Step = "determining CredentialSets to use";
                     Statements.CredentialSet = Factory.GetCredentialSetPerConnectionBundle(Statements.Bundle,
-                        TableData.CredentialSetType);
+                                                                                           TableData.CredentialSetType);
                     Statements.CredentialCypherKeys = Statements.CredentialSet.CredentialCypherKeys;
 
                     var identifierColumnName = TableData.IdentifierColumnName;
@@ -1247,15 +1207,11 @@ break; */
 
                     LogLocal(
                         Statements.ConnectionString.SafeArray("Data Source", "=", ";",
-                            Transformation.ESafeArrayMode.Allow), Message.EContentType.MoreInfo);
-
+                                                              Transformation.ESafeArrayMode.Allow), Message.EContentType.MoreInfo);
 
                     Statements.State.Step = "Evaluating Interceptor";
 
-                    if (Statements.Interceptor != null)
-                    {
-                        Statements.Interceptor.Connect<T>(Statements.ConnectionString, Statements.Bundle);
-                    }
+                    if (Statements.Interceptor != null) { Statements.Interceptor.Connect<T>(Statements.ConnectionString, Statements.Bundle); }
                     else
                     {
                         using (var conn = Statements.Adapter.Connection(Statements.ConnectionString))
@@ -1305,13 +1261,13 @@ break; */
                     Log.System.Add(Statements.State.Description);
                     Log.System.Add("    " +
                                    Statements.ConnectionString.SafeArray("Data Source", "=", ";",
-                                       Transformation.ESafeArrayMode.Allow));
+                                                                         Transformation.ESafeArrayMode.Allow));
                     Log.System.Add("    Environment: " + Current.Environment.CurrentCode);
                     Log.System.Add("    " + Statements.State.Stack);
 
                     LogLocal(
                         Statements.ConnectionString.SafeArray("Data Source", "=", ";",
-                            Transformation.ESafeArrayMode.Allow), Message.EContentType.Warning);
+                                                              Transformation.ESafeArrayMode.Allow), Message.EContentType.Warning);
 
                     var refEx = e;
                     while (refEx.InnerException != null)
@@ -1329,17 +1285,48 @@ break; */
             }
         }
 
-        public static MicroEntityCompiledStatements Statements { get { return ClassRegistration[typeof(T)]; } }
-
-        public static MicroEntitySetupAttribute TableData
+        private static string ResolveEnvironment()
         {
-            get
+
+            var envCode = TableData.PersistentEnvironmentCode;
+            var mapSrc = "TableData.PersistentEnvironmentCode";
+
+            if (envCode == null)
             {
-                return
-                    (MicroEntitySetupAttribute)
-                    Attribute.GetCustomAttribute(typeof(T), typeof(MicroEntitySetupAttribute));
+                var mapping = EnvironmentMappingData;
+                var mappedEnvCode = mapping.ContainsKey(Current.Environment.CurrentCode) ? mapping[Current.Environment.CurrentCode] : null;
+
+                if (mappedEnvCode != null)
+                {
+                    mapSrc = "Mapping";
+                    envCode = mappedEnvCode;
+                }
             }
+
+            if (envCode == null)
+            {
+                mapSrc = "Current.Environment.CurrentCode";
+                envCode = Current.Environment.CurrentCode;
+            }
+
+            if (envCode == "UND")
+            {
+                mapSrc = "Default Environment";
+                envCode = "DEV";
+            }
+
+
+            if (!TableData.SuppressErrors) Current.Log.Add(typeof(T), "Environment [" + envCode + "] set by " + mapSrc);
+
+            Statements.EnvironmentCode = envCode;
+
+            return envCode;
         }
+
+        public static MicroEntityCompiledStatements Statements => ClassRegistration[typeof(T)];
+
+        public static MicroEntitySetupAttribute TableData => (MicroEntitySetupAttribute)
+            Attribute.GetCustomAttribute(typeof(T), typeof(MicroEntitySetupAttribute));
 
         public static Dictionary<string, string> EnvironmentMappingData
         {
@@ -1355,8 +1342,8 @@ break; */
                     var ret = atts.ToDictionary(i => i.Origin, i => i.Target);
 
                     LogWrap(typeof(T),
-                        "Environment mappings found: " +
-                        string.Join(";", ret.Select(x => x.Key + ">" + x.Value).ToArray()));
+                            "Environment mappings found: " +
+                            string.Join(";", ret.Select(x => x.Key + ">" + x.Value).ToArray()));
 
                     return ret;
                 }
@@ -1396,10 +1383,7 @@ break; */
                 LogLocal("Configuration changed", Message.EContentType.Maintenance);
                 Statements.Adapter.SetConnectionString<T>();
             }
-            catch (Exception e)
-            {
-                LogWrap(e);
-            }
+            catch (Exception e) { LogWrap(e); }
         }
 
         // ReSharper disable once StaticFieldInGenericType
@@ -1418,6 +1402,11 @@ break; */
         #region Events
 
         public virtual void OnSave(string newIdentifier) { }
+
+        public virtual void BeforeSave()
+        {
+
+        }
 
         public virtual void OnRemove() { }
 
