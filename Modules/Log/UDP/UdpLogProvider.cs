@@ -10,13 +10,11 @@ namespace Nyan.Modules.Log.UDP
 {
     public class UdpLogProvider : LogProvider
     {
+        private bool _mustStop;
+        private UdpClient _receiver;
+        private UdpClient _sender;
         private string _targetAddress = "";
-        private UdpClient _sender = null;
-        private UdpClient _receiver = null;
-        private Thread _workerThread = null;
-        private bool _mustStop = false;
-
-        public override event Message.MessageArrivedHandler MessageArrived;
+        private Thread _workerThread;
 
         public UdpLogProvider()
         {
@@ -24,6 +22,10 @@ namespace Nyan.Modules.Log.UDP
             //pgm://239.255.42.99:5558
             Initialize("tcp://127.0.0.1:6000");
         }
+
+        public UdpLogProvider(string targetAddress) { Initialize(targetAddress); }
+
+        public override event Message.MessageArrivedHandler MessageArrived;
 
         public override void Shutdown()
         {
@@ -33,18 +35,14 @@ namespace Nyan.Modules.Log.UDP
                 _workerThread.Abort();
                 _receiver.Close();
                 _receiver = null;
-
             }
 
             _sender.Close();
             _sender = null;
         }
 
-        public UdpLogProvider(string targetAddress) { Initialize(targetAddress); }
-
         private void Initialize(string targetAddress)
         {
-
             UseScheduler = true;
 
             try
@@ -54,20 +52,23 @@ namespace Nyan.Modules.Log.UDP
                 var a = new Uri(_targetAddress);
                 var ep = new IPEndPoint(IPAddress.Parse(a.Host), a.Port);
 
-                _sender = new UdpClient();
-                _sender.Client.ReceiveBufferSize = 2048;
-                _sender.Client.SendBufferSize = 32768;
+                _sender = new UdpClient
+                {
+                    Client =
+                    {
+                        ReceiveBufferSize = 2048,
+                        SendBufferSize = 32768
+                    }
+                };
                 _sender.Connect(ep);
-            }
-            catch (Exception e)
+            } catch (Exception e)
             {
                 // Use the system log, since errors here mean that we won't be able to send it remotely.
                 Core.Modules.Log.System.Add(e);
             }
-
         }
 
-        public override void Dispatch(Message payload)
+        public override bool Dispatch(Message payload)
         {
             try
             {
@@ -81,14 +82,12 @@ namespace Nyan.Modules.Log.UDP
                 //var bytePayload = payload.ToJson().ToSerializedBytes();
 
                 _sender.Send(bytePayload, bytePayload.Length);
-
-                return;
-            }
-            catch (Exception e)
+            } catch (Exception)
             {
-                // Use the system log, since errors here mean that we won't be able to send it remotely.
-                // Core.Modules.Log.System.Add(e);
+                // ignored
             }
+
+            return true;
         }
 
         public override void StartListening()
@@ -97,15 +96,13 @@ namespace Nyan.Modules.Log.UDP
             {
                 if (_receiver != null) return;
 
-                _workerThread = new Thread(ListeningWorker) { IsBackground = true, Priority = ThreadPriority.Lowest };
+                _workerThread = new Thread(ListeningWorker) {IsBackground = true, Priority = ThreadPriority.Lowest};
                 _workerThread.Start();
-            }
-            catch (Exception e)
+            } catch (Exception e)
             {
                 // Use the system log, since errors here mean that we won't be able to send it remotely.
                 Core.Modules.Log.System.Add(e);
             }
-
         }
 
         private void ListeningWorker()
@@ -128,8 +125,6 @@ namespace Nyan.Modules.Log.UDP
                 _receiver.Client.Bind(ep);
 
                 while (!_mustStop)
-                {
-
                     try
                     {
                         var data = _receiver.Receive(ref ep);
@@ -137,15 +132,8 @@ namespace Nyan.Modules.Log.UDP
                         var payload = strData.Decrypt().FromJson<Message>();
 
                         DoMessageArrived(payload);
-                    }
-                    catch
-                    {
-                        DoMessageArrived(errPayload);
-                    }
-
-                }
-            }
-            catch (Exception e)
+                    } catch { DoMessageArrived(errPayload); }
+            } catch (Exception e)
             {
                 // Use the system log, since errors here mean that we won't be able to send it remotely.
                 Core.Modules.Log.System.Add(e);
@@ -157,6 +145,5 @@ namespace Nyan.Modules.Log.UDP
             if (MessageArrived == null) return;
             MessageArrived(message);
         }
-
     }
 }
