@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -17,6 +18,13 @@ namespace Nyan.Core.Extensions
 {
     public static class Serialization
     {
+        private static readonly object OLock = new object();
+
+        public static void ThreadSafeAdd<T>(this List<T> source, T obj)
+        {
+            lock (OLock) { source.Add(obj); }
+        }
+
         public static string ToXml(this object obj)
         {
             var serializer = new XmlSerializer(obj.GetType());
@@ -229,6 +237,11 @@ namespace Nyan.Core.Extensions
 
         // ReSharper disable once InconsistentNaming
         public static string ToISODateString(this DateTime obj) { return $"ISODate(\"{obj:o}\")"; }
+        // ReSharper disable once InconsistentNaming
+        public static string ToRawDateHash(this DateTime obj)
+        {
+            return obj.ToString("yyyyMMddHHmmss");
+        }
 
         // ReSharper disable once InconsistentNaming
         public static string ToFutureISODateString(this TimeSpan obj) { return DateTime.Now.Add(obj).ToISODateString(); }
