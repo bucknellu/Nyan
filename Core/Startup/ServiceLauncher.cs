@@ -20,6 +20,7 @@ namespace Nyan.Core.Startup
         {
             ServiceName = "NyanServiceLauncher";
             Current.Log.Add("Service(s) " + _serviceDescriptor + " Started", Message.EContentType.StartupSequence);
+
         }
 
         private static void Main(string[] args)
@@ -30,23 +31,18 @@ namespace Nyan.Core.Startup
 
                 if (Environment.UserInteractive)
                 {
-                    Current.Log.Add("Service(s)        : [" + _serviceDescriptor + "] Interactive mode",
-                        Message.EContentType.StartupSequence);
+                    Current.Log.Add("Service(s)        : [" + _serviceDescriptor + "] Interactive mode", Message.EContentType.StartupSequence);
                     var parameter = string.Concat(args);
                     switch (parameter)
                     {
                         case "--install":
-                            ManagedInstallerClass.InstallHelper(new[]
-                                {System.Reflection.Assembly.GetEntryAssembly().Location});
-                            Current.Log.Add("Service [NyanServiceLauncher] successfully installed.",
-                                Message.EContentType.Maintenance);
+                            ManagedInstallerClass.InstallHelper(new[] { System.Reflection.Assembly.GetEntryAssembly().Location });
+                            Current.Log.Add("Service [NyanServiceLauncher] successfully installed.", Message.EContentType.Maintenance);
                             Environment.Exit(0);
                             break;
                         case "--uninstall":
-                            ManagedInstallerClass.InstallHelper(new[]
-                                {"/u", System.Reflection.Assembly.GetEntryAssembly().Location});
-                            Current.Log.Add("Service [NyanServiceLauncher] successfully uninstalled.",
-                                Message.EContentType.Maintenance);
+                            ManagedInstallerClass.InstallHelper(new[] { "/u", System.Reflection.Assembly.GetEntryAssembly().Location });
+                            Current.Log.Add("Service [NyanServiceLauncher] successfully uninstalled.", Message.EContentType.Maintenance);
                             Environment.Exit(0);
                             break;
                         default:
@@ -68,7 +64,8 @@ namespace Nyan.Core.Startup
             }
             catch (Exception e)
             {
-                Current.Log.Add(e, "Service                : [NyanServiceLauncher] fatal error: ");
+                Current.Log.Add("Service                : [NyanServiceLauncher] fatal error: ", Message.EContentType.Warning);
+                Current.Log.Add(e);
                 Environment.Exit(-1);
             }
         }
@@ -106,8 +103,7 @@ namespace Nyan.Core.Startup
 
             Services.Clear();
 
-            foreach (var bts in bootServices)
-                Services.Add(bts.CreateInstance<ServiceDescriptor>());
+            foreach (var bts in bootServices) Services.Add(bts.CreateInstance<ServiceDescriptor>());
 
             _serviceDescriptor = Services.Select(i => i.Config.Name).ToJson();
 
