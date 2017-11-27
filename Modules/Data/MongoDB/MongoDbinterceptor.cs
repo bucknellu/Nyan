@@ -335,6 +335,7 @@ namespace Nyan.Modules.Data.MongoDB
         public static BsonDocument ToBsonString(MicroEntityParametrizedGet parm, string extraParms = null)
         {
             string query = null;
+
             BsonDocument queryFilter;
 
             if (!string.IsNullOrEmpty(parm.QueryTerm)) query = $"$text:{{$search: \'{parm.QueryTerm.Replace("'", "\\'")}\',$caseSensitive: false,$diacriticSensitive: false}}";
