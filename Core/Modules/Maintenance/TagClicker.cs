@@ -1,10 +1,11 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Nyan.Core.Modules.Log;
 using Nyan.Core.Settings;
 
 namespace Nyan.Core.Modules.Maintenance
 {
-    public class TagClicker : SortedDictionary<string, long>
+    public class TagClicker : ConcurrentDictionary<string, long>
     {
         public TagClicker()
         {
@@ -22,7 +23,7 @@ namespace Nyan.Core.Modules.Maintenance
             {
                 if (ContainsKey(tag)) return base[tag];
 
-                Add(tag, 0);
+                TryAdd(tag, 0);
                 if (tag.Length > _maxLength) _maxLength = tag.Length;
                 return base[tag];
             }
@@ -30,7 +31,7 @@ namespace Nyan.Core.Modules.Maintenance
             {
                 if (!ContainsKey(tag))
                 {
-                    Add(tag, 0);
+                    TryAdd(tag, 0);
                     if (tag.Length > _maxLength) _maxLength = tag.Length;
                 }
                 base[tag] = value;
