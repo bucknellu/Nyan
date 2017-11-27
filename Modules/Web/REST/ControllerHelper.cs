@@ -46,6 +46,13 @@ namespace Nyan.Modules.Web.REST
             }
         }
 
+        public static HttpResponseMessage RenderExceptionMessage(Exception e, HttpRequestMessage request)
+        {
+            var httpError = new HttpError(e, true);
+            var errorResponse = request.CreateErrorResponse(HttpStatusCode.InternalServerError, httpError);
+            return errorResponse;
+        }
+
         public static void RenderException(HttpStatusCode eType, string message, HttpRequestMessage request)
         {
             var httpError = new HttpError(message);
