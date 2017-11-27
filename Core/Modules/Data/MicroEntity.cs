@@ -1032,11 +1032,6 @@ break; */
                 {
                     var nm = typeof(T).FullName;
 
-                    if (typeof(T).Name == "Taxonomy")
-                    {
-                        LogLocal($"Initializing {nm}", Message.EContentType.StartupSequence);
-                    }
-
                     LogLocal($"Initializing {nm}", Message.EContentType.StartupSequence);
 
                     ClassRegistration.TryAdd(typeof(T), new MicroEntityCompiledStatements());
@@ -1060,11 +1055,11 @@ break; */
                          select (IAfterActionPipeline)type.GetConstructor(new Type[] { }).Invoke(new object[] { }))
                         .ToList();
 
-                    //if (Statements.BeforeActionPipeline.Count != 0)
-                    //    LogLocal($"BeforeActionPipeline: {Statements.BeforeActionPipeline.Count} items", Message.EContentType.StartupSequence);
+                    if (Statements.BeforeActionPipeline.Count != 0)
+                        LogLocal($"BeforeActionPipeline: {Statements.BeforeActionPipeline.Count} items - " + Statements.BeforeActionPipeline.Select(i => i.GetType().Name).Aggregate((i, j) => i + "," + j), Message.EContentType.Info);
 
-                    //if (Statements.AfterActionPipeline.Count != 0)
-                    //    LogLocal($"AfterActionPipeline: {Statements.AfterActionPipeline.Count} items", Message.EContentType.StartupSequence);
+                    if (Statements.AfterActionPipeline.Count != 0)
+                        LogLocal($"AfterActionPipeline: {Statements.AfterActionPipeline.Count} items - " + Statements.AfterActionPipeline.Select(i => i.GetType().Name).Aggregate((i, j) => i + "," + j), Message.EContentType.Info);
 
                     Statements.State.Status = MicroEntityCompiledStatements.EStatus.Initializing;
                     Statements.State.Step = "Starting TableData/Statements setup";
