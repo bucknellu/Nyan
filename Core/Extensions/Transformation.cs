@@ -25,6 +25,17 @@ namespace Nyan.Core.Extensions
             Allow
         }
 
+        public static bool MatchWildcardPattern(this string value, string pattern)
+        {
+            var isMatch = Regex.IsMatch(value, pattern.WildCardToRegular());
+            return isMatch;
+        }
+
+        private static string WildCardToRegular(this string value)
+        {
+            return "^" + Regex.Escape(value).Replace("\\?", ".").Replace("\\*", ".*") + "$";
+        }
+
         public static List<string> BlackListedModules = new List<string>
         {
             "System.Linq.Enumerable",
