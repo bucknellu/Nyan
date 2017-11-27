@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Cache;
+using Nyan.Core.Modules.Maintenance;
 using Nyan.Core.Settings;
 
 namespace Nyan.Core.Modules.Data
@@ -23,7 +24,7 @@ namespace Nyan.Core.Modules.Data
 
             foreach (var u in src)
             {
-               ret.Add(Get(u.GetEntityIdentifier())); 
+                ret.Add(Get(u.GetEntityIdentifier()));
             }
 
             return ret;
@@ -85,7 +86,17 @@ namespace Nyan.Core.Modules.Data
 
         public static List<T> ConvertFromBaseList(List<TU> source)
         {
-            return source.Select(x => new T().CastToComplexType(x)).ToList();
+            var c = new Clicker($"{typeof(TU).Name}.ConvertFromBaseList", source.Count);
+
+            var ret = source.Select(x =>
+            {
+                c.Click();
+                return new T().CastToComplexType(x);
+            }).ToList();
+
+            c.End();
+
+            return ret;
         }
 
         public virtual T CastToComplexType(TU probe)
