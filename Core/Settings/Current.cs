@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using Nyan.Core.Assembly;
@@ -36,6 +37,7 @@ namespace Nyan.Core.Settings
             GlobalConnectionBundleType = refObj.GlobalConnectionBundleType;
             Authorization = refObj.Authorization;
             WebApiCORSDomains = refObj.WebApiCORSDomains;
+            WebApiCORSDomainMasks = refObj.WebApiCORSDomainMasks;
 
             Log.Add(@"   |\_/|          |", Message.EContentType.Info);
             Log.Add(@"  >(o.O)<         | Nyan " + System.Reflection.Assembly.GetCallingAssembly().GetName().Version, Message.EContentType.Info);
@@ -69,6 +71,7 @@ namespace Nyan.Core.Settings
         public static Type GlobalConnectionBundleType { get; }
 
         public static string WebApiCORSDomains { get; private set; }
+        public static List<string> WebApiCORSDomainMasks { get; private set; }
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {

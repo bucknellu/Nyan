@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Nyan.Core.Modules.Identity;
 using Nyan.Core.Modules.Cache;
 using Nyan.Core.Modules.Encryption;
@@ -28,7 +29,7 @@ namespace Nyan.Core.Settings
         public IEncryptionProvider Encryption { get; internal set; }
         public IAuthorizationProvider Authorization { get; internal set; }
         public Type GlobalConnectionBundleType { get; internal set; }
-
         public string WebApiCORSDomains { get; internal set; }
+        public List<string> WebApiCORSDomainMasks { get; set; }
     }
 }

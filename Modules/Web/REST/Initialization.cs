@@ -7,28 +7,34 @@ using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Log;
 using Nyan.Core.Settings;
 using Nyan.Modules.Web.REST.auth;
+using Nyan.Modules.Web.REST.CORS;
 using Nyan.Modules.Web.REST.formatters;
+using Nyan.Modules.Web.REST.formatters.jsonp;
 
 namespace Nyan.Modules.Web.REST
 {
     public static class Initialization
     {
-        public static string UrlPrefix { get { return "api"; } }
+        public static string UrlPrefix => "api";
 
-        public static string UrlPrefixRelative { get { return "~/api"; } }
+        public static string UrlPrefixRelative => "~/api";
 
         public static void Register(HttpConfiguration config)
         {
             // Force load of all Controllers:
             if (Current.WebApiCORSDomains != null)
-            {
-                var items = Current.WebApiCORSDomains.Split(',');
-                var corsAttr = new EnableCorsAttribute(Current.WebApiCORSDomains, "*", "*") {SupportsCredentials = true};
-                Current.Log.Add("WebApi REST       : {0} CORS domains allowed.".format(items.Length),
-                    Message.EContentType.Info);
-
-                config.EnableCors(corsAttr);
-            }
+                if (Current.WebApiCORSDomainMasks != null)
+                {
+                    Current.Log.Add($"WebApi REST       : {Current.WebApiCORSDomainMasks.Count} CORS domain masks.", Message.EContentType.StartupSequence);
+                    config.AddCustomCorsFactory();
+                }
+                else
+                {
+                    var items = Current.WebApiCORSDomains.Split(',');
+                    var corsAttr = new EnableCorsAttribute(Current.WebApiCORSDomains, "*", "*") {SupportsCredentials = true};
+                    Current.Log.Add($"WebApi REST       : {items.Length} CORS domains allowed.", Message.EContentType.StartupSequence);
+                    config.EnableCors(corsAttr);
+                }
 
             config.Services.Add(typeof(IExceptionLogger), new GlobalErrorHandler());
 
@@ -43,6 +49,7 @@ namespace Nyan.Modules.Web.REST
             config.Formatters.Add(new JsonMediaTypeFormatter());
             config.Formatters.Add(new XmlMediaTypeFormatter());
             config.Formatters.Add(new CsvMediaTypeFormatter());
+            config.AddJsonpFormatter();
 
             config.Formatters.JsonFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("text/html"));
             //config.Formatters.Add(new CsvMediaTypeFormatter());
