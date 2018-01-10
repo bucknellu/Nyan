@@ -70,6 +70,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AngularHtml5ModeStaticModule.cs" />
     <Compile Include="auth\AddChallengeOnUnauthorizedResult.cs" />
     <Compile Include="auth\AuthenticationFailureResult.cs" />
     <Compile Include="auth\NyanAuthenticationFilter.cs" />
@@ -86,6 +87,7 @@
     <Compile Include="ComplexEntityWebApiController.cs" />
     <Compile Include="Sequences.cs" />
     <Compile Include="Initialization.cs" />
+    <Compile Include="StreamWatcher.cs" />
     <Compile Include="WebApiInitializationHookAttribute.cs" />
     <Compile Include="CustomDirectRouteProvider.cs" />
     <Compile Include="MicroEntityWebApiController.cs" />
