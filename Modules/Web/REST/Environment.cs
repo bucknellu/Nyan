@@ -15,5 +15,14 @@ namespace Nyan.Modules.Web.REST
                 return baseUrl;
             }
         }
+        public static string ShortBaseUrl
+        {
+            get
+            {
+                var request = HttpContext.Current.Request;
+                var baseUrl = request.ApplicationPath.TrimEnd('/') + "/";
+                return baseUrl;
+            }
+        }
     }
 }
