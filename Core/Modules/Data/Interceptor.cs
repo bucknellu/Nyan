@@ -33,5 +33,6 @@ namespace Nyan.Core.Modules.Data
         long RecordCount<T>(MicroEntityParametrizedGet qTerm, string extraParms) where T : MicroEntity<T>;
         List<T> ReferenceQueryByField<T>(string field, string id) where T : MicroEntity<T>;
         List<T> ReferenceQueryByField<T>(object query) where T : MicroEntity<T>;
+        void Setup<T>(MicroEntityCompiledStatements statements) where T : MicroEntity<T>;
     }
 }
