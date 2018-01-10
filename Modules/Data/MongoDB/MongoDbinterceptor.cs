@@ -294,6 +294,12 @@ namespace Nyan.Modules.Data.MongoDB
             return Query<T>(q, null);
         }
 
+        public void Setup<T>(MicroEntityCompiledStatements statements) where T : MicroEntity<T>
+        {
+            _statements = statements;
+            Connect<T>(_statements.ConnectionString, _statements.Bundle);
+        }
+
         public List<TU> Query<T, TU>(string statement, object rawObject, InterceptorQuery.EType ptype) where T : MicroEntity<T>
         {
             List<TU> ret = null;
