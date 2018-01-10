@@ -243,6 +243,8 @@ namespace Nyan.Core.Extensions
             return obj.ToString("yyyyMMddHHmmss");
         }
 
+        public static DateTime FromRawDateHash(this string obj) { return DateTime.ParseExact(obj, "yyyyMMddHHmmss", new CultureInfo("en-US")); }
+
         // ReSharper disable once InconsistentNaming
         public static string ToFutureISODateString(this TimeSpan obj) { return DateTime.Now.Add(obj).ToISODateString(); }
 
