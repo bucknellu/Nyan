@@ -133,7 +133,7 @@ namespace Nyan.Core.Extensions
 
         public static string Decrypt(this string value) { return Current.Encryption.Decrypt(value); }
 
-        public static string Truncate(this string value, int maxChars) { return value.Length <= maxChars ? value : value.Substring(0, maxChars) + " .."; }
+        public static string Truncate(this string value, int maxChars) { return value.Length <= maxChars ? value : value.Substring(0, maxChars) + "..."; }
 
         public static bool IsNumeric(this object refObj)
         {
