@@ -1206,7 +1206,7 @@ break; */
 
                     Statements.State.Step = "Evaluating Interceptor";
 
-                    if (Statements.Interceptor != null) { Statements.Interceptor.Connect<T>(Statements.ConnectionString, Statements.Bundle); }
+                    if (Statements.Interceptor != null) { Statements.Interceptor.Setup<T>(Statements); }
                     else
                     {
                         using (var conn = Statements.Adapter.Connection(Statements.ConnectionString))
