@@ -5,7 +5,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Dynamic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -25,15 +24,22 @@ namespace Nyan.Core.Extensions
             Allow
         }
 
-        public static bool MatchWildcardPattern(this string value, string pattern)
+        private static readonly Random Rnd = new Random();
+
+        public static IEnumerable<T> ToInstances<T>(this IEnumerable<Type> source)
         {
-            var isMatch = Regex.IsMatch(value, pattern.WildCardToRegular());
-            return isMatch;
+            return source.Select(i => (T)Activator.CreateInstance(i, new object[] { })).ToList();
         }
 
-        private static string WildCardToRegular(this string value)
+        public static IEnumerable<List<T>> SplitList<T>(List<T> items, int nSize = 30)
         {
-            return "^" + Regex.Escape(value).Replace("\\?", ".").Replace("\\*", ".*") + "$";
+
+            // https://stackoverflow.com/questions/11463734/split-a-list-into-smaller-lists-of-n-size
+
+            for (var i = 0; i < items.Count; i += nSize)
+            {
+                yield return items.GetRange(i, Math.Min(nSize, items.Count - i));
+            }
         }
 
         public static List<string> BlackListedModules = new List<string>
@@ -45,11 +51,29 @@ namespace Nyan.Core.Extensions
             "Dapper.SqlMapper+<QueryImpl>"
         };
 
+        public static bool MatchWildcardPattern(this string value, string pattern)
+        {
+            var isMatch = Regex.IsMatch(value, pattern.WildCardToRegular());
+            return isMatch;
+        }
+
+        public static T Random<T>(this IEnumerable<T> source)
+        {
+            if (source == null) return default(T);
+
+            var enumerable = source.ToList();
+
+            var r = Rnd.Next(enumerable.Count());
+            return enumerable[r];
+        }
+
+        private static string WildCardToRegular(this string value) { return "^" + Regex.Escape(value).Replace("\\?", ".").Replace("\\*", ".*") + "$"; }
+
         public static string ToQueryString(this Dictionary<string, string> obj)
         {
             var properties = from p in obj
-                             where p.Value != null
-                             select p.Key + "=" + HttpUtility.UrlEncode(p.Value);
+                where p.Value != null
+                select p.Key + "=" + HttpUtility.UrlEncode(p.Value);
 
             return string.Join("&", properties.ToArray());
         }
@@ -57,8 +81,8 @@ namespace Nyan.Core.Extensions
         public static string ToQueryString(this object obj)
         {
             var properties = from p in obj.GetType().GetProperties()
-                             where p.GetValue(obj, null) != null
-                             select p.Name + "=" + HttpUtility.UrlEncode(p.GetValue(obj, null).ToString());
+                where p.GetValue(obj, null) != null
+                select p.Name + "=" + HttpUtility.UrlEncode(p.GetValue(obj, null).ToString());
 
             return string.Join("&", properties.ToArray());
         }
@@ -111,8 +135,7 @@ namespace Nyan.Core.Extensions
                 var sBuilder = new StringBuilder();
 
                 //format each string as hexidecimal 
-                foreach (var b in data)
-                    sBuilder.Append(b.ToString("x2"));
+                foreach (var b in data) sBuilder.Append(b.ToString("x2"));
 
                 return sBuilder.ToString();
             }
@@ -146,16 +169,12 @@ namespace Nyan.Core.Extensions
 
         public static IEnumerable<string> SplitInChunksUpTo(this string str, int maxChunkSize)
         {
-            for (var i = 0; i < str.Length; i += maxChunkSize)
-                yield return str.Substring(i, Math.Min(maxChunkSize, str.Length - i));
+            for (var i = 0; i < str.Length; i += maxChunkSize) yield return str.Substring(i, Math.Min(maxChunkSize, str.Length - i));
         }
 
         public static ShortGuid ToShortGuid(this Guid oRef) { return new ShortGuid(oRef); }
 
-        public static string FancyString(this Exception source)
-        {
-            return new StackTrace(source, true).FancyString();
-        }
+        public static string FancyString(this Exception source) { return new StackTrace(source, true).FancyString(); }
 
         public static string FancyString(this StackTrace source)
         {
@@ -177,8 +196,7 @@ namespace Nyan.Core.Extensions
                 if (vf.GetMethod().ReflectedType == null) continue;
 
                 probe = vf.GetMethod().ReflectedType.FullName;
-                if (BlackListedModules.Any(s => probe.IndexOf(s, StringComparison.OrdinalIgnoreCase) != -1))
-                    continue;
+                if (BlackListedModules.Any(s => probe.IndexOf(s, StringComparison.OrdinalIgnoreCase) != -1)) continue;
 
                 if (ret != "") ret += " > ";
 
@@ -196,9 +214,7 @@ namespace Nyan.Core.Extensions
 
                 ret += vf.GetMethod().Name;
 
-                if (vf.GetFileColumnNumber() != 0)
-
-                    ret += "[L{1} C{0}]".format(vf.GetFileColumnNumber(), vf.GetFileLineNumber());
+                if (vf.GetFileColumnNumber() != 0) ret += "[L{1} C{0}]".format(vf.GetFileColumnNumber(), vf.GetFileLineNumber());
             }
 
             return ret;
@@ -207,16 +223,16 @@ namespace Nyan.Core.Extensions
         public static string TrimSql(this string s)
         {
             return s
-                .Replace("\r", " ")
-                .Replace("\n", " ")
-                .Replace("\t", " ")
-                .Replace("  ", " ")
-                .Replace("  ", " ")
-                .Replace("  ", " ")
-                .Replace("  ", " ")
-                .Replace("  ", " ")
-                .Replace("  ", " ")
-                .Replace("  ", " ")
+                    .Replace("\r", " ")
+                    .Replace("\n", " ")
+                    .Replace("\t", " ")
+                    .Replace("  ", " ")
+                    .Replace("  ", " ")
+                    .Replace("  ", " ")
+                    .Replace("  ", " ")
+                    .Replace("  ", " ")
+                    .Replace("  ", " ")
+                    .Replace("  ", " ")
                 ;
         }
 
@@ -242,10 +258,10 @@ namespace Nyan.Core.Extensions
                 if (!string.IsNullOrEmpty(s) && s.Trim().Length > 0)
                 {
                     var conv = TypeDescriptor.GetConverter(typeof(T));
-                    result = (T)conv.ConvertFrom(s);
+                    result = (T) conv.ConvertFrom(s);
                 }
-            }
-            catch { }
+            } catch { }
+
             return result;
         }
 
@@ -255,9 +271,9 @@ namespace Nyan.Core.Extensions
             try
             {
                 var conv = TypeDescriptor.GetConverter(typeof(T));
-                result = (T)conv.ConvertFrom(s);
-            }
-            catch { }
+                result = (T) conv.ConvertFrom(s);
+            } catch { }
+
             return result;
         }
 
@@ -265,8 +281,7 @@ namespace Nyan.Core.Extensions
         {
             IDictionary<string, object> result = new Dictionary<string, object>();
             var properties = TypeDescriptor.GetProperties(obj);
-            foreach (PropertyDescriptor property in properties)
-                result.Add(property.Name, property.GetValue(obj));
+            foreach (PropertyDescriptor property in properties) result.Add(property.Name, property.GetValue(obj));
             return result;
         }
 
@@ -276,8 +291,7 @@ namespace Nyan.Core.Extensions
             var someObject = new T();
             var someObjectType = someObject.GetType();
 
-            foreach (var item in source)
-                someObjectType.GetProperty(item.Key).SetValue(someObject, item.Value, null);
+            foreach (var item in source) someObjectType.GetProperty(item.Key).SetValue(someObject, item.Value, null);
 
             return someObject;
         }
@@ -289,21 +303,19 @@ namespace Nyan.Core.Extensions
         public static List<List<T>> Split<T>(this List<T> items, int sliceSize = 30)
         {
             var list = new List<List<T>>();
-            for (var i = 0; i < items.Count; i += sliceSize)
-                list.Add(items.GetRange(i, Math.Min(sliceSize, items.Count - i)));
+            for (var i = 0; i < items.Count; i += sliceSize) list.Add(items.GetRange(i, Math.Min(sliceSize, items.Count - i)));
             return list;
         }
 
         public static bool TryCast<T>(ref T t, object o)
         {
-            if (!(o is T))
-                return false;
+            if (!(o is T)) return false;
 
-            t = (T)o;
+            t = (T) o;
             return true;
         }
 
-        public static T ConvertTo<T>(ref object input) { return (T)Convert.ChangeType(input, typeof(T)); }
+        public static T ConvertTo<T>(ref object input) { return (T) Convert.ChangeType(input, typeof(T)); }
 
         public static object ToConcrete<T>(this ExpandoObject dynObject)
         {
@@ -314,8 +326,7 @@ namespace Nyan.Core.Extensions
             foreach (var property in targetProperties)
             {
                 object propVal;
-                if (dict.TryGetValue(property.Name, out propVal))
-                    property.SetValue(instance, propVal, null);
+                if (dict.TryGetValue(property.Name, out propVal)) property.SetValue(instance, propVal, null);
             }
 
             return instance;
@@ -327,36 +338,26 @@ namespace Nyan.Core.Extensions
             var dict = expando as IDictionary<string, object>;
             var properties = staticObject.GetType().GetProperties();
 
-            foreach (var property in properties)
-                dict[property.Name] = property.GetValue(staticObject, null);
+            foreach (var property in properties) dict[property.Name] = property.GetValue(staticObject, null);
 
             return expando;
         }
 
         public static bool StringsAreSimilar(string baseStr, string compareTo)
         {
-            if (baseStr == compareTo)
-                return true;
+            if (baseStr == compareTo) return true;
 
             var s1Words = baseStr.Split(' ');
             var s2Words = compareTo.Split(' ');
 
-            if (s1Words.Length != s2Words.Length)
-                return false;
+            if (s1Words.Length != s2Words.Length) return false;
 
             //This is needed to protect against typos and inconsistencies in data such as grill vs grille
             for (var i = 0; i < s1Words.Length; i++)
-            {
                 try
                 {
-                    if (s1Words[i].SoundEx() != s2Words[i].SoundEx())
-                        return false;
-                }
-                catch
-                {
-                    return false;
-                }
-            }
+                    if (s1Words[i].SoundEx() != s2Words[i].SoundEx()) return false;
+                } catch { return false; }
 
             return true;
         }
@@ -374,8 +375,7 @@ namespace Nyan.Core.Extensions
                     currentLetter = str.Substring(i, 1).ToLower();
                     currentCode = "";
 
-                    if ("bfpv".IndexOf(currentLetter, StringComparison.Ordinal) > -1)
-                        currentCode = "1";
+                    if ("bfpv".IndexOf(currentLetter, StringComparison.Ordinal) > -1) currentCode = "1";
                     else if ("cgjkqsxz".IndexOf(currentLetter, StringComparison.Ordinal) > -1)
                         currentCode = "2";
                     else if ("dt".IndexOf(currentLetter, StringComparison.Ordinal) > -1)
@@ -387,8 +387,7 @@ namespace Nyan.Core.Extensions
                     else if (currentLetter == "r")
                         currentCode = "6";
 
-                    if (currentCode != previousCode)
-                        result.Append(currentCode);
+                    if (currentCode != previousCode) result.Append(currentCode);
                 }
             }
 
@@ -403,8 +402,7 @@ namespace Nyan.Core.Extensions
             foreach (var str in list)
             {
                 var s = str.ToLower();
-                if (s.Equals(lookupStr))
-                    return true;
+                if (s.Equals(lookupStr)) return true;
             }
 
             return false;
@@ -413,8 +411,7 @@ namespace Nyan.Core.Extensions
         public static string ProperCase(this string str)
         {
             var words = str.Split(' ');
-            for (var i = 0; i < words.Length; i++)
-                words[i] = words[i].Substring(0, 1).ToUpper() + words[i].ToLower().Substring(1, words[i].Length - 1);
+            for (var i = 0; i < words.Length; i++) words[i] = words[i].Substring(0, 1).ToUpper() + words[i].ToLower().Substring(1, words[i].Length - 1);
 
             return string.Join(" ", words);
         }
@@ -423,31 +420,19 @@ namespace Nyan.Core.Extensions
 
         public static bool IsValidEmail(this string strIn)
         {
-            if (string.IsNullOrEmpty(strIn))
-                return false;
+            if (string.IsNullOrEmpty(strIn)) return false;
 
             // Use IdnMapping class to convert Unicode domain names.
-            try
-            {
-                strIn = Regex.Replace(strIn, @"(@)(.+)$", DomainMapper, RegexOptions.None, TimeSpan.FromMilliseconds(200));
-            }
-            catch
-            {
-                return false;
-            }
+            try { strIn = Regex.Replace(strIn, @"(@)(.+)$", DomainMapper, RegexOptions.None, TimeSpan.FromMilliseconds(200)); } catch { return false; }
 
             // Return true if strIn is in valid e-mail format.
             try
             {
                 return Regex.IsMatch(strIn,
-                    @"^(?("")("".+?(?<!\\)""@)|(([0-9a-z]((\.(?!\.))|[-!#\$%&'\*\+/=\?\^`\{\}\|~\w])*)(?<=[0-9a-z])@))" +
-                    @"(?(\[)(\[(\d{1,3}\.){3}\d{1,3}\])|(([0-9a-z][-\w]*[0-9a-z]*\.)+[a-z0-9][\-a-z0-9]{0,22}[a-z0-9]))$",
-                    RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
-            }
-            catch (RegexMatchTimeoutException)
-            {
-                return false;
-            }
+                                     @"^(?("")("".+?(?<!\\)""@)|(([0-9a-z]((\.(?!\.))|[-!#\$%&'\*\+/=\?\^`\{\}\|~\w])*)(?<=[0-9a-z])@))" +
+                                     @"(?(\[)(\[(\d{1,3}\.){3}\d{1,3}\])|(([0-9a-z][-\w]*[0-9a-z]*\.)+[a-z0-9][\-a-z0-9]{0,22}[a-z0-9]))$",
+                                     RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
+            } catch (RegexMatchTimeoutException) { return false; }
         }
 
         private static string DomainMapper(Match match)
