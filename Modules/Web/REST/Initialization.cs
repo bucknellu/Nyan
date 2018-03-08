@@ -3,13 +3,13 @@ using System.Net.Http.Headers;
 using System.Web.Http;
 using System.Web.Http.Cors;
 using System.Web.Http.ExceptionHandling;
-using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Log;
 using Nyan.Core.Settings;
 using Nyan.Modules.Web.REST.auth;
 using Nyan.Modules.Web.REST.CORS;
 using Nyan.Modules.Web.REST.formatters;
 using Nyan.Modules.Web.REST.formatters.jsonp;
+using Nyan.Modules.Web.REST.RSS;
 
 namespace Nyan.Modules.Web.REST
 {
@@ -49,6 +49,7 @@ namespace Nyan.Modules.Web.REST
             config.Formatters.Add(new JsonMediaTypeFormatter());
             config.Formatters.Add(new XmlMediaTypeFormatter());
             config.Formatters.Add(new CsvMediaTypeFormatter());
+            config.Formatters.Add(new SyndicationFeedFormatter());
             config.AddJsonpFormatter();
 
             config.Formatters.JsonFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("text/html"));
