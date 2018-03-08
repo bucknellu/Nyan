@@ -39,7 +39,7 @@ namespace Nyan.Core.Modules.Log
                 {
                     if (_workerThread != null) return;
 
-                    _workerThread = new Thread(DispatcherWorker) {IsBackground = false};
+                    _workerThread = new Thread(DispatcherWorker) { IsBackground = false };
                     _workerThread.Start();
                 }
             }
@@ -87,7 +87,7 @@ namespace Nyan.Core.Modules.Log
         public virtual void StartListening() { }
 
         public virtual void BeforeDispatch(Message payload) { }
-
+        public virtual void BeforeAdd(Message payload) { }
         public virtual void AfterDispatch(Message payload)
         {
             if (Settings.replicateLocally) System.Add(payload.Content);
@@ -101,7 +101,8 @@ namespace Nyan.Core.Modules.Log
                 Dispatch(payload);
                 AfterDispatch(payload);
                 return true;
-            } catch { return false; }
+            }
+            catch { return false; }
         }
 
         public virtual bool CheckShutdownTriggerTerms(string payload)
@@ -119,27 +120,30 @@ namespace Nyan.Core.Modules.Log
                     Add("Fatal trigger exception detected: '" + payload + "'", Message.EContentType.Exception);
                     System.Add("Fatal trigger exception detected: '" + payload + "'");
 
-                    Operations.StartTakeDown(10);
+                    Operations.StartTakeDown(5);
 
                     return true;
                 }
                 return false;
-            } catch { return false; }
+            }
+            catch { return false; }
         }
 
         public virtual void Add(string content, Message.EContentType type = Message.EContentType.Generic)
         {
+            var payload = Converter.ToMessage(content, type);
+
+            try { BeforeAdd(payload); } catch { }
+
             if (_shutdown) return;
 
             if (string.IsNullOrEmpty(content)) return;
 
-            //if (CheckShutdownTriggerTerms(content)) return;
+            // if (CheckShutdownTriggerTerms(content)) return;
 
             CheckShutdownTriggerTerms(content);
 
             if (type > Settings.VerbosityThreshold) return;
-
-            var payload = Converter.ToMessage(content, type);
 
             Add(payload);
         }
