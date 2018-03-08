@@ -1,4 +1,5 @@
-﻿using MongoDB.Bson.Serialization;
+﻿using System;
+using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.Options;
 
@@ -26,6 +27,7 @@ namespace Nyan.Modules.Data.MongoDB
             if (dictionaryRepresentationConfigurable != null) serializer = dictionaryRepresentationConfigurable.WithDictionaryRepresentation(_dictionaryRepresentation);
 
             var childSerializerConfigurable = serializer as IChildSerializerConfigurable;
+
             return childSerializerConfigurable == null
                 ? serializer
                 : childSerializerConfigurable.WithChildSerializer(
