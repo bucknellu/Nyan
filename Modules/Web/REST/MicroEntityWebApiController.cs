@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
+using System.Web;
 using System.Web.Http;
 using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Data;
@@ -155,7 +156,7 @@ namespace Nyan.Modules.Web.REST
 
                 var mustUseParametrizedGet = false;
 
-                var queryString = Request.GetQueryNameValuePairs().ToDictionary(x => x.Key, x => x.Value);
+                var queryString = Request?.GetQueryNameValuePairs().ToDictionary(x => x.Key, x => x.Value) ?? new Dictionary<string, string>();
 
                 if (queryString.ContainsKey("sort"))
                 {
@@ -168,9 +169,7 @@ namespace Nyan.Modules.Web.REST
                     ret.HasExtendedProperties = true;
                     mustUseParametrizedGet = true;
                     parametrizedGet.PageIndex = Convert.ToInt32(queryString["page"]);
-                    parametrizedGet.PageSize = queryString.ContainsKey("limit")
-                        ? Convert.ToInt32(queryString["limit"])
-                        : 50;
+                    parametrizedGet.PageSize = queryString.ContainsKey("limit") ? Convert.ToInt32(queryString["limit"]) : 50;
                 }
 
                 if (queryString.ContainsKey("q"))
@@ -309,7 +308,11 @@ namespace Nyan.Modules.Web.REST
                 Current.Log.Add(
                     "GET " + id + " " + typeof(T).FullName + ":" + id + " ERR (" + sw.ElapsedMilliseconds + " ms): " +
                     e.Message, e);
-                return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e);
+
+                if (!(e is HttpException)) return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e);
+
+                var we = (HttpException)e;
+                return Request.CreateErrorResponse((HttpStatusCode)we.GetHttpCode(), we.Message);
             }
         }
 
