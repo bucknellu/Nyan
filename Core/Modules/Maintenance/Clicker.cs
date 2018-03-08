@@ -50,7 +50,10 @@ namespace Nyan.Core.Modules.Maintenance
             var leftT = invPart.Subtract(_s.Elapsed).ToString(@"\:hh\:mm\:ss");
             var totlT = invPart.ToString(@"\:hh\:mm\:ss");
 
-            Current.Log.Add($"    {_pMessage}: {sIndex}/{Count} ({partStr} | E{currT} L{leftT} T{totlT})", Message.EContentType.MoreInfo);
+            var msg = $"    {_pMessage}: {sIndex}/{Count} ({partStr} | E{currT} L{leftT} T{totlT})";
+
+            Current.Log.Add(msg, Message.EContentType.MoreInfo);
+            Console.WriteLine(msg);
         }
 
         public void End()
