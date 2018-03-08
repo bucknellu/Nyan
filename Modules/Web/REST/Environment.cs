@@ -6,6 +6,8 @@ namespace Nyan.Modules.Web.REST
     {
         public static string BaseUrl
         {
+
+
             get
             {
                 var request = HttpContext.Current.Request;
@@ -15,6 +17,21 @@ namespace Nyan.Modules.Web.REST
                 return baseUrl;
             }
         }
+
+        public static string SecureBaseUrl
+        {
+            get
+            {
+                var request = HttpContext.Current.Request;
+
+                var baseUrl = "https://" +
+                              request.Url.Authority +
+                              request.ApplicationPath.TrimEnd('/') + "/";
+                return baseUrl;
+            }
+
+        }
+
         public static string ShortBaseUrl
         {
             get
