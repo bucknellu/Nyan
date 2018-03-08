@@ -76,6 +76,9 @@ namespace Nyan.Modules.Data.MongoDB
 
             // There's probably a better way (I hope) but for now...
             try { BsonSerializer.RegisterSerializer(typeof(DateTime), DateTimeSerializer.LocalInstance); } catch { }
+            try { BsonSerializer.RegisterSerializer(typeof(JObject), new JObjectSerializer()); } catch { }
+            try { BsonSerializer.RegisterSerializer(typeof(JValue), new JValueSerializer()); } catch { }
+            try { BsonSerializer.RegisterSerializer(typeof(JArray), new JArraySerializer()); } catch { }
             try { BsonTypeMapper.RegisterCustomTypeMapper(typeof(JObject), new JObjectMapper()); } catch { }
 
             _client = new MongoClient(statementsConnectionString);
@@ -177,6 +180,7 @@ namespace Nyan.Modules.Data.MongoDB
 
             var col = Collection.Find(BsonDocument.Parse(rawQuery)).ToEnumerable();
             var transform = col.AsParallel().Select(a => BsonSerializer.Deserialize<TU>(a)).ToList();
+
             return transform;
         }
 
@@ -331,8 +335,7 @@ namespace Nyan.Modules.Data.MongoDB
             try { Collection.Indexes.CreateOne(Builders<BsonDocument>.IndexKeys.Text("$**")); }
             catch (Exception e)
             {
-                Current.Log.Add("ERR Creating index " + SourceCollection + ": " + e.Message,
-                                Message.EContentType.Warning);
+                Current.Log.Add("ERR Creating index " + SourceCollection + ": " + e.Message, Message.EContentType.Warning);
             }
         }
 
@@ -348,13 +351,19 @@ namespace Nyan.Modules.Data.MongoDB
 
             if (extraParms != null)
             {
+                extraParms = extraParms.Trim();
+
+                if (extraParms[0] == '{') { extraParms = extraParms.Substring(1, extraParms.Length - 2); }
+
+
                 if (query != null) query += ",";
                 query += extraParms;
             }
 
             if (query != null)
             {
-                query = "{" + query + "}";
+                if (query[0] != '{')
+                    query = "{" + query + "}";
 
                 Current.Log.Add("QUERYALL " + query);
 
