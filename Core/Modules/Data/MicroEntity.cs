@@ -416,11 +416,21 @@ break; */
 
             List<TU> ret = null;
 
-            if (Statements.Interceptor != null) { ret = Statements.Interceptor.GetAll<T, TU>(parm, extraParms); }
+            if (Statements.Interceptor != null)
+            {
+                ret = Statements.Interceptor.GetAll<T, TU>(parm, extraParms);
+            }
             else
             {
                 var tmp = Query<TU>(Statements.SqlGetAll);
-                if (parm.QueryTerm != null) tmp = tmp.Where(i => i.ToJson().IndexOf(parm.QueryTerm, StringComparison.Ordinal) != -1).ToList();
+                if (parm.QueryTerm != null) tmp = tmp.Where(i =>
+                {
+                    var vals = i.ToDictionary()
+                        .Select(ii => ii.Value?.ToString().ToLower())
+                        .Where(ij => ij != null)
+                        .ToList().ToJson();
+                    return vals.IndexOf(parm.QueryTerm.ToLower(), StringComparison.Ordinal) != -1;
+                }).ToList();
                 if (parm.PageSize != 0) tmp = tmp.Skip((int)((parm.PageIndex) * parm.PageSize)).Take((int)parm.PageSize).ToList();
                 ret = tmp;
             }
@@ -460,8 +470,12 @@ break; */
 
             if (rec == null) return false;
 
+            rec.BeforeRemove();
+
             if (Statements.Interceptor != null) Statements.Interceptor.Remove<T>(identifier);
             else Execute(Statements.SqlRemoveSingleParametrized, new { Id = identifier });
+
+            rec.OnRemove();
 
             ProcAfterPipeline(Support.EAction.Remove, rec, rec);
 
@@ -585,7 +599,9 @@ break; */
         {
             if (TableData.IsReadOnly) throw new ReadOnlyException("This entity is set as read-only.");
 
-            var rec = Get(GetEntityIdentifier());
+            var id = GetEntityIdentifier();
+
+            var rec = Get(id);
 
             rec = ProcBeforePipeline(Support.EAction.Remove, rec, rec);
 
@@ -598,6 +614,7 @@ break; */
             Current.Cache.Remove(cKey);
 
             _isDeleted = true;
+
             OnRemove();
 
             ProcAfterPipeline(Support.EAction.Remove, rec, rec);
@@ -654,7 +671,7 @@ break; */
             if (Statements.AfterActionPipeline.Count <= 0) return ret;
 
             rec = Get(ret);
-            ProcAfterPipeline(isNew ? Support.EAction.Insert : Support.EAction.Update, (T)rec, null);
+            ProcAfterPipeline(isNew ? Support.EAction.Insert : Support.EAction.Update, (T)rec, oldRec);
 
             return ret;
         }
@@ -1399,6 +1416,16 @@ break; */
         public virtual void OnSave(string newIdentifier) { }
 
         public virtual void BeforeSave()
+        {
+
+        }
+
+        public virtual void BeforeInsert()
+        {
+
+        }
+
+        public virtual void BeforeRemove()
         {
 
         }
