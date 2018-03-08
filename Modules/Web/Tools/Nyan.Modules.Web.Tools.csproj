@@ -72,6 +72,8 @@
     <Compile Include="Metadata\MetadataController.cs" />
     <Compile Include="Metadata\Manager.cs" />
     <Compile Include="Metadata\MetadataProviderPrimitive.cs" />
+    <Compile Include="Models\ICalendar.cs" />
+    <Compile Include="Models\IiCalendar.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resource\Proxy.cs" />
     <Compile Include="Resource\Summary.cs" />

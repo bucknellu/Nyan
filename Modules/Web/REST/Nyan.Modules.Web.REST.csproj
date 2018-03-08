@@ -45,6 +45,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Runtime.Caching" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Cors, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\Microsoft.AspNet.Cors.5.2.3\lib\net45\System.Web.Cors.dll</HintPath>
@@ -83,6 +84,10 @@
     <Compile Include="GlobalAssemblyResolver.cs" />
     <Compile Include="GlobalErrorHandler.cs" />
     <Compile Include="HandleApiExceptionAttribute.cs" />
+    <Compile Include="RSS\IUrlRepository.cs" />
+    <Compile Include="RSS\SyndicationFeedFormatter.cs" />
+    <Compile Include="RSS\Url.cs" />
+    <Compile Include="RSS\UrlRepository.cs" />
     <Compile Include="SimpleHttpResponseMessage.cs" />
     <Compile Include="ComplexEntityWebApiController.cs" />
     <Compile Include="Sequences.cs" />
