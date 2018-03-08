@@ -68,8 +68,9 @@ namespace Nyan.Modules.Log.UDP
             }
         }
 
-        public override bool Dispatch(Message payload)
+        public override void BeforeAdd(Message payload)
         {
+
             try
             {
                 if (Environment.UserInteractive)
@@ -82,12 +83,12 @@ namespace Nyan.Modules.Log.UDP
                 //var bytePayload = payload.ToJson().ToSerializedBytes();
 
                 _sender.Send(bytePayload, bytePayload.Length);
-            } catch (Exception)
+            }
+            catch (Exception)
             {
                 // ignored
             }
 
-            return true;
         }
 
         public override void StartListening()
@@ -109,9 +110,11 @@ namespace Nyan.Modules.Log.UDP
         {
             try
             {
-                var errPayload = new Message();
-                errPayload.Type = Message.EContentType.Warning;
-                errPayload.Content = "(Encrypted / non-desserializable content received)";
+                var errPayload = new Message
+                {
+                    Type = Message.EContentType.Warning,
+                    Content = "(Encrypted / non-desserializable content received)"
+                };
 
                 var a = new Uri(_targetAddress);
                 var ep = new IPEndPoint(IPAddress.Any, a.Port);
