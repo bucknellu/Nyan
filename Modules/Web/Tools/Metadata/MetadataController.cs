@@ -16,7 +16,7 @@ namespace Nyan.Modules.Web.Tools.Metadata
         public virtual HttpResponseMessage GetMetadata([FromUri] string person = null,
             [FromUri] string application = null)
         {
-            var payload = new Dictionary<string, string>();
+            var payload = new Dictionary<string, object>();
 
             if (person != null) payload.Add("PERSON", person);
             if (application != null) payload.Add("APPLICATION", application);

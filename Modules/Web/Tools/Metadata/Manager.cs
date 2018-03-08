@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using Nyan.Core.Assembly;
 using Nyan.Core.Extensions;
+using Nyan.Core.Settings;
 
 // ReSharper disable InconsistentNaming
 
@@ -28,11 +30,19 @@ namespace Nyan.Modules.Web.Tools.Metadata
             foreach (var mtpp in Providers) mtpp.Value.Bootstrap();
         }
 
-        public JToken Composite(string key = null, Dictionary<string, string> payload = null, string path = null)
+        public JToken Composite(string key = null, Dictionary<string, object> payload = null, string path = null)
         {
             var tmp = new JObject();
 
-            foreach (var mdp in Providers) tmp.Merge(mdp.Value.Get(path, key, payload));
+            foreach (var mdp in Providers)
+                try
+                {
+                    tmp.Merge(mdp.Value.Get(path, key, payload));
+                }
+                catch (Exception e)
+                {
+                    Current.Log.Add(e, $"Metadata manager > Composite: {mdp.Key} {key}");
+                }
 
             JToken ret = null;
 
@@ -41,7 +51,7 @@ namespace Nyan.Modules.Web.Tools.Metadata
             return ret ?? tmp;
         }
 
-        public void Set(string pPath, object pValue, string scope, string pKey = null, bool preventStorage = false, Dictionary<string, string> payload = null)
+        public void Set(string pPath, object pValue, string scope, string pKey = null, bool preventStorage = false, Dictionary<string, object> payload = null)
         {
             var keyBag = new MetadataProviderPrimitive.KeyBag { payload = payload, Key = pKey };
             Providers[scope].Put(pPath, pValue, keyBag, preventStorage);

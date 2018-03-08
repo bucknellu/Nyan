@@ -10,7 +10,7 @@ namespace Nyan.Modules.Web.Tools.Metadata
 {
     public class MetadataProviderPrimitive
     {
-        public int CacheTimespan { get; set; } = 180; // 3 mins
+        public virtual int CacheTimespan { get; set; } = 180; // 3 mins
 
         public virtual void Bootstrap() { }
 
@@ -48,7 +48,7 @@ namespace Nyan.Modules.Web.Tools.Metadata
             }
 
 
-            public string GetKeyValue
+            public object GetKeyValue
             {
                 get
                 {
@@ -69,7 +69,7 @@ namespace Nyan.Modules.Web.Tools.Metadata
         public class KeyBag
         {
             public string Key { get; set; }
-            public Dictionary<string, string> payload { get; set; }
+            public Dictionary<string, object> payload { get; set; }
 
             public ContextKeyBag this[MetadataProviderPrimitive metadataProviderPrimitive]
             {
@@ -157,7 +157,7 @@ namespace Nyan.Modules.Web.Tools.Metadata
 
         #region Object handlers
 
-        public JObject Get(string path = null, string key = null, Dictionary<string, string> payload = null)
+        public JObject Get(string path = null, string key = null, Dictionary<string, object> payload = null)
         {
             var keyBag = new KeyBag
             {
@@ -175,11 +175,10 @@ namespace Nyan.Modules.Web.Tools.Metadata
             var cacheKey = keyBag[this].CacheKey;
 
             // Put("context." + Code, keyBag.GetKeyValue(key, payload), key, true, payload);
-
+            if (CacheTimespan > 0)
             if (Current.Cache.OperationalStatus == EOperationalStatus.Operational)
             {
                 var tmp = Current.Cache[cacheKey];
-
                 if (tmp != null) return tmp.FromJson<JObject>();
 
                 Current.Log.Add(cacheKey + " NOT FOUND", Message.EContentType.MoreInfo);
@@ -190,7 +189,7 @@ namespace Nyan.Modules.Web.Tools.Metadata
         }
 
         public virtual void Put(string pPath, object pValue, string pKey = null, bool preventStorage = false,
-            Dictionary<string, string> payload = null)
+            Dictionary<string, object> payload = null)
         {
             var keyBag = new KeyBag
             {
