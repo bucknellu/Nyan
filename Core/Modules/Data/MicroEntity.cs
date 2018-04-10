@@ -368,9 +368,6 @@ break; */
             return QuerySingleValue<long>(term, bag);
         }
 
-
-
-
         public static IEnumerable<T> Get(MicroEntityParametrizedGet parm) { return Get(parm, null); }
         public static IEnumerable<T> Get(MicroEntityParametrizedGet parm, string extraParms)
         {
