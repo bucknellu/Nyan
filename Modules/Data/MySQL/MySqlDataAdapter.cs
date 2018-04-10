@@ -1,5 +1,4 @@
-﻿using MySql.Data.MySqlClient;
-using Nyan.Core.Extensions;
+﻿using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Data;
 using Nyan.Core.Modules.Data.Adapter;
 using System;
@@ -10,6 +9,7 @@ using System.Reflection;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Data;
+using MySql.Data.MySqlClient;
 
 namespace Nyan.Modules.Data.MySql
 {
