@@ -44,9 +44,9 @@ namespace Nyan.Modules.Web.REST
             }
         }
 
-        public EndpointSecurityAttribute ClassSecurity => (EndpointSecurityAttribute)Attribute.GetCustomAttribute(GetType(), typeof(EndpointSecurityAttribute));
+        public EndpointSecurityAttribute ClassSecurity => (EndpointSecurityAttribute) Attribute.GetCustomAttribute(GetType(), typeof(EndpointSecurityAttribute));
 
-        public EndpointBehaviorAttribute ClassBehavior => (EndpointBehaviorAttribute)Attribute.GetCustomAttribute(GetType(), typeof(EndpointBehaviorAttribute));
+        public EndpointBehaviorAttribute ClassBehavior => (EndpointBehaviorAttribute) Attribute.GetCustomAttribute(GetType(), typeof(EndpointBehaviorAttribute));
 
         public virtual string SearchResultMoniker => MicroEntity<T>.Statements.Label;
 
@@ -81,8 +81,7 @@ namespace Nyan.Modules.Web.REST
             }
 
             if (ret)
-                try { ret = AuthorizeAction(requestType, accessType, parm, ref parm2, parm3); }
-                catch (Exception e) // User may throw a custom error, and that's fine: let's just log it.
+                try { ret = AuthorizeAction(requestType, accessType, parm, ref parm2, parm3); } catch (Exception e) // User may throw a custom error, and that's fine: let's just log it.
                 {
                     Current.Log.Add($"AUTH {typeof(T).FullName} DENIED {requestType}({accessType}) [{iden}]. Reason: {e.Message}", Message.EContentType.Warning);
                     throw new UnauthorizedAccessException("Not authorized: " + e.Message);
@@ -95,10 +94,7 @@ namespace Nyan.Modules.Web.REST
         }
 
         [Route(""), HttpGet]
-        public virtual object WebApiGetAll()
-        {
-            return WebApiGetAll(null);
-        }
+        public virtual object WebApiGetAll() { return WebApiGetAll(null); }
 
         public virtual object WebApiGetAll(string extraParms)
         {
@@ -117,8 +113,7 @@ namespace Nyan.Modules.Web.REST
                 ret.Headers.Add("X-Total-Pages", mRet.TotalPages.ToString());
 
                 return ret;
-            }
-            catch (Exception e)
+            } catch (Exception e)
             {
                 Current.Log.Add(e);
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e);
@@ -134,12 +129,12 @@ namespace Nyan.Modules.Web.REST
                 {"remove", ClassSecurity == null || Helper.HasAnyPermissions(ClassSecurity.RemovePermission)}
             };
 
-            return new Dictionary<string, object> { { "x-baf-access", ret } };
+            return new Dictionary<string, object> {{"x-baf-access", ret}};
         }
 
-        private InternalGetAllPayload InternalGetAll(string extraParms = null) { return InternalGetAll<T>(extraParms); }
+        internal InternalGetAllPayload InternalGetAll(string extraParms = null) { return InternalGetAll<T>(extraParms); }
 
-        internal InternalGetAllPayload InternalGetAll<TU>(string extraParms = null)
+        public virtual InternalGetAllPayload InternalGetAll<TU>(string extraParms = null)
         {
             var ret = new InternalGetAllPayload();
 
@@ -172,16 +167,23 @@ namespace Nyan.Modules.Web.REST
                     parametrizedGet.PageSize = queryString.ContainsKey("limit") ? Convert.ToInt32(queryString["limit"]) : 50;
                 }
 
+                if (queryString.ContainsKey("filter"))
+                {
+                    mustUseParametrizedGet = true;
+                    parametrizedGet.Filter = queryString["filter"];
+                }
+
                 if (queryString.ContainsKey("q"))
                 {
+                    mustUseParametrizedGet = true;
                     parametrizedGet.QueryTerm = queryString["q"].ToLower();
-                    tot = MicroEntity<T>.Count(parametrizedGet, extraParms);
                 }
-                else { tot = MicroEntity<T>.Count(); }
+
+                tot = mustUseParametrizedGet ? MicroEntity<T>.Count(parametrizedGet, extraParms) : MicroEntity<T>.Count();
 
                 var preRet = mustUseParametrizedGet ? MicroEntity<T>.Get<TU>(parametrizedGet, extraParms) : MicroEntity<T>.GetAll<TU>();
 
-                var oPreRet = (object)preRet;
+                var oPreRet = (object) preRet;
 
                 PostCollectionAction(RequestType.GetAll, AccessType.Read, ref oPreRet, ref tot);
                 PostAction(RequestType.GetAll, AccessType.Read);
@@ -192,17 +194,12 @@ namespace Nyan.Modules.Web.REST
 
                 Current.Log.Add("GET " + typeof(T).FullName + " OK (" + sw.ElapsedMilliseconds + " ms)");
 
-                ret.Content = preRet.Select(i => (object)i);
-
-                if (ret.HasExtendedProperties)
-                {
-                    ret.TotalCount = tot;
-                    ret.TotalPages = Convert.ToInt32(Math.Truncate((double)tot / parametrizedGet.PageSize) + 1);
-                }
+                ret.Content = preRet.Select(i => (object) i);
+                ret.PageSize = parametrizedGet.PageSize;
+                ret.TotalCount = tot;
 
                 return ret;
-            }
-            catch (Exception e)
+            } catch (Exception e)
             {
                 sw.Stop();
                 Current.Log.Add("GET " + typeof(T).FullName + " ERR (" + sw.ElapsedMilliseconds + " ms): " + e.Message, e);
@@ -212,8 +209,7 @@ namespace Nyan.Modules.Web.REST
 
         public virtual void PostCollectionAction(RequestType pRequestType, AccessType pAccessType,
                                                  ref object collectionList, ref long totalRecords, string pidentifier = null, T pObject = null,
-                                                 string pContext = null)
-        { }
+                                                 string pContext = null) { }
 
         [Route("summary"), HttpGet]
         public virtual object WebApiGetSummary()
@@ -223,11 +219,13 @@ namespace Nyan.Modules.Web.REST
             var step = "Initializing";
             try
             {
-                if (ClassBehavior != null) if (ClassBehavior.SummaryType != null) summaryType = ClassBehavior.SummaryType;
+                if (ClassBehavior != null)
+                    if (ClassBehavior.SummaryType != null)
+                        summaryType = ClassBehavior.SummaryType;
 
-                var method = GetType().GetMethod("InternalGetAll", BindingFlags.NonPublic | BindingFlags.Instance);
+                var method = GetType().GetMethod("InternalGetAll", BindingFlags.Public | BindingFlags.Instance);
                 var genericMethod = method.MakeGenericMethod(summaryType);
-                var preRet = (InternalGetAllPayload)genericMethod.Invoke(this, new object[] { null });
+                var preRet = (InternalGetAllPayload) genericMethod.Invoke(this, new object[] {null});
 
                 step = "Preparing JSON payload";
                 var ret = ControllerHelper.RenderJsonResult(preRet.Content);
@@ -241,8 +239,7 @@ namespace Nyan.Modules.Web.REST
                 ret.Headers.Add("X-Total-Pages", preRet.TotalPages.ToString());
 
                 return ret;
-            }
-            catch (Exception e)
+            } catch (Exception e)
             {
                 Current.Log.Add(e, step);
 
@@ -261,15 +258,14 @@ namespace Nyan.Modules.Web.REST
 
                 EvaluateAuthorization(ClassSecurity, RequestType.New, AccessType.Read, null);
 
-                var preRet = (T)Activator.CreateInstance(typeof(T), new object[] { });
+                var preRet = (T) Activator.CreateInstance(typeof(T), new object[] { });
                 sw.Stop();
                 Current.Log.Add("NEW " + typeof(T).FullName + " OK (" + sw.ElapsedMilliseconds + " ms)");
 
                 PostAction(RequestType.New, AccessType.Read);
 
                 return ControllerHelper.RenderJsonResult(preRet);
-            }
-            catch (Exception e)
+            } catch (Exception e)
             {
                 sw.Stop();
                 Current.Log.Add("NEW " + typeof(T).FullName + " ERR (" + sw.ElapsedMilliseconds + " ms): " + e.Message,
@@ -301,8 +297,7 @@ namespace Nyan.Modules.Web.REST
                 var postRet = InternalPostGet(preRet);
 
                 return ControllerHelper.RenderJsonResult(postRet);
-            }
-            catch (Exception e)
+            } catch (Exception e)
             {
                 sw.Stop();
                 Current.Log.Add(
@@ -311,8 +306,8 @@ namespace Nyan.Modules.Web.REST
 
                 if (!(e is HttpException)) return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e);
 
-                var we = (HttpException)e;
-                return Request.CreateErrorResponse((HttpStatusCode)we.GetHttpCode(), we.Message);
+                var we = (HttpException) e;
+                return Request.CreateErrorResponse((HttpStatusCode) we.GetHttpCode(), we.Message);
             }
         }
 
@@ -328,10 +323,7 @@ namespace Nyan.Modules.Web.REST
         }
 
         [Route("subset/{idset}"), HttpGet]
-        public virtual HttpResponseMessage WebApiGetSetByGet(string idset)
-        {
-            return ControllerHelper.RenderJsonResult(InternalGetSet(idset));
-        }
+        public virtual HttpResponseMessage WebApiGetSetByGet(string idset) { return ControllerHelper.RenderJsonResult(InternalGetSet(idset)); }
 
         public virtual List<T> InternalGetSet(string idset)
         {
@@ -352,7 +344,7 @@ namespace Nyan.Modules.Web.REST
                 if (set.Count == 0)
                 {
                     if (idset == "") return res;
-                    set = new List<string> { idset };
+                    set = new List<string> {idset};
                 }
 
                 sw.Start();
@@ -365,8 +357,7 @@ namespace Nyan.Modules.Web.REST
                 }
 
                 return res;
-            }
-            catch (Exception e)
+            } catch (Exception e)
             {
                 sw.Stop();
                 Current.Log.Add(
@@ -412,8 +403,7 @@ namespace Nyan.Modules.Web.REST
 
                 Current.Log.Add("UPD " + typeof(T).FullName + ":" + item.GetEntityIdentifier() + " ACCEPTED (" + sw.ElapsedMilliseconds + " ms)");
                 return new HttpResponseMessage(HttpStatusCode.Accepted);
-            }
-            catch (Exception e)
+            } catch (Exception e)
             {
                 sw.Stop();
                 Current.Log.Add(
@@ -447,8 +437,7 @@ namespace Nyan.Modules.Web.REST
                 PostAction(RequestType.Patch, AccessType.Write, preRet.GetEntityIdentifier(), preRet);
 
                 return ControllerHelper.RenderJsonResult(preRet);
-            }
-            catch (Exception e)
+            } catch (Exception e)
             {
                 sw.Stop();
                 Current.Log.Add(
@@ -539,8 +528,7 @@ namespace Nyan.Modules.Web.REST
 
                 Current.Log.Add("DEL " + typeof(T).FullName + ":" + id + " ACCEPTED (" + sw.ElapsedMilliseconds + " ms)");
                 return new HttpResponseMessage(HttpStatusCode.Accepted);
-            }
-            catch (Exception e)
+            } catch (Exception e)
             {
                 Current.Log.Add(
                     "DEL " + typeof(T).FullName + ":" + probe.GetEntityIdentifier() + " ERR (" + sw.ElapsedMilliseconds
@@ -567,7 +555,10 @@ namespace Nyan.Modules.Web.REST
                 {
                     object referenceCollection;
 
-                    if (id.Equals("new")) { referenceCollection = new List<object>(); }
+                    if (id.Equals("new"))
+                    {
+                        referenceCollection = new List<object>();
+                    }
                     else
                     {
                         var probe = EntityReferenceAttribute[entityReference];
@@ -594,8 +585,8 @@ namespace Nyan.Modules.Web.REST
                     PostAction(RequestType.EntityReference, AccessType.Read, id, null, entityReference);
 
                     ret = Request.CreateResponse(HttpStatusCode.OK, referenceCollection);
-                }
-                catch (Exception ex) { ret = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, ex); }
+                } catch (Exception ex) { ret = Request.CreateErrorResponse(HttpStatusCode.InternalServerError, ex); }
+
             return ret;
         }
 
@@ -615,14 +606,48 @@ namespace Nyan.Modules.Web.REST
             return set;
         }
 
-        internal class InternalGetAllPayload
+        public class InternalGetAllPayload
         {
+            private long _pageSize;
+            private long _totalCount;
             public bool HasExtendedProperties;
             public IEnumerable<object> Content { get; set; }
-            public long TotalCount { get; set; }
+            public long TotalCount
+            {
+                get => _totalCount;
+                set
+                {
+                    _totalCount = value;
+                    CalcPages();
+                }
+            }
             public long TotalPages { get; set; }
+            public long PageSize
+            {
+                get => _pageSize;
+                set
+                {
+                    _pageSize = value;
+                    CalcPages();
+                }
+            }
+
+            private void CalcPages()
+            {
+                if (TotalCount == 0)
+                {
+                    TotalPages = 0;
+                    return;
+                }
+
+                if (PageSize == 0)
+                {
+                    _pageSize = TotalCount;
+                    return;
+                }
+
+                TotalPages = Convert.ToInt32(Math.Truncate((double) TotalCount / PageSize) + 1);
+            }
         }
     }
 }
-
-namespace Nyan.Core.Modules.Identity { }
