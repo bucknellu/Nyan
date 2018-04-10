@@ -31,6 +31,11 @@ namespace Nyan.Core.Extensions
             return source.Select(i => (T)Activator.CreateInstance(i, new object[] { })).ToList();
         }
 
+        public static T ToInstance<T>(this Type source)
+        {
+            return (T)Activator.CreateInstance(source, new object[] { });
+        }
+
         public static IEnumerable<List<T>> SplitList<T>(List<T> items, int nSize = 30)
         {
 
