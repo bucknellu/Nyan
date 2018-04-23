@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Nyan.Core.Diagnostics;
 
 namespace Nyan.Core.Modules.Log
@@ -25,6 +26,20 @@ namespace Nyan.Core.Modules.Log
             Generic = 90,
             Debug = 100
         }
+
+        public static Dictionary<EContentType, ConsoleColor> ContentColors  = new Dictionary<EContentType, ConsoleColor>()
+        {
+            {EContentType.Audit, ConsoleColor.Green},
+            {EContentType.Exception, ConsoleColor.Red},
+            {EContentType.StartupSequence, ConsoleColor.Yellow},
+            {EContentType.ShutdownSequence, ConsoleColor.Yellow},
+            {EContentType.Warning, ConsoleColor.Magenta},
+            {EContentType.Maintenance, ConsoleColor.Cyan},
+            {EContentType.Info, ConsoleColor.Blue},
+            {EContentType.MoreInfo, ConsoleColor.Gray},
+            {EContentType.Generic, ConsoleColor.White},
+            {EContentType.Debug, ConsoleColor.Cyan},
+        };
 
         #endregion
 
