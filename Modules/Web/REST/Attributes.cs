@@ -33,6 +33,7 @@ namespace Nyan.Modules.Web.REST
     public class EndpointBehaviorAttribute : Attribute
     {
         public Type SummaryType { get; set; }
+        public bool MustPaginate { get; set; }
     }
 
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
