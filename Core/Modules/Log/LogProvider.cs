@@ -39,7 +39,7 @@ namespace Nyan.Core.Modules.Log
                 {
                     if (_workerThread != null) return;
 
-                    _workerThread = new Thread(DispatcherWorker) { IsBackground = false };
+                    _workerThread = new Thread(DispatcherWorker) {IsBackground = false};
                     _workerThread.Start();
                 }
             }
@@ -88,6 +88,7 @@ namespace Nyan.Core.Modules.Log
 
         public virtual void BeforeDispatch(Message payload) { }
         public virtual void BeforeAdd(Message payload) { }
+
         public virtual void AfterDispatch(Message payload)
         {
             if (Settings.replicateLocally) System.Add(payload.Content);
@@ -101,8 +102,7 @@ namespace Nyan.Core.Modules.Log
                 Dispatch(payload);
                 AfterDispatch(payload);
                 return true;
-            }
-            catch { return false; }
+            } catch { return false; }
         }
 
         public virtual bool CheckShutdownTriggerTerms(string payload)
@@ -124,9 +124,9 @@ namespace Nyan.Core.Modules.Log
 
                     return true;
                 }
+
                 return false;
-            }
-            catch { return false; }
+            } catch { return false; }
         }
 
         public virtual void Add(string content, Message.EContentType type = Message.EContentType.Generic)
@@ -152,6 +152,7 @@ namespace Nyan.Core.Modules.Log
 
         public virtual bool Dispatch(Message payload)
         {
+            Console.ForegroundColor = Message.ContentColors[payload.Type];
             Console.WriteLine(payload.Content);
             Debug.Print(payload.Content);
 

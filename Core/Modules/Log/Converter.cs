@@ -13,17 +13,18 @@ namespace Nyan.Core.Modules.Log
             return payload;
         }
 
-        public static Message ToMessage(Exception e) { return ToMessage(e, null, null); }
+        public static Message ToMessage(Exception e)
+        {
+            return ToMessage(e, null, null);
+        }
 
         public static Message ToMessage(Exception e, string message, string token = null)
         {
             if (token == null) token = Identifier.MiniGuid();
 
-            message = message == null ? e.Message : $"{message} ({e.Message})";
+            message = message == null ? e.ToSummary() : $"{message} ({e.ToSummary()})";
 
             var ctx = $"{token} : {message}";
-
-            try { ctx += " @ " + new StackTrace(e, true).FancyString(); } catch { }
 
             return ToMessage(ctx, Message.EContentType.Exception);
         }
