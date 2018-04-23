@@ -26,35 +26,37 @@ namespace Nyan.Core.Extensions
 
         private static readonly Random Rnd = new Random();
 
-        public static IEnumerable<T> ToInstances<T>(this IEnumerable<Type> source)
-        {
-            return source.Select(i => (T)Activator.CreateInstance(i, new object[] { })).ToList();
-        }
-
-        public static T ToInstance<T>(this Type source)
-        {
-            return (T)Activator.CreateInstance(source, new object[] { });
-        }
-
-        public static IEnumerable<List<T>> SplitList<T>(List<T> items, int nSize = 30)
-        {
-
-            // https://stackoverflow.com/questions/11463734/split-a-list-into-smaller-lists-of-n-size
-
-            for (var i = 0; i < items.Count; i += nSize)
-            {
-                yield return items.GetRange(i, Math.Min(nSize, items.Count - i));
-            }
-        }
-
         public static List<string> BlackListedModules = new List<string>
         {
             "System.Linq.Enumerable",
             "System.Collections.Generic.List",
             "System.Data.Common.DbCommand",
             "Oracle.DataAccess.Client.OracleCommand",
-            "Dapper.SqlMapper+<QueryImpl>"
+            "Dapper.SqlMapper+<QueryImpl>",
+            "System.Web.Http.Controllers",
+            "System.Runtime.CompilerServices",
+            "System.Runtime.ExceptionServices",
+            "CommonLanguageRuntimeLibrary"
         };
+
+        // https://stackoverflow.com/questions/311165/how-do-you-convert-a-byte-array-to-a-hexadecimal-string-and-vice-versa
+        public static string ToHex(this byte[] ba)
+        {
+            var hex = new StringBuilder(ba.Length * 2);
+            foreach (var b in ba) hex.AppendFormat("{0:x2}", b);
+            return hex.ToString();
+        }
+
+        public static IEnumerable<T> ToInstances<T>(this IEnumerable<Type> source) { return source.Select(i => (T) Activator.CreateInstance(i, new object[] { })).ToList(); }
+
+        public static T ToInstance<T>(this Type source) { return (T) Activator.CreateInstance(source, new object[] { }); }
+
+        public static IEnumerable<List<T>> SplitList<T>(List<T> items, int nSize = 30)
+        {
+            // https://stackoverflow.com/questions/11463734/split-a-list-into-smaller-lists-of-n-size
+
+            for (var i = 0; i < items.Count; i += nSize) yield return items.GetRange(i, Math.Min(nSize, items.Count - i));
+        }
 
         public static bool MatchWildcardPattern(this string value, string pattern)
         {
@@ -181,6 +183,16 @@ namespace Nyan.Core.Extensions
 
         public static string FancyString(this Exception source) { return new StackTrace(source, true).FancyString(); }
 
+        public static string ToSummary(this Exception ex)
+        {
+            var output = "";
+
+            output += ex.Message + new StackTrace(ex, true).FancyString();
+            if (ex.InnerException != null) output += "; " + ex.InnerException.ToSummary();
+
+            return output;
+        }
+
         public static string FancyString(this StackTrace source)
         {
             var ret = "";
@@ -192,8 +204,10 @@ namespace Nyan.Core.Extensions
             validFrames.Reverse();
 
             var mon = new Dictionary<string, string>();
+
             mon["mod"] = "";
             mon["type"] = "";
+
             var probe = "";
 
             foreach (var vf in validFrames)
