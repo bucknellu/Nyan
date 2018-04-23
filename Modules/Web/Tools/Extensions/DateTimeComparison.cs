@@ -24,6 +24,7 @@ namespace Nyan.Modules.Web.Tools.Extensions
             const int MINUTE = 60 * SECOND;
             const int HOUR = 60 * MINUTE;
             const int DAY = 24 * HOUR;
+            const int WEEK = 7 * DAY;
             const int MONTH = 30 * DAY;
 
             if (reference == null) reference = DateTime.Now;
@@ -49,6 +50,12 @@ namespace Nyan.Modules.Web.Tools.Extensions
                 delta = Math.Abs(delta);
 
                 if (delta < 30 * DAY) { ret = ts.Days + " days ago"; }
+                else if (delta < 1 * MONTH)
+                {
+                    var weeks = Convert.ToInt32(Math.Floor((double)ts.Days / 7));
+                    ret = weeks <= 1 ? "one week ago" : weeks + " weeks ago";
+                }
+
                 else if (delta < 12 * MONTH)
                 {
                     var months = Convert.ToInt32(Math.Floor((double) ts.Days / 30));
@@ -69,9 +76,14 @@ namespace Nyan.Modules.Web.Tools.Extensions
                 }
                 else
                 {
+                    if (delta < 1 * MONTH)
+                    {
+                        var weeks = Math.Abs(Convert.ToInt32(Math.Floor((double)ts.Days / 7)));
+                        ret = weeks <= 1 ? "one week from now" : weeks + " weeks from now";
+                    }
                     if (delta < 12 * MONTH)
                     {
-                        var months = Math.Abs(Convert.ToInt32(Math.Floor((double) ts.Days / 30)));
+                        var months = Math.Abs(Convert.ToInt32(Math.Floor((double)ts.Days / 30)));
                         ret = months <= 1 ? "one month from now" : months + " months from now";
                     }
                     else
