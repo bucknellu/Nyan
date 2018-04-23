@@ -7,7 +7,7 @@ namespace Nyan.Modules.Storage
     {
         Stream this[string key] { get; set; }
         EOperationalStatus OperationalStatus { get; }
-        string Put(Stream source, string fileKey = null);
+        string Put(Stream source, string fileKey = null, bool partialName = false);
         FileStream Get(string key);
         string GetFullPath(string key);
         string GetBasePath();

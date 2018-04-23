@@ -1,9 +1,10 @@
-﻿using Nyan.Core.Shared;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
+using Nyan.Core.Extensions;
 using Nyan.Core.Settings;
+using Nyan.Core.Shared;
 
 namespace Nyan.Modules.Storage.FileSystem
 {
@@ -13,11 +14,7 @@ namespace Nyan.Modules.Storage.FileSystem
         public FileSystemStorageProvider()
         {
             Configuration = new FileSystemStorageConfiguration();
-            try
-            {
-                Directory.CreateDirectory(Configuration.StoragePath);
-            }
-            catch
+            try { Directory.CreateDirectory(Configuration.StoragePath); } catch
             {
                 // ignored
             }
@@ -27,7 +24,7 @@ namespace Nyan.Modules.Storage.FileSystem
 
         public string Suffix { get; set; } = ".storage";
 
-        public Stream this[string key] { get { return Get(key); } set { Put(value, key); } }
+        public Stream this[string key] { get => Get(key); set => Put(value, key); }
 
         public EOperationalStatus OperationalStatus { get; } = EOperationalStatus.Operational;
 
@@ -72,15 +69,21 @@ namespace Nyan.Modules.Storage.FileSystem
         public void Initialize() { }
         public void Shutdown() { }
 
-        public string Put(Stream source, string fileKey = null)
+        public string Put(Stream source, string fileKey = null, bool partialName = false)
         {
-            if (fileKey == null) fileKey = Guid.NewGuid().ToString();
+            if (fileKey == null || partialName)
+                using (var md5 = MD5.Create())
+                {
+                    fileKey = md5.ComputeHash(source).ToHex() + "-" + source.Length.ToString("X") + (fileKey != null? "-" + fileKey.ToFriendlyUrl():"");
+                }
 
             if (source == null)
             {
                 Remove(fileKey);
                 return fileKey;
             }
+
+            if (File.Exists(GetFullPath(fileKey))) return fileKey;
 
             source.Position = 0;
             var ms = new MemoryStream();
@@ -95,6 +98,5 @@ namespace Nyan.Modules.Storage.FileSystem
 
             return fileKey;
         }
-
     }
 }

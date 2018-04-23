@@ -7,10 +7,10 @@ namespace Nyan.Modules.Storage
     [Priority(Level = -99)]
     public class NullStorageProvider : IStorageProvider
     {
-        public Stream this[string key] { get { throw new System.NotImplementedException(); } set { throw new System.NotImplementedException(); } }
+        public Stream this[string key] { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
 
         public EOperationalStatus OperationalStatus { get; } = EOperationalStatus.NonOperational;
-        public string Put(Stream source, string fileKey = null) { throw new System.NotImplementedException(); }
+        public string Put(Stream source, string fileKey = null, bool partialName = false) { throw new System.NotImplementedException(); }
         public FileStream Get(string key) { throw new System.NotImplementedException(); }
         public string GetFullPath(string key) { throw new System.NotImplementedException(); }
         public string GetBasePath() { throw new System.NotImplementedException(); }
