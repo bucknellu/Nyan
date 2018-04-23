@@ -1,9 +1,8 @@
 ﻿using MongoDB.Bson;
-using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Nyan.Core.Extensions;
 
 namespace Nyan.Modules.Data.MongoDB
 {
@@ -11,23 +10,15 @@ namespace Nyan.Modules.Data.MongoDB
     {
         public override JArray Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
         {
-            var myBSONDoc = BsonDocumentSerializer.Instance.Deserialize(context);
-
-            var val = myBSONDoc["_c"];
-
-            return JArray.Parse(val.ToString());
+            var myBSONDoc = BsonArraySerializer.Instance.Deserialize(context);
+            return JArray.Parse(myBSONDoc.ToString());
         }
 
         public override void Serialize(BsonSerializationContext context, BsonSerializationArgs args, JArray value)
         {
-            var val = Serialization.ToJson(value);
-
-            
-
-                BsonDocumentSerializer.Instance.Serialize(context, BsonDocument.Parse("{_c:" + val + "}"));
-
-            //var myBSONDoc = BsonDocument.Parse(value.ToString());
-            //BsonDocumentSerializer.Instance.Serialize(context, myBSONDoc);
+            var jsonDoc = JsonConvert.SerializeObject(value);
+            var bsonDoc = BsonSerializer.Deserialize<BsonArray>(jsonDoc);
+            BsonArraySerializer.Instance.Serialize(context, bsonDoc);
         }
     }
 }

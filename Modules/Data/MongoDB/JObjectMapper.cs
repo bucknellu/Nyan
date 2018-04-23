@@ -9,7 +9,7 @@ namespace Nyan.Modules.Data.MongoDB
         {
             var src = value as JObject;
 
-            bsonValue = src != null ? BsonDocument.Parse("{prop0:" + src + "}")[0] : BsonValue.Create(value);
+            bsonValue = src != null ? BsonDocument.Parse("{_p:" + src + "}")[0] : BsonValue.Create(value);
 
             return true;
         }
