@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using Newtonsoft.Json.Linq;
 using Nyan.Core.Assembly;
 using Nyan.Core.Extensions;
@@ -30,19 +31,31 @@ namespace Nyan.Modules.Web.Tools.Metadata
             foreach (var mtpp in Providers) mtpp.Value.Bootstrap();
         }
 
+        public static JToken Get(Dictionary<string, object> payload = null)
+        {
+            return Instance.Composite(null, payload);
+        }
+
+        public static T? NullableValue<T>(string path, Dictionary<string, object> payload = null) where T : struct
+        {
+            var metaVals = Instance.Composite(null, payload);
+            var val = metaVals.SelectToken(path);
+            return val?.ToObject<T>();
+        }
+
+        public static T Value<T>(string path, Dictionary<string, object> payload = null) where T : class
+        {
+            var metaVals = Instance.Composite(null, payload);
+            var val = metaVals.SelectToken(path);
+            return val?.ToObject<T>();
+        }
+
         public JToken Composite(string key = null, Dictionary<string, object> payload = null, string path = null)
         {
             var tmp = new JObject();
 
             foreach (var mdp in Providers)
-                try
-                {
-                    tmp.Merge(mdp.Value.Get(path, key, payload));
-                }
-                catch (Exception e)
-                {
-                    Current.Log.Add(e, $"Metadata manager > Composite: {mdp.Key} {key}");
-                }
+                try { tmp.Merge(mdp.Value.Get(path, key, payload)); } catch (Exception e) { Current.Log.Add(e, $"Metadata manager > Composite: {mdp.Key} {key}"); }
 
             JToken ret = null;
 
@@ -53,12 +66,17 @@ namespace Nyan.Modules.Web.Tools.Metadata
 
         public void Set(string pPath, object pValue, string scope, string pKey = null, bool preventStorage = false, Dictionary<string, object> payload = null)
         {
-            var keyBag = new MetadataProviderPrimitive.KeyBag { payload = payload, Key = pKey };
-            Providers[scope].Put(pPath, pValue, keyBag, preventStorage);
+            if (payload != null)
+            {
+                var keyBag = new MetadataProviderPrimitive.KeyBag {payload = payload, Key = pKey};
+                Providers[scope].Put(pPath, pValue, keyBag, preventStorage);
+            }
+            else
+            {
+                Providers[scope].Put(pPath, pValue, pKey, preventStorage);
+            }
         }
-        public void Set(string pPath, object pValue, string scope, MetadataProviderPrimitive.KeyBag keyBag, bool preventStorage = false)
-        {
-            Providers[scope].Put(pPath, pValue, keyBag, preventStorage);
-        }
+
+        public void Set(string pPath, object pValue, string scope, MetadataProviderPrimitive.KeyBag keyBag, bool preventStorage = false) { Providers[scope].Put(pPath, pValue, keyBag, preventStorage); }
     }
 }

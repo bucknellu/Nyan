@@ -11,21 +11,21 @@ namespace Nyan.Modules.Web.Tools.Metadata
     [RoutePrefix("stack/tools")]
     public class MetadataController : ApiController
     {
-        [Route("metadata")]
-        [HttpGet]
+        [Route("metadata"), HttpGet]
         public virtual HttpResponseMessage GetMetadata([FromUri] string person = null,
-            [FromUri] string application = null)
+                                                       [FromUri] string application = null)
         {
+
             var payload = new Dictionary<string, object>();
 
             if (person != null) payload.Add("PERSON", person);
             if (application != null) payload.Add("APPLICATION", application);
 
-            return new SimpleHttpResponseMessage(HttpStatusCode.OK, Manager.Instance.Composite(null, payload).ToString());
+
+            return new SimpleHttpResponseMessage(HttpStatusCode.OK, Manager.Get(payload).ToString());
         }
 
-        [Route("metadata")]
-        [HttpPost]
+        [Route("metadata"), HttpPost]
         public virtual HttpResponseMessage SetMetadata([FromBody] MetaPayload content)
         {
             Manager.Instance.Set(content.path, content.value, content.scope);
