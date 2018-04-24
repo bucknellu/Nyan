@@ -88,11 +88,14 @@ REST endpoints are provided via [Microsoft WebApi 2](http://www.asp.net/web-api/
 
 ## Nyan Development Team
 
-####Current collaborators
-- [Cigano Morrison Mendez](https://github.com/cigano) (http://pt.stackoverflow.com/users/2999/cigano-morrison-mendez)
+###Current collaborators
 - [Leo Botinelly](https://www.linkedin.com/in/lbotinelly) (http://pt.stackoverflow.com/users/1897/onosendai)
 
-####Original contributors from Enterprise Systems at [Bucknell University](https://www.bucknell.edu) 
+### Past collaborators
+- [Cigano Morrison Mendez](https://github.com/cigano) (http://pt.stackoverflow.com/users/2999/cigano-morrison-mendez)
+
+###Original contributors from Enterprise Systems at [Bucknell University](https://www.bucknell.edu)
+
 - [Dan Mancusi](mailto:dmancusi@bucknell.edu)  
 - Mark Minisce  
 - [Leo Botinelly](mailto:leo.botinelly@bucknell.edu)  
