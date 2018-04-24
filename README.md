@@ -98,8 +98,7 @@ REST endpoints are provided via [Microsoft WebApi 2](http://www.asp.net/web-api/
 - [Leo Botinelly](mailto:leo.botinelly@bucknell.edu)  
 
 ## License
-GPL V3 - a copyleft license that requires anyone who distributes 
-this code or a derivative work to make the source available under the same 
-terms. It also restricts use in hardware that forbids software alterations.
+MIT - a permissive free software license originating at the Massachusetts Institute of Technology (MIT), it puts only very limited restriction on reuse and has, therefore, an excellent license compatibility. It permits reuse within proprietary software provided that all copies of the licensed software include a copy of the MIT License terms and the copyright notice.
 
-Check the [LICENSE file](https://github.com/lbotinelly/Nyan/blob/master/LICENSE) for more details.
+
+Check the [LICENSE file](https://github.com/bucknellu/Nyan/blob/master/LICENSE) for more details.
