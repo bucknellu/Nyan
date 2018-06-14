@@ -148,6 +148,7 @@ namespace Nyan.Core.Extensions
                     if (obj.GetValue(i).GetType().Name == "DateTime") sb.Append("\"" + obj.GetDateTime(i).ToString("o") + "\"");
                     else sb.Append(CleanupJsonData(obj.GetValue(i).ToString()));
                 }
+
                 sb.Append("}");
                 isFirstRow = false;
             }
@@ -204,6 +205,7 @@ namespace Nyan.Core.Extensions
                     sb.Append(RemapInternationalCharToAscii(c));
                     if (prevlen != sb.Length) prevdash = false;
                 }
+
                 if (i == maxlen) break;
             }
 
@@ -237,11 +239,9 @@ namespace Nyan.Core.Extensions
 
         // ReSharper disable once InconsistentNaming
         public static string ToISODateString(this DateTime obj) { return $"ISODate(\"{obj:o}\")"; }
+
         // ReSharper disable once InconsistentNaming
-        public static string ToRawDateHash(this DateTime obj)
-        {
-            return obj.ToString("yyyyMMddHHmmss");
-        }
+        public static string ToRawDateHash(this DateTime obj) { return obj.ToString("yyyyMMddHHmmss"); }
 
         public static DateTime FromRawDateHash(this string obj) { return DateTime.ParseExact(obj, "yyyyMMddHHmmss", new CultureInfo("en-US")); }
 
@@ -263,12 +263,20 @@ namespace Nyan.Core.Extensions
             return decodedString;
         }
 
+        
         public static string ToJson(this object obj, int pLevels = 0)
         {
             //var s = new JavaScriptSerializer {MaxJsonLength = 50000000};
             //if (pLevels != 0) s.RecursionLimit = pLevels;
             //return s.Serialize(obj);
             try { return JsonConvert.SerializeObject(obj); } catch { return null; }
+        }
+
+        public static string CleanSqlFormatting(this string source)
+        {
+            var ret = source.Replace("\r", " ").Replace("\n", " ").Replace("\t", " ").Trim();
+            while (ret.IndexOf("  ", StringComparison.Ordinal) != -1) ret = ret.Replace("  ", " ");
+            return ret;
         }
 
         public static IDictionary<string, object> ToKeyValueDictionary(this string source) { return source.FromJson<IDictionary<string, object>>(); }
@@ -302,6 +310,7 @@ namespace Nyan.Core.Extensions
                 stream.Flush();
                 result = stream.ToArray();
             }
+
             return result;
         }
 
@@ -343,6 +352,7 @@ namespace Nyan.Core.Extensions
                 if (generic == cur) return true;
                 toCheck = toCheck.BaseType;
             }
+
             return false;
         }
 

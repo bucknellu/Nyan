@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing;
 using System.Dynamic;
 using System.Globalization;
 using System.Linq;
@@ -21,6 +22,7 @@ namespace Nyan.Core.Extensions
         public enum ESafeArrayMode
         {
             Remove,
+
             Allow
         }
 
@@ -39,6 +41,24 @@ namespace Nyan.Core.Extensions
             "CommonLanguageRuntimeLibrary"
         };
 
+        public static Image FromPathToImage(this string source) { return new Bitmap(source); }
+
+        public static void CopyValues<T>(this T source, T target, bool copyWhenSourceIsNull = false, bool copyWhenTargetIsNotNull = true)
+        {
+            var t = typeof(T);
+
+            var properties = t.GetProperties().Where(prop => prop.CanRead && prop.CanWrite);
+
+            foreach (var prop in properties)
+            {
+                var value = prop.GetValue(source, null);
+                var currValue = prop.GetValue(target, null);
+
+                if (value == null && !copyWhenSourceIsNull) continue;
+                if (currValue == null || copyWhenTargetIsNotNull) prop.SetValue(target, value, null);
+            }
+        }
+
         // https://stackoverflow.com/questions/311165/how-do-you-convert-a-byte-array-to-a-hexadecimal-string-and-vice-versa
         public static string ToHex(this byte[] ba)
         {
@@ -47,8 +67,34 @@ namespace Nyan.Core.Extensions
             return hex.ToString();
         }
 
-        public static IEnumerable<T> ToInstances<T>(this IEnumerable<Type> source) { return source.Select(i => (T) Activator.CreateInstance(i, new object[] { })).ToList(); }
+        public static List<string> GetTemplateKeys(this string body)
+        {
+            if (body == null) return null;
 
+            const string pattern = @"{{(.*?)}}";
+            var matches = Regex.Matches(body, pattern).Cast<Match>().Select(m => m.Value).ToList();
+            return matches;
+        }
+
+        public static string TemplateFill(this string body, object sourceObj)
+        {
+            var tmp = body;
+
+            var source = JToken.Parse(sourceObj.ToJson());
+
+            var keys = body.GetTemplateKeys();
+
+            foreach (var key in keys)
+            {
+                var tokenName = key.Substring(2, key.Length - 4);
+                var probe = source.SelectToken(tokenName);
+                if (probe != null) tmp = tmp.Replace(key, probe.ToString());
+            }
+
+            return tmp;
+        }
+
+        public static IEnumerable<T> ToInstances<T>(this IEnumerable<Type> source) { return source.Select(i => (T) Activator.CreateInstance(i, new object[] { })).ToList(); }
         public static T ToInstance<T>(this Type source) { return (T) Activator.CreateInstance(source, new object[] { }); }
 
         public static IEnumerable<List<T>> SplitList<T>(List<T> items, int nSize = 30)
@@ -160,9 +206,7 @@ namespace Nyan.Core.Extensions
         }
 
         public static string Encrypt(this string value) { return Current.Encryption.Encrypt(value); }
-
         public static string Decrypt(this string value) { return Current.Encryption.Decrypt(value); }
-
         public static string Truncate(this string value, int maxChars) { return value.Length <= maxChars ? value : value.Substring(0, maxChars) + "..."; }
 
         public static bool IsNumeric(this object refObj)
@@ -180,7 +224,6 @@ namespace Nyan.Core.Extensions
         }
 
         public static ShortGuid ToShortGuid(this Guid oRef) { return new ShortGuid(oRef); }
-
         public static string FancyString(this Exception source) { return new StackTrace(source, true).FancyString(); }
 
         public static string ToSummary(this Exception ex)
@@ -316,7 +359,6 @@ namespace Nyan.Core.Extensions
         }
 
         public static string ToCommaSeparatedString(this List<string> obj) { return obj.Aggregate((i, j) => i + ", " + j); }
-
         public static string format(this string source, params object[] parms) { return string.Format(source, parms); }
 
         public static List<List<T>> Split<T>(this List<T> items, int sliceSize = 30)
@@ -395,16 +437,11 @@ namespace Nyan.Core.Extensions
                     currentCode = "";
 
                     if ("bfpv".IndexOf(currentLetter, StringComparison.Ordinal) > -1) currentCode = "1";
-                    else if ("cgjkqsxz".IndexOf(currentLetter, StringComparison.Ordinal) > -1)
-                        currentCode = "2";
-                    else if ("dt".IndexOf(currentLetter, StringComparison.Ordinal) > -1)
-                        currentCode = "3";
-                    else if (currentLetter == "l")
-                        currentCode = "4";
-                    else if ("mn".IndexOf(currentLetter, StringComparison.Ordinal) > -1)
-                        currentCode = "5";
-                    else if (currentLetter == "r")
-                        currentCode = "6";
+                    else if ("cgjkqsxz".IndexOf(currentLetter, StringComparison.Ordinal) > -1) currentCode = "2";
+                    else if ("dt".IndexOf(currentLetter, StringComparison.Ordinal) > -1) currentCode = "3";
+                    else if (currentLetter == "l") currentCode = "4";
+                    else if ("mn".IndexOf(currentLetter, StringComparison.Ordinal) > -1) currentCode = "5";
+                    else if (currentLetter == "r") currentCode = "6";
 
                     if (currentCode != previousCode) result.Append(currentCode);
                 }
@@ -463,6 +500,26 @@ namespace Nyan.Core.Extensions
             domainName = idn.GetAscii(domainName);
 
             return match.Groups[1].Value + domainName;
+        }
+
+        public static string FromNumberStringToString(this string source, int numDec = 2)
+        {
+            string ret;
+
+            if (source == null) return null;
+
+            try
+            {
+                var num = Convert.ToDecimal(source);
+
+                var patt = "0:#";
+
+                if (numDec > 0) patt += "." + new string('#', numDec);
+
+                ret = string.Format("{" + patt + "}", num);
+            } catch (Exception e) { ret = source; }
+
+            return ret;
         }
     }
 }
