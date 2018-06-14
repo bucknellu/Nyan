@@ -44,7 +44,7 @@ namespace Nyan.Core.Modules.Maintenance
                         {
                             try
                             {
-                                var proc = new MaintenanceTaskResult {Id = maintenanceTask.Id};
+                                var proc = new MaintenanceTaskResult { Id = maintenanceTask.Id };
                                 var mustSkip = false;
 
                                 if (!force)
@@ -67,7 +67,8 @@ namespace Nyan.Core.Modules.Maintenance
                                         proc = maintenanceTask.Task.MaintenanceTask(force);
                                         if (proc.Status == MaintenanceTaskResult.EResultStatus.Undefined) proc.Status = MaintenanceTaskResult.EResultStatus.Success;
                                         if (proc.Message == null) proc.Message = "SUCCESS";
-                                    } catch (Exception e)
+                                    }
+                                    catch (Exception e)
                                     {
                                         proc.Status = MaintenanceTaskResult.EResultStatus.Failed;
                                         proc.Message = $"ERROR: {e.Message} @ {e.FancyString()}";
@@ -84,13 +85,15 @@ namespace Nyan.Core.Modules.Maintenance
                                 ret.Add(proc);
 
                                 Instances.Handler.AfterRun(maintenanceTask, proc);
-                            } catch (Exception e)
+                            }
+                            catch (Exception e)
                             {
                                 Current.Log.Add($"    TASK {maintenanceTask.Id} FAILURE: {e.Message} @ {e.FancyString()}", Message.EContentType.Maintenance);
                                 Current.Log.Add(e);
                             }
                         });
-                    } catch (Exception e)
+                    }
+                    catch (Exception e)
                     {
                         Current.Log.Add($"    FAILURE: {e.Message} @ {e.FancyString()}", Message.EContentType.Maintenance);
                         Current.Log.Add(e);
@@ -123,7 +126,8 @@ namespace Nyan.Core.Modules.Maintenance
                 Instances.Handler.HandleEnd();
 
                 return mRet;
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 if (currType == "") Current.Log.Add(e);
                 else Current.Log.Add(e, currType);
