@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
 using Newtonsoft.Json.Linq;
 using Nyan.Core.Assembly;
+using Nyan.Core.Diagnostics;
 using Nyan.Core.Extensions;
+using Nyan.Core.Modules.Log;
 using Nyan.Core.Settings;
 
 // ReSharper disable InconsistentNaming
@@ -31,9 +33,20 @@ namespace Nyan.Modules.Web.Tools.Metadata
             foreach (var mtpp in Providers) mtpp.Value.Bootstrap();
         }
 
-        public static JToken Get(Dictionary<string, object> payload = null)
+        public static JToken Get(Dictionary<string, object> payload = null) { return Instance.Composite(null, payload); }
+
+        public Dictionary<string, object> GetDistinctKeys()
         {
-            return Instance.Composite(null, payload);
+            var dict = new Dictionary<string, object>();
+
+            foreach (var mdp in Providers)
+            {
+                var bagContents = mdp.Value.Fetch(new MetadataProviderPrimitive.KeyBag());
+
+                if (bagContents != null) dict = dict.Union(bagContents).ToDictionary(d => d.Key, d => d.Value);
+            }
+
+            return dict;
         }
 
         public static T? NullableValue<T>(string path, Dictionary<string, object> payload = null) where T : struct
@@ -55,7 +68,16 @@ namespace Nyan.Modules.Web.Tools.Metadata
             var tmp = new JObject();
 
             foreach (var mdp in Providers)
-                try { tmp.Merge(mdp.Value.Get(path, key, payload)); } catch (Exception e) { Current.Log.Add(e, $"Metadata manager > Composite: {mdp.Key} {key}"); }
+                try
+                {
+                    var content = mdp.Value.Get(path, key, payload);
+                    Current.Log.Add($"{ThreadHelper.Uid} Composite {mdp.Key}: (path={path}, key={key}, payload={payload.ToJson()}): {content.ToJson()}", Message.EContentType.Info);
+                    tmp.Merge(content);
+                } catch (Exception e)
+                {
+                    Current.Log.Add($"{ThreadHelper.Uid} Metadata manager > Composite: {mdp.Key} {key}", Message.EContentType.Warning);
+                    Current.Log.Add(e);
+                }
 
             JToken ret = null;
 
@@ -71,10 +93,7 @@ namespace Nyan.Modules.Web.Tools.Metadata
                 var keyBag = new MetadataProviderPrimitive.KeyBag {payload = payload, Key = pKey};
                 Providers[scope].Put(pPath, pValue, keyBag, preventStorage);
             }
-            else
-            {
-                Providers[scope].Put(pPath, pValue, pKey, preventStorage);
-            }
+            else { Providers[scope].Put(pPath, pValue, pKey, preventStorage); }
         }
 
         public void Set(string pPath, object pValue, string scope, MetadataProviderPrimitive.KeyBag keyBag, bool preventStorage = false) { Providers[scope].Put(pPath, pValue, keyBag, preventStorage); }
