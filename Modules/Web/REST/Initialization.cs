@@ -36,6 +36,9 @@ namespace Nyan.Modules.Web.REST
                     config.EnableCors(corsAttr);
                 }
 
+            config.MessageHandlers.Add(Instances.DelegatingHandler);
+            Current.Log.Add($"WebApi Handler    : {Instances.DelegatingHandler.GetType().Name} ", Message.EContentType.StartupSequence);
+
             config.Services.Add(typeof(IExceptionLogger), new GlobalErrorHandler());
 
             config.SuppressHostPrincipal(); //Isolates WebApi Auth form Host (IIS) Auth
