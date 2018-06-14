@@ -19,7 +19,7 @@ namespace Nyan.Core.Startup
         {
             Current.Log.Add("   Scheduled [" + Config.Name + "] : starting in " + Config.StartTimeSpan, Message.EContentType.Maintenance);
 
-            Timer = new Timer(Scheduler, null, (int) Config.StartTimeSpan.TotalMilliseconds, Timeout.Infinite);
+            Timer = new Timer(Scheduler, null, (int)Config.StartTimeSpan.TotalMilliseconds, Timeout.Infinite);
         }
 
         public void Scheduler(object state)
@@ -38,15 +38,16 @@ namespace Nyan.Core.Startup
             }
 
             _stopwatch.Stop();
+
             Current.Log.Add("    Finished [" + Config.Name + "] cycle, " + _stopwatch.Elapsed, Message.EContentType.Maintenance);
             Current.Log.Add("    Schedule [" + Config.Name + "] : " + Config.CycleTimeSpan, Message.EContentType.Maintenance);
 
-            Timer.Change((int) Config.CycleTimeSpan.TotalMilliseconds, Timeout.Infinite);
+            Timer.Change((int)Config.CycleTimeSpan.TotalMilliseconds, Timeout.Infinite);
         }
 
         public void Start()
         {
-            _workerThread = new Thread(Initialize) {IsBackground = false};
+            _workerThread = new Thread(Initialize) { IsBackground = false };
             _workerThread.Start();
         }
 

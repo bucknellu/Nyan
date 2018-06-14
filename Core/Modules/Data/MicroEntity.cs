@@ -30,13 +30,14 @@ namespace Nyan.Core.Modules.Data
     ///     Lightweight, tight-coupled (1x1) Basic ORM Dapper wrapper. Provides static and instanced methods to load, update,
     ///     save and delete records from the database.
     /// </summary>
-    /// <typeparam name="T">The data class that inherits from Entity.</typeparam>
-    /// <example>Class DataLayer: Entity/<DataLayer /></example>
+    /// <typeparam name="T">The data class that inherits from MicroEntity.</typeparam>
+    /// <example>
+    ///     Class Contact: MicroEntity<Contact>
+    /// </example>
     public abstract class MicroEntity<T> where T : MicroEntity<T>
     {
         // ReSharper disable once StaticFieldInGenericType
-        private static readonly ConcurrentDictionary<Type, MicroEntityCompiledStatements> ClassRegistration =
-            new ConcurrentDictionary<Type, MicroEntityCompiledStatements>();
+        private static readonly ConcurrentDictionary<Type, MicroEntityCompiledStatements> ClassRegistration = new ConcurrentDictionary<Type, MicroEntityCompiledStatements>();
 
         // ReSharper disable once StaticFieldInGenericType
         private static readonly object AccessLock = new object();

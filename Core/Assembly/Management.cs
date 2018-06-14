@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Web;
-using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Log;
 using Nyan.Core.Process;
 using Nyan.Core.Settings;
@@ -44,8 +43,6 @@ namespace Nyan.Core.Assembly
 
 #pragma warning disable 618
             AppDomain.CurrentDomain.SetShadowCopyFiles();
-
-
 
             var targetScDir = Configuration.DataDirectory + "\\sc";
 
@@ -91,21 +88,20 @@ namespace Nyan.Core.Assembly
 
                 foreach (var item in AssemblyCache)
                 {
-
                     errCount = 0;
 
-                    try
-                    {
-                        item.Value.GetTypes();
-                    }
+                    try { item.Value.GetTypes(); }
                     catch (Exception e)
                     {
-                        Modules.Log.System.Add("   ERR loading " + item.Value.ToString().Split(',')[0]);
-                        Modules.Log.System.Add(e);
+                        Modules.Log.System.Add("   ERR loading " + item.Value.ToString().Split(',')[0], Message.EContentType.Exception);
+
+                        if (e.Message.IndexOf("LoaderExceptions", StringComparison.Ordinal) != -1)
+                            foreach (var exSub in ((ReflectionTypeLoadException)e).LoaderExceptions)
+                                Modules.Log.System.Add(exSub.Message, Message.EContentType.Warning);
+                        else Modules.Log.System.Add(e);
                         errCount++;
                     }
                 }
-
                 Modules.Log.System.Add("    Previous " + lastErrCount + ", current " + errCount + " errors");
             }
 
@@ -117,10 +113,7 @@ namespace Nyan.Core.Assembly
             Modules.Log.System.Add("Warm-up FINISH", Message.EContentType.StartupSequence);
         }
 
-        private static System.Reflection.Assembly GetAssemblyByName(string name)
-        {
-            return AppDomain.CurrentDomain.GetAssemblies().SingleOrDefault(assembly => assembly.GetName().Name == name);
-        }
+        private static System.Reflection.Assembly GetAssemblyByName(string name) { return AppDomain.CurrentDomain.GetAssemblies().SingleOrDefault(assembly => assembly.GetName().Name == name); }
 
         private static System.Reflection.Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
@@ -218,13 +211,7 @@ namespace Nyan.Core.Assembly
             Modules.Log.System.Add("Monitoring [" + path + "]", Message.EContentType.StartupSequence);
         }
 
-        public static string WildcardToRegex(string pattern)
-        {
-            return "^" + Regex.Escape(pattern).
-                       Replace("\\*", ".*").
-                       Replace("\\?", ".") + "$";
-        }
-
+        public static string WildcardToRegex(string pattern) { return "^" + Regex.Escape(pattern).Replace("\\*", ".*").Replace("\\?", ".") + "$"; }
 
         private static void FileSystemWatcher_OnChanged(object sender, FileSystemEventArgs e)
         {
@@ -257,11 +244,7 @@ namespace Nyan.Core.Assembly
             Modules.Log.System.Add("[" + e.FullPath + "]: Change detected", Message.EContentType.ShutdownSequence);
 
             //For Web apps
-            try
-            {
-                HttpRuntime.UnloadAppDomain();
-            }
-            catch { }
+            try { HttpRuntime.UnloadAppDomain(); } catch { }
 
             //For WinForm apps
             try
@@ -298,7 +281,7 @@ namespace Nyan.Core.Assembly
                     if (loaderExceptions.Count > 0) Modules.Log.System.Add("    Fail " + path + ": " + loaderExceptions[0].Message);
                     else Modules.Log.System.Add("    Fail " + path + ": Undefined.");
                 }
-                else Modules.Log.System.Add("    Fail " + path + ": " + e.Message);
+                else { Modules.Log.System.Add("    Fail " + path + ": " + e.Message); }
             }
         }
 
@@ -313,12 +296,12 @@ namespace Nyan.Core.Assembly
 
             foreach (var asy in assySource)
                 classCol.AddRange(asy
-                    .GetTypes()
-                    .Where(type => type.BaseType != null)
-                    .Where(
-                        type =>
-                            (type.BaseType.IsGenericType && (type.BaseType.GetGenericTypeDefinition() == refType))
-                            || (type.BaseType == refType)));
+                                      .GetTypes()
+                                      .Where(type => type.BaseType != null)
+                                      .Where(
+                                          type =>
+                                              type.BaseType.IsGenericType && type.BaseType.GetGenericTypeDefinition() == refType
+                                              || type.BaseType == refType));
 
             return classCol;
         }
@@ -342,17 +325,16 @@ namespace Nyan.Core.Assembly
 
                             try
                             {
-                                foreach (var gta in st.BaseType.GenericTypeArguments) if (gta == refType) classCol.Add(st);
+                                foreach (var gta in st.BaseType.GenericTypeArguments)
+                                    if (gta == refType)
+                                        classCol.Add(st);
                             }
                             catch { }
                         }
 
                     GetGenericsByBaseClassCache.Add(refType, classCol);
                 }
-                catch (Exception e)
-                {
-                    Current.Log.Add(e);
-                }
+                catch (Exception e) { Current.Log.Add(e); }
 
                 return classCol;
             }
@@ -380,14 +362,11 @@ namespace Nyan.Core.Assembly
 
                 foreach (var item in AssemblyCache.Values)
                 {
-                    if (excludeCoreNullDefinitions && (item == System.Reflection.Assembly.GetExecutingAssembly())) continue;
+                    if (excludeCoreNullDefinitions && item == System.Reflection.Assembly.GetExecutingAssembly()) continue;
 
                     Type[] preTypes;
 
-                    try
-                    {
-                        preTypes = item.GetTypes();
-                    }
+                    try { preTypes = item.GetTypes(); }
                     catch (Exception e)
                     {
                         if (e is ReflectionTypeLoadException)
@@ -398,7 +377,8 @@ namespace Nyan.Core.Assembly
                             if (loaderExceptions.Count > 0) Modules.Log.System.Add("    Fail " + item + ": " + loaderExceptions[0].Message);
                             else Modules.Log.System.Add("    Fail " + item + ": Undefined.");
                         }
-                        else Modules.Log.System.Add("    Fail " + item + ": " + e.Message);
+                        else { Modules.Log.System.Add("    Fail " + item + ": " + e.Message); }
+
                         // Well, this loading can fail by a (long) variety of reasons. 
                         // It's not a real problem not to catch exceptions here. 
                         continue;
@@ -438,6 +418,7 @@ namespace Nyan.Core.Assembly
                 return ret;
             }
         }
+
         public static List<Type> GetClassesByInterface<T, TU>(bool excludeCoreNullDefinitions = true)
         {
             lock (Lock)
@@ -446,19 +427,15 @@ namespace Nyan.Core.Assembly
                 var typeU = typeof(TU);
                 var preRet = new List<Type>();
 
-
                 Modules.Log.System.Add("Scanning for " + typeT + "+" + typeU);
 
                 foreach (var item in AssemblyCache.Values)
                 {
-                    if (excludeCoreNullDefinitions && (item == System.Reflection.Assembly.GetExecutingAssembly())) continue;
+                    if (excludeCoreNullDefinitions && item == System.Reflection.Assembly.GetExecutingAssembly()) continue;
 
                     Type[] preTypes;
 
-                    try
-                    {
-                        preTypes = item.GetTypes();
-                    }
+                    try { preTypes = item.GetTypes(); }
                     catch (Exception e)
                     {
                         if (e is ReflectionTypeLoadException)
@@ -469,7 +446,8 @@ namespace Nyan.Core.Assembly
                             if (loaderExceptions.Count > 0) Modules.Log.System.Add("    Fail " + item + ": " + loaderExceptions[0].Message);
                             else Modules.Log.System.Add("    Fail " + item + ": Undefined.");
                         }
-                        else Modules.Log.System.Add("    Fail " + item + ": " + e.Message);
+                        else { Modules.Log.System.Add("    Fail " + item + ": " + e.Message); }
+
                         // Well, this loading can fail by a (long) variety of reasons. 
                         // It's not a real problem not to catch exceptions here. 
                         continue;
