@@ -23,9 +23,6 @@ namespace Nyan.Tools.LogMonitor
 
             _frmMain = new frmMain();
 
-            //MultiCastLog.MessageArrived += Log_MessageArrived;
-            //MultiCastLog.StartListening();
-
             Current.Log.MessageArrived += Log_MessageArrived;
             Current.Log.StartListening();
 

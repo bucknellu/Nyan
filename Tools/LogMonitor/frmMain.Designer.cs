@@ -28,13 +28,11 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMain));
             this.lstMain = new System.Windows.Forms.ListView();
             this.colType = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colTS = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colDescr = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.tmrMaintenance = new System.Windows.Forms.Timer(this.components);
             this.panel1 = new System.Windows.Forms.Panel();
             this.button1 = new System.Windows.Forms.Button();
             this.btnClear = new System.Windows.Forms.Button();
@@ -54,13 +52,13 @@
             this.colType,
             this.colTS,
             this.colDescr});
-            this.lstMain.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel, ((byte)(0)));
+            this.lstMain.Font = new System.Drawing.Font("Calibri", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lstMain.ForeColor = System.Drawing.Color.Lime;
             this.lstMain.FullRowSelect = true;
             this.lstMain.Location = new System.Drawing.Point(0, 28);
             this.lstMain.Margin = new System.Windows.Forms.Padding(0);
             this.lstMain.Name = "lstMain";
-            this.lstMain.Size = new System.Drawing.Size(971, 360);
+            this.lstMain.Size = new System.Drawing.Size(971, 359);
             this.lstMain.TabIndex = 0;
             this.lstMain.UseCompatibleStateImageBehavior = false;
             this.lstMain.View = System.Windows.Forms.View.Details;
@@ -78,12 +76,6 @@
             // 
             this.colDescr.Text = "Description";
             this.colDescr.Width = 193;
-            // 
-            // tmrMaintenance
-            // 
-            this.tmrMaintenance.Enabled = true;
-            this.tmrMaintenance.Interval = 500;
-            this.tmrMaintenance.Tick += new System.EventHandler(this.tmrMaintenance_Tick);
             // 
             // panel1
             // 
@@ -104,7 +96,7 @@
             // 
             this.button1.BackColor = System.Drawing.SystemColors.ButtonFace;
             this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button1.Location = new System.Drawing.Point(394, 3);
+            this.button1.Location = new System.Drawing.Point(389, 3);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(164, 23);
             this.button1.TabIndex = 4;
@@ -116,7 +108,7 @@
             // 
             this.btnClear.BackColor = System.Drawing.SystemColors.ButtonFace;
             this.btnClear.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnClear.Location = new System.Drawing.Point(334, 3);
+            this.btnClear.Location = new System.Drawing.Point(332, 3);
             this.btnClear.Name = "btnClear";
             this.btnClear.Size = new System.Drawing.Size(53, 23);
             this.btnClear.TabIndex = 3;
@@ -126,10 +118,11 @@
             // 
             // chkIgGen
             // 
+            this.chkIgGen.Appearance = System.Windows.Forms.Appearance.Button;
             this.chkIgGen.AutoSize = true;
-            this.chkIgGen.Location = new System.Drawing.Point(105, 7);
+            this.chkIgGen.Location = new System.Drawing.Point(83, 3);
             this.chkIgGen.Name = "chkIgGen";
-            this.chkIgGen.Size = new System.Drawing.Size(97, 17);
+            this.chkIgGen.Size = new System.Drawing.Size(88, 23);
             this.chkIgGen.TabIndex = 2;
             this.chkIgGen.Text = "Ignore Generic";
             this.chkIgGen.UseVisualStyleBackColor = true;
@@ -149,12 +142,13 @@
             // 
             // chkAutoUpd
             // 
+            this.chkAutoUpd.Appearance = System.Windows.Forms.Appearance.Button;
             this.chkAutoUpd.AutoSize = true;
             this.chkAutoUpd.Checked = true;
             this.chkAutoUpd.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkAutoUpd.Location = new System.Drawing.Point(12, 7);
+            this.chkAutoUpd.Location = new System.Drawing.Point(3, 3);
             this.chkAutoUpd.Name = "chkAutoUpd";
-            this.chkAutoUpd.Size = new System.Drawing.Size(87, 17);
+            this.chkAutoUpd.Size = new System.Drawing.Size(78, 23);
             this.chkAutoUpd.TabIndex = 0;
             this.chkAutoUpd.Text = "Auto Update";
             this.chkAutoUpd.UseVisualStyleBackColor = true;
@@ -184,7 +178,6 @@
         private System.Windows.Forms.ColumnHeader colType;
         private System.Windows.Forms.ColumnHeader colTS;
         private System.Windows.Forms.ColumnHeader colDescr;
-        private System.Windows.Forms.Timer tmrMaintenance;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.CheckBox chkAutoUpd;
         private System.Windows.Forms.CheckBox chkIgGen;

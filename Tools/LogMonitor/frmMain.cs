@@ -8,24 +8,19 @@ namespace Nyan.Tools.LogMonitor
 {
     public partial class frmMain : Form
     {
-        private static bool mustUpdate = false;
+        private static bool mustUpdate;
 
         private static readonly Dictionary<Message.EContentType, Color> colorDictionary =
             new Dictionary<Message.EContentType, Color>();
 
-        private ListViewItem _lastItem = null;
+        private ListViewItem _lastItem;
 
-
-        public frmMain()
-        {
-            InitializeComponent();
-        }
+        public frmMain() { InitializeComponent(); }
 
         private void Form1_Load(object sender, EventArgs e)
         {
             PrepareColors();
             PrepareColumns();
-
         }
 
         private void PrepareColumns()
@@ -38,7 +33,6 @@ namespace Nyan.Tools.LogMonitor
             lstMain.Columns.Add("Content", "Content", 800);
 
             lstMain.DoubleBuffered(true);
-
         }
 
         private static void PrepareColors()
@@ -55,14 +49,12 @@ namespace Nyan.Tools.LogMonitor
             colorDictionary.Add(Message.EContentType.ShutdownSequence, Color.YellowGreen);
         }
 
-        private delegate void AddItemCallback(object o);
-
         public void ProcessLogEntry(object oSource)
         {
             if (InvokeRequired)
             {
                 AddItemCallback d = ProcessLogEntry;
-                Invoke(d, new[] { oSource });
+                Invoke(d, oSource);
             }
             else
             {
@@ -97,17 +89,16 @@ namespace Nyan.Tools.LogMonitor
 
                     _lastItem = a;
 
-                    mustUpdate = true;
+                    if (chkAutoUpd.Checked) _lastItem.EnsureVisible();
 
+
+                    mustUpdate = true;
                 }
                 catch (Exception e) { }
             }
         }
 
-        private void lstMain_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
+        private void lstMain_SelectedIndexChanged(object sender, EventArgs e) { }
 
         private void tmrMaintenance_Tick(object sender, EventArgs e)
         {
@@ -116,53 +107,34 @@ namespace Nyan.Tools.LogMonitor
             try
             {
                 mustUpdate = false;
-                _lastItem.EnsureVisible();
+                //_lastItem.EnsureVisible();
             }
             catch { }
-
         }
 
-        private void btnAdjustColumns_Click(object sender, EventArgs e)
-        {
-            lstMain.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent);
-        }
+        private void btnAdjustColumns_Click(object sender, EventArgs e) { lstMain.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent); }
 
-        private void chkIgGen_CheckedChanged(object sender, EventArgs e)
-        {
+        private void chkIgGen_CheckedChanged(object sender, EventArgs e) { }
 
-        }
-
-        private void btnClear_Click(object sender, EventArgs e)
-        {
-            this.lstMain.Items.Clear();
-        }
+        private void btnClear_Click(object sender, EventArgs e) { lstMain.Items.Clear(); }
 
         private void button1_Click(object sender, EventArgs e)
         {
-
-            string s = "";
+            var s = "";
             foreach (ListViewItem o in lstMain.SelectedItems)
             {
                 s += o.Text;
 
-                foreach (ListViewItem.ListViewSubItem si in o.SubItems)
-                {
-                    s += "\t" + si.Text;
-                }
+                foreach (ListViewItem.ListViewSubItem si in o.SubItems) s += "\t" + si.Text;
 
                 s += Environment.NewLine;
             }
 
-            try
-            {
-                Clipboard.SetText(s);
-            }
-            catch { }
+            try { Clipboard.SetText(s); } catch { }
         }
 
-        private void chkAutoUpd_CheckedChanged(object sender, EventArgs e)
-        {
-            tmrMaintenance.Enabled = chkAutoUpd.Checked;
-        }
+        private void chkAutoUpd_CheckedChanged(object sender, EventArgs e) { }
+
+        private delegate void AddItemCallback(object o);
     }
 }
