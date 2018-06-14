@@ -191,8 +191,10 @@ namespace Nyan.Modules.Web.REST
         }
 
         #region HTTP Methods
+
         [Route(""), HttpGet]
         public virtual object WebApiGetAll() { return WebApiGetAll(null); }
+
         [Route(""), HttpPost]
         public virtual HttpResponseMessage WebApiPost(T item)
         {
@@ -212,14 +214,13 @@ namespace Nyan.Modules.Web.REST
 
                 if (MicroEntity<T>.TableData.IsReadOnly) throw new HttpResponseException(HttpStatusCode.MethodNotAllowed);
 
-                var preRet = MicroEntity<T>.Get(item.Save());
+                var preRet = MicroEntity<T>.Get(InternalCustomSaveSingle(item, Request) ?? item.Save());
 
                 if (preRet != null)
                 {
                     if (MicroEntity<T>.TableData.AuditChange) AuditRequest("CHANGE", typeof(T).FullName + ":" + item.GetEntityIdentifier(), item.ToJson());
 
-                    Current.Log.Add("UPD " + typeof(T).FullName + ":" + item.GetEntityIdentifier() + " OK ("
-                                    + sw.ElapsedMilliseconds + " ms)");
+                    Current.Log.Add($"UPD {typeof(T).FullName}:{item.GetEntityIdentifier()} OK ({sw.ElapsedMilliseconds} ms)");
 
                     PostAction(RequestType.Post, AccessType.Write, preRet.GetEntityIdentifier(), preRet, preRet.GetEntityIdentifier() != originalId ? "CREATE" : "UPDATE");
 
@@ -236,6 +237,7 @@ namespace Nyan.Modules.Web.REST
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e);
             }
         }
+
         [Route("summary"), HttpGet]
         public virtual object WebApiGetSummary()
         {
@@ -248,9 +250,12 @@ namespace Nyan.Modules.Web.REST
                     if (ClassBehavior.SummaryType != null)
                         summaryType = ClassBehavior.SummaryType;
 
-                var method = GetType().GetMethod("InternalGetAll", BindingFlags.Public | BindingFlags.Instance);
-                var genericMethod = method.MakeGenericMethod(summaryType);
-                var preRet = (InternalGetAllPayload) genericMethod.Invoke(this, new object[] {null});
+                //var method = GetType().GetMethod("InternalGetAll", BindingFlags.Public | BindingFlags.Instance);
+                //var genericMethod = method.MakeGenericMethod(summaryType);
+                //var preRet = (InternalGetAllPayload)genericMethod.Invoke(this, new object[] { null });
+
+                var method = GetType().GetMethod("InternalGetAll", BindingFlags.NonPublic | BindingFlags.Instance);
+                var preRet = (InternalGetAllPayload) method.Invoke(this, new object[] {null});
 
                 step = "Preparing JSON payload";
                 var ret = ControllerHelper.RenderJsonResult(preRet.Content);
@@ -271,6 +276,7 @@ namespace Nyan.Modules.Web.REST
                 throw e;
             }
         }
+
         [Route("new"), HttpGet]
         public virtual HttpResponseMessage WebApiGetNew()
         {
@@ -297,14 +303,17 @@ namespace Nyan.Modules.Web.REST
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e);
             }
         }
+
         [Route("subset"), HttpPost]
         public virtual HttpResponseMessage WebApiGetSetByPost()
         {
             var idset = Request.Content.ReadAsStringAsync().Result;
             return ControllerHelper.RenderJsonResult(InternalGetSet(idset));
         }
+
         [Route("subset/{idset}"), HttpGet]
         public virtual HttpResponseMessage WebApiGetSetByGet(string idset) { return ControllerHelper.RenderJsonResult(InternalGetSet(idset)); }
+
         [Route("{id}"), HttpGet]
         public virtual HttpResponseMessage WebApiGet(string id)
         {
@@ -341,6 +350,7 @@ namespace Nyan.Modules.Web.REST
                 return Request.CreateErrorResponse((HttpStatusCode) we.GetHttpCode(), we.Message);
             }
         }
+
         [Route("{id}"), HttpPatch, HttpPut]
         public virtual HttpResponseMessage WebApiPatch(string id, [FromBody] Dictionary<string, object> patchList)
         {
@@ -374,6 +384,7 @@ namespace Nyan.Modules.Web.REST
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e);
             }
         }
+
         [Route("{id}"), HttpDelete]
         public virtual HttpResponseMessage WebApiDelete(string id)
         {
@@ -424,6 +435,7 @@ namespace Nyan.Modules.Web.REST
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e);
             }
         }
+
         [Route("{id}/reference/{entityReference:alpha}"), HttpGet]
         public virtual HttpResponseMessage GetReference(string id, string entityReference)
         {
@@ -472,10 +484,13 @@ namespace Nyan.Modules.Web.REST
 
             return ret;
         }
+
         #endregion
 
         #region Overrideable IoC methods
+
         public virtual string SearchResultMoniker => MicroEntity<T>.Statements.Label;
+
         public virtual object WebApiGetAll(string extraParms)
         {
             try
@@ -499,8 +514,10 @@ namespace Nyan.Modules.Web.REST
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e);
             }
         }
+
         public virtual bool AuthorizeAction(RequestType pRequestType, AccessType pAccessType, string pidentifier, ref T pObject, string pContext) { return true; }
         public virtual void PostAction(RequestType pRequestType, AccessType pAccessType, string pidentifier = null, T pObject = null, string pContext = null) { }
+
         public virtual List<T> InternalGetSet(string idset)
         {
             if (idset == null) return null;
@@ -543,6 +560,7 @@ namespace Nyan.Modules.Web.REST
                 return null;
             }
         }
+
         public virtual object ReferenceQueryByField(string field, string id)
         {
             var entbag = MicroEntity<T>.GetNewDynamicParameterBag();
@@ -558,8 +576,10 @@ namespace Nyan.Modules.Web.REST
             var set = MicroEntity<T>.Query(statement, entbag);
             return set;
         }
+
         public virtual object InternalPostGet(T source) { return source; }
         public virtual T InternalGet(string id) { return InternalCustomGetSingle(id) ?? MicroEntity<T>.Get(id); }
+
         public virtual InternalGetAllPayload InternalGetAll<TU>(string extraParms = null)
         {
             var ret = new InternalGetAllPayload();
@@ -642,8 +662,13 @@ namespace Nyan.Modules.Web.REST
                 throw e;
             }
         }
-        public virtual T InternalCustomGetSingle(string id) { return null; }
+
+        #endregion
+
+        #region IoC hooks
         public virtual InternalGetAllPayload InternalCustomGetAll(string extraParms = null) { return null; }
+        public virtual T InternalCustomGetSingle(string id) { return null; }
+        public virtual string InternalCustomSaveSingle(T item, HttpRequestMessage request) { return null; }
         #endregion
     }
 }
