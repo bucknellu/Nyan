@@ -28,19 +28,19 @@ namespace Nyan.Core.Modules.Maintenance
 
             try
             {
-                var scheByPrio = Instances.GetScheduledTasksByPriority();
+                var scheduleByPriority = Instances.GetScheduledTasksByPriority();
 
                 Current.Log.Add("    Warm-up summary:", Message.EContentType.Maintenance);
 
-                foreach (var instSche in scheByPrio) Current.Log.Add($"        Priority {instSche.Key}: {instSche.Value.Count} Task(s)", Message.EContentType.Maintenance);
+                foreach (var scheduleInstance in scheduleByPriority) Current.Log.Add($"        Priority {scheduleInstance.Key}: {scheduleInstance.Value.Count} Task(s)", Message.EContentType.Maintenance);
 
-                foreach (var instSche in scheByPrio)
+                foreach (var scheduleInstance in scheduleByPriority)
                 {
-                    Current.Log.Add($"    START: Priority {instSche.Key} tasks ", Message.EContentType.Maintenance);
+                    Current.Log.Add($"    START: Priority {scheduleInstance.Key} tasks ", Message.EContentType.Maintenance);
 
                     try
                     {
-                        Parallel.ForEach(instSche.Value, maintenanceTask =>
+                        Parallel.ForEach(scheduleInstance.Value, maintenanceTask =>
                         {
                             try
                             {
@@ -51,7 +51,7 @@ namespace Nyan.Core.Modules.Maintenance
                                     if (!Instances.Handler.CanRun(maintenanceTask))
                                     {
                                         proc.Status = MaintenanceTaskResult.EResultStatus.Skipped;
-                                        proc.Message = "Skipped: cooldown";
+                                        proc.Message = "Skipped";
                                         mustSkip = true;
                                     }
 
