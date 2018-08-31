@@ -5,7 +5,8 @@ namespace Nyan.Core.Modules.Maintenance {
     public sealed class MaintenanceTaskSetupAttribute : Attribute
     {
         public string Name;
-        internal TimeSpan ScheduleTimeSpan = TimeSpan.FromMinutes(30);  // Default behavior: run every 30 mins.
+        public TimeSpan ScheduleTimeSpan = TimeSpan.FromMinutes(30);  // Default behavior: run every 30 mins.
+        public bool RunOnce = false;
         public string Schedule
         {
             get { return ScheduleTimeSpan.ToString(); }
