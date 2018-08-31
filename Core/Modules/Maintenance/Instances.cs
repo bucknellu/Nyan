@@ -49,7 +49,9 @@ namespace Nyan.Core.Modules.Maintenance
                     Setup = setup,
                     Priority = priority.Level,
                     Task = i.CreateInstance<IMaintenanceTask>(),
-                    Id = i.FullName + ": " + setup.Name,
+                    Id = (i.FullName + ": " + setup.Name).ToFriendlyUrl(),
+                    Namespace = i.FullName,
+                    Name = setup.Name,
                     Schedule = setup.ScheduleTimeSpan
                 };
 
@@ -59,6 +61,11 @@ namespace Nyan.Core.Modules.Maintenance
             ret = ret.OrderBy(i => i.Priority * -1).ToList();
 
             Schedule = ret;
+        }
+
+        public static MaintenanceSchedule GetMaintenanceSchedule(MaintenanceSchedule target)
+        {
+            return Schedule.FirstOrDefault(i => i == target);
         }
 
         internal static IMaintenanceEventHandler Handler
