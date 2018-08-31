@@ -40,14 +40,12 @@ namespace Nyan.Modules.Web.Tools.Search
 
                     step = "Adding task for " + searchableType.FullName;
 
-                    var preTask =
-                        new Task<KeyValuePair<string, SearchResultBlock>>(() => ProcessSearchableType(instance, term), TaskCreationOptions.LongRunning); // Required to allow for timeout
+                    var preTask = new Task<KeyValuePair<string, SearchResultBlock>>(() => ProcessSearchableType(instance, term), TaskCreationOptions.LongRunning); // Required to allow for timeout
                     tasks.Add(preTask);
                 }
 
                 step = "Starting {0} task(s)".format(tasks.Count);
-                foreach (var task in tasks)
-                    task.Start();
+                foreach (var task in tasks) task.Start();
 
                 //Wait for all queries to finish - up to the timeout value.
                 step = "Waiting for tasks to end";
@@ -61,11 +59,11 @@ namespace Nyan.Modules.Web.Tools.Search
                 {
                     if (!task.IsCompleted)
                     {
+                        Current.Log.Add("Task Canceled: " + task.Result.Key);
                         var cts = new CancellationTokenSource();
                         var cancellableTask = task.ContinueWith(ignored => { }, cts.Token);
                         cts.Cancel();
                         Task.WaitAny(new[] { cancellableTask }, TimeSpan.FromSeconds(0.1));
-                        Current.Log.Add("Task Canceled.");
                     }
                     else
                     {
