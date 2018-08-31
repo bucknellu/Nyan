@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Diagnostics;
+using System.Web;
 using Nyan.Core.Extensions;
 using Nyan.Core.Factories;
 
@@ -13,10 +13,7 @@ namespace Nyan.Core.Modules.Log
             return payload;
         }
 
-        public static Message ToMessage(Exception e)
-        {
-            return ToMessage(e, null, null);
-        }
+        public static Message ToMessage(Exception e) { return ToMessage(e, null, null); }
 
         public static Message ToMessage(Exception e, string message, string token = null)
         {
@@ -26,7 +23,11 @@ namespace Nyan.Core.Modules.Log
 
             var ctx = $"{token} : {message}";
 
-            return ToMessage(ctx, Message.EContentType.Exception);
+            var ret = ToMessage(ctx, Message.EContentType.Exception);
+
+            try { ret.Topic = HttpContext.Current?.Request?.Url.ToString(); } catch { }
+
+            return ret;
         }
     }
 }
