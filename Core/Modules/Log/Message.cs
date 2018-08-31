@@ -24,7 +24,8 @@ namespace Nyan.Core.Modules.Log
             Info = 70,
             MoreInfo = 80,
             Generic = 90,
-            Debug = 100
+            Debug = 100,
+            Undefined = 999
         }
 
         public static Dictionary<EContentType, ConsoleColor> ContentColors  = new Dictionary<EContentType, ConsoleColor>()
