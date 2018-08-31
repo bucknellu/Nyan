@@ -56,10 +56,12 @@ namespace Nyan.Modules.Web.Tools.Metadata
 
                     if (_keyBag.payload != null) if (_keyBag.payload.ContainsKey(_provider.Code)) return _keyBag.payload[_provider.Code];
 
-                    try {
+                    try
+                    {
                         return _provider.ContextLocator;
                     }
-                    catch {
+                    catch
+                    {
                         return null;
                     }
                 }
@@ -176,13 +178,13 @@ namespace Nyan.Modules.Web.Tools.Metadata
 
             // Put("context." + Code, keyBag.GetKeyValue(key, payload), key, true, payload);
             if (CacheTimespan > 0)
-            if (Current.Cache.OperationalStatus == EOperationalStatus.Operational)
-            {
-                var tmp = Current.Cache[cacheKey];
-                if (tmp != null) return tmp.FromJson<JObject>();
+                if (Current.Cache.OperationalStatus == EOperationalStatus.Operational)
+                {
+                    var tmp = Current.Cache[cacheKey];
+                    if (tmp != null) return tmp.FromJson<JObject>();
 
-                Current.Log.Add(cacheKey + " NOT FOUND", Message.EContentType.MoreInfo);
-            }
+                    Current.Log.Add(cacheKey + " NOT FOUND", Message.EContentType.MoreInfo);
+                }
 
             Fetch(keyBag);
             return RetrieveCache(keyBag);
@@ -212,8 +214,7 @@ namespace Nyan.Modules.Web.Tools.Metadata
 
                 if (dk == null)
                 {
-                    Current.Log.Add("WARN: PUT INVALID: NOKEY [" + Code + "]" + pPath + ":" + pValue,
-                        Message.EContentType.Maintenance);
+                    Current.Log.Add("WARN: PUT INVALID: NOKEY [" + Code + "]" + pPath + ":" + pValue, Message.EContentType.Maintenance);
                     return;
                 }
 
@@ -222,7 +223,8 @@ namespace Nyan.Modules.Web.Tools.Metadata
                 //var cacheKey = CacheKey(pKey, payload);
                 //Current.Cache.Remove(cacheKey);
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 Current.Log.Add(e, "Metadata: [{0} - {1}] {2}".format(Code, pPath, pValue, pPath));
             }
         }
