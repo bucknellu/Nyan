@@ -11,6 +11,7 @@ using MongoDB.Bson.Serialization.Options;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 using Newtonsoft.Json.Linq;
+using Nyan.Core.Diagnostics;
 using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Data;
 using Nyan.Core.Modules.Data.Connection;
@@ -99,29 +100,37 @@ namespace Nyan.Modules.Data.MongoDB
 
         public T Get<T>(string locator) where T : MicroEntity<T>
         {
-            var filter = Builders<BsonDocument>.Filter.Eq("_id", locator);
-            var col = Collection.Find(filter).ToList();
-            var target = col.FirstOrDefault();
+            try
+            {
+                var filter = Builders<BsonDocument>.Filter.Eq("_id", locator);
+                var col = Collection.Find(filter).ToList();
+                var target = col.FirstOrDefault();
 
-            return target == null ? null : BsonSerializer.Deserialize<T>(target);
+                return target == null ? null : BsonSerializer.Deserialize<T>(target);
+            } catch (Exception e)
+            {
+                Current.Log.Add($"{Database.Client.Settings.Credential.Username}@{Database.DatabaseNamespace} - {Collection.CollectionNamespace}:{locator} {e.Message}", Message.EContentType.Warning);
+                throw;
+            }
         }
 
         public string Save<T>(MicroEntity<T> obj) where T : MicroEntity<T>
         {
+            string id = null;
             try
             {
-                if (obj.GetEntityIdentifier() == "") obj.SetEntityIdentifier(Guid.NewGuid().ToString());
+                if (obj.GetEntityIdentifier() == "")
+                {
+                    obj.SetEntityIdentifier(Guid.NewGuid().ToString());
+                }
 
-                var id = obj.GetEntityIdentifier();
+                id = obj.GetEntityIdentifier();
 
                 var probe = Get<T>(id);
 
                 var document = BsonSerializer.Deserialize<BsonDocument>(obj.ToJson());
 
-                if (probe == null)
-                {
-                    Collection.InsertOne(document);
-                }
+                if (probe == null) { Collection.InsertOne(document); }
                 else
                 {
                     var filter = Builders<BsonDocument>.Filter.Eq("_id", id);
@@ -131,8 +140,8 @@ namespace Nyan.Modules.Data.MongoDB
                 return id;
             } catch (Exception e)
             {
-                Current.Log.Add(e);
-                Current.Log.Add(obj.ToJson(), Message.EContentType.Info);
+                Current.Log.Add($"{ThreadHelper.Uid} {Database.Client.Settings.Credential.Username}@{Database.DatabaseNamespace} - {Collection.CollectionNamespace}:{id} {e.Message}", Message.EContentType.Warning);
+                Current.Log.Add($"{ThreadHelper.Uid} {obj.ToJson()}", Message.EContentType.Warning);
                 throw;
             }
         }
@@ -216,6 +225,8 @@ namespace Nyan.Modules.Data.MongoDB
                     .Sort(sortFilter);
             } catch (Exception e)
             {
+                Current.Log.Add($"{ThreadHelper.Uid} {Database.Client.Settings.Credential.Username}@{Database.DatabaseNamespace} - {Collection.CollectionNamespace} {e.Message}", Message.EContentType.Warning);
+                Current.Log.Add($"{ThreadHelper.Uid} {parm.ToJson()}", Message.EContentType.Warning);
                 Current.Log.Add(e);
                 throw;
             }
@@ -296,7 +307,10 @@ namespace Nyan.Modules.Data.MongoDB
         public void Initialize<T>() where T : MicroEntity<T>
         {
             // Check for the presence of text indexes '$**'
-            try { Collection.Indexes.CreateOne(Builders<BsonDocument>.IndexKeys.Text("$**")); } catch (Exception e) { Current.Log.Add("ERR Creating index " + SourceCollection + ": " + e.Message, Message.EContentType.Warning); }
+            try { Collection.Indexes.CreateOne(Builders<BsonDocument>.IndexKeys.Text("$**")); } catch (Exception e)
+            {
+                Current.Log.Add($"{ThreadHelper.Uid} {Database.Client?.Settings?.Credential?.Username}@{Database?.DatabaseNamespace} - {Collection?.CollectionNamespace} {e.Message} | ERR Creating index {SourceCollection}: {e.Message}", Message.EContentType.Warning);
+            }
         }
 
         public List<T> GetAll<T>(string extraParms = null) where T : MicroEntity<T> { return GetAll<T, T>(); }
@@ -377,10 +391,7 @@ namespace Nyan.Modules.Data.MongoDB
 
                 queryFilter = BsonDocument.Parse(query);
             }
-            else
-            {
-                queryFilter = new BsonDocument();
-            }
+            else { queryFilter = new BsonDocument(); }
 
             return queryFilter;
         }
