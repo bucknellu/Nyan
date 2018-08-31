@@ -71,11 +71,11 @@ namespace Nyan.Modules.Web.Tools.Metadata
                 try
                 {
                     var content = mdp.Value.Get(path, key, payload);
-                    Current.Log.Add($"{ThreadHelper.Uid} Composite {mdp.Key}: (path={path}, key={key}, payload={payload.ToJson()}): {content.ToJson()}", Message.EContentType.Info);
+                    // Current.Log.Add($"{ThreadHelper.Uid} Composite {mdp.Key}: (path={path}, key={key}, payload={payload.ToJson()}): {content.ToJson()}", Message.EContentType.Info);
                     tmp.Merge(content);
                 } catch (Exception e)
                 {
-                    Current.Log.Add($"{ThreadHelper.Uid} Metadata manager > Composite: {mdp.Key} {key}", Message.EContentType.Warning);
+                    // Current.Log.Add($"{ThreadHelper.Uid} Metadata manager > Composite: {mdp.Key} {key}", Message.EContentType.Warning);
                     Current.Log.Add(e);
                 }
 

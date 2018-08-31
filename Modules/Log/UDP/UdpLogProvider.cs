@@ -76,7 +76,6 @@ namespace Nyan.Modules.Log.UDP
                 if (Environment.UserInteractive)
                 {
                     Console.WriteLine(payload.Content);
-                    Debug.WriteLine(payload.Content);
                 }
 
                 var bytePayload = payload.ToJson().Encrypt().ToSerializedBytes();

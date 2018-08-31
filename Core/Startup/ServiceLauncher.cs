@@ -57,8 +57,7 @@ namespace Nyan.Core.Startup
                 }
                 else
                 {
-                    Current.Log.Add("Service           : [NyanServiceLauncher] Headless mode",
-                        Message.EContentType.StartupSequence);
+                    Current.Log.Add("Service           : [NyanServiceLauncher] Headless mode", Message.EContentType.StartupSequence);
                     Run(new ServiceLauncher());
                 }
             }
