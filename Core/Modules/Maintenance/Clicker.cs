@@ -17,6 +17,7 @@ namespace Nyan.Core.Modules.Maintenance
         private Stopwatch _s;
 
         public Clicker(string pMessage, long pCount) { Start(pMessage, pCount); }
+        public Clicker(string pMessage, long pCount, int sliceSize) { Start(pMessage, pCount, sliceSize); }
 
         public long Count { get; private set; }
 
