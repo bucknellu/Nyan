@@ -21,6 +21,8 @@ namespace Nyan.Core.Modules.Log
 
         public virtual string Uri => null;
 
+        public virtual Message.EContentType MaximumLogLevel { get; set; } = Message.EContentType.Debug;
+
         public bool UseScheduler
         {
             get => _useScheduler;
@@ -39,7 +41,7 @@ namespace Nyan.Core.Modules.Log
                 {
                     if (_workerThread != null) return;
 
-                    _workerThread = new Thread(DispatcherWorker) {IsBackground = false};
+                    _workerThread = new Thread(DispatcherWorker) { IsBackground = false };
                     _workerThread.Start();
                 }
             }
@@ -102,7 +104,8 @@ namespace Nyan.Core.Modules.Log
                 Dispatch(payload);
                 AfterDispatch(payload);
                 return true;
-            } catch { return false; }
+            }
+            catch { return false; }
         }
 
         public virtual bool CheckShutdownTriggerTerms(string payload)
@@ -126,11 +129,32 @@ namespace Nyan.Core.Modules.Log
                 }
 
                 return false;
-            } catch { return false; }
+            }
+            catch { return false; }
+        }
+
+        public virtual void Warn(string content)
+        {
+            Add(content, Message.EContentType.Warning);
+        }
+
+        public virtual void Info(string content)
+        {
+            Add(content, Message.EContentType.Info);
+        }
+
+
+
+        public virtual void Maintenance(string content)
+        {
+            Add(content, Message.EContentType.Maintenance);
         }
 
         public virtual void Add(string content, Message.EContentType type = Message.EContentType.Generic)
         {
+
+            if (type > MaximumLogLevel) return; // Ignore all entries over the threshold
+
             var payload = Converter.ToMessage(content, type);
 
             try { BeforeAdd(payload); } catch { }
