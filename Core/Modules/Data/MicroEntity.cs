@@ -706,7 +706,7 @@ break; */
                 Execute(Statements.SqlInsertSingle, parm);
             }
 
-            OnInsert();
+            try { OnInsert(); } catch (Exception e) { Current.Log.Add(e); }
         }
 
         #endregion
