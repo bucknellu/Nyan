@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using MongoDB.Driver;
 using Nyan.Core.Modules.Log;
 using Nyan.Core.Settings;
@@ -23,9 +25,14 @@ namespace Nyan.Modules.Data.MongoDB
 
                 Clients.Add(key, client);
 
-                Current.Log.Add($"Nyan.Modules.Data.MongoDB.Clients: {Clients.Count} | Global", Message.EContentType.StartupSequence);
+                string server;
 
-                return Clients[key];
+                try { server = client.Settings.Servers.ToList()[0].Host; } catch (Exception) { server = client.Settings.Server.Host; }
+                if (server != null) server = " @ " + server;
+
+                Current.Log.Add($"MONGODB_CLIENT_REGISTER {client.Settings.Credential.Identity.Username}{server}", Message.EContentType.StartupSequence);
+
+                return client;
             }
         }
     }
