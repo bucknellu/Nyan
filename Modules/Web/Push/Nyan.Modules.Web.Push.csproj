@@ -58,6 +58,7 @@
     <Compile Include="Google\GoogleContent.cs" />
     <Compile Include="Google\GoogleAuth.cs" />
     <Compile Include="Google\Helper.cs" />
+    <Compile Include="Google\Notification\INotificationPrimitive.cs" />
     <Compile Include="Google\Notification\NotificationPrimitive.cs" />
     <Compile Include="Google\Notification\SimpleNotification.cs" />
     <Compile Include="Instances.cs" />

@@ -9,7 +9,16 @@ namespace Nyan.Core.Modules.Data
         {
             StaticArray
         }
+
+        public enum EOperation
+        {
+            Query,
+            Distinct,
+            Update
+        }
     }
+
+
 
     public interface IInterceptor
     {
@@ -20,8 +29,10 @@ namespace Nyan.Core.Modules.Data
         void Remove<T>(MicroEntity<T> microEntity) where T : MicroEntity<T>;
         void RemoveAll<T>() where T : MicroEntity<T>;
         void Insert<T>(MicroEntity<T> microEntity) where T : MicroEntity<T>;
+        List<T> Do<T>(InterceptorQuery.EOperation pOperation, object query, object parm = null);
         List<T> Query<T>(string sqlStatement, object rawObject) where T : MicroEntity<T>;
         List<TU> Query<T, TU>(string statement, object rawObject, InterceptorQuery.EType ptype) where T : MicroEntity<T>;
+        List<TU> Query<T, TU>(string statement, object rawObject, InterceptorQuery.EType ptype, InterceptorQuery.EOperation pOperation) where T : MicroEntity<T>;
         List<T> GetAll<T>(string extraParms = null) where T : MicroEntity<T>;
         List<TU> GetAll<T, TU>(string extraParms = null) where T : MicroEntity<T>;
         List<T> GetAll<T>(MicroEntityParametrizedGet parm, string extraParms = null) where T : MicroEntity<T>;

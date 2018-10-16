@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Formatting;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Nyan.Modules.Web.REST.formatters
@@ -18,6 +19,9 @@ namespace Nyan.Modules.Web.REST.formatters
         public CsvMediaTypeFormatter()
         {
             SupportedMediaTypes.Add(new MediaTypeHeaderValue("text/csv"));
+
+            SupportedEncodings.Add(new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+            SupportedEncodings.Add(Encoding.GetEncoding("iso-8859-1"));
         }
 
         public CsvMediaTypeFormatter(MediaTypeMapping mediaTypeMapping) : this()

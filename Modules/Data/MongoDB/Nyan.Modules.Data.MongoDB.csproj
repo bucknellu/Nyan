@@ -65,6 +65,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Extensions.cs" />
     <Compile Include="Instances.cs" />
     <Compile Include="DictionaryRepresentationConvention.cs" />
     <Compile Include="IMongoDbCollectionResolver.cs" />
@@ -73,16 +74,20 @@
     <Compile Include="JArraySerializer.cs" />
     <Compile Include="JValueSerializer.cs" />
     <Compile Include="JObjectSerializer.cs" />
+    <Compile Include="Model\Query\Type\NotEqual.cs" />
     <Compile Include="Model\Query\Type\GreaterThan.cs" />
     <Compile Include="Model\Query\Type\GreaterThanOrEqual.cs" />
     <Compile Include="Model\Query\Type\LessThan.cs" />
     <Compile Include="Model\Query\Type\LessThanOrEqual.cs" />
+    <Compile Include="Model\Query\Type\RawBetweenEqualFirst.cs" />
     <Compile Include="Model\Query\Type\RawBetweenEqual.cs" />
     <Compile Include="Model\Query\Type\RawLessThan.cs" />
     <Compile Include="Model\Query\Type\IRawMongoValue.cs" />
     <Compile Include="Model\Query\Type\RawGreaterThan.cs" />
     <Compile Include="Model\Query\Type\RawGreaterThanOrEqual.cs" />
     <Compile Include="Model\Query\Type\RawLessThanOrEqual.cs" />
+    <Compile Include="Model\Query\Type\RawNotEqual.cs" />
+    <Compile Include="Model\Query\Type\RawNotIn.cs" />
     <Compile Include="MongoDbAdapter.cs" />
     <Compile Include="MongoDbinterceptor.cs" />
     <Compile Include="MongoDbDynamicParameters.cs" />

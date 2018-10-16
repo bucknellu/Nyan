@@ -22,6 +22,15 @@ namespace Nyan.Core.Process
             }
         }
 
+        public static void Stop()
+        {
+            foreach (var sa in ShutdownActions)
+            {
+                try { sa(); }
+                catch (Exception e) { Current.Log.Add(e); }
+            }
+        }
+
         public static void End(string pReason = "(None)")
         {
             Current.Log.Add("Stack shutdown initiated: " + pReason, Message.EContentType.ShutdownSequence);
@@ -29,6 +38,8 @@ namespace Nyan.Core.Process
             if (IsShuttingDown) return;
 
             IsShuttingDown = true;
+
+            Stop();
 
             Current.Log.Add("Shutting down " + Current.Authorization.GetType().Name, Message.EContentType.MoreInfo);
             Current.Authorization.Shutdown();

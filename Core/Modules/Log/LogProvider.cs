@@ -78,6 +78,12 @@ namespace Nyan.Core.Modules.Log
 
         public virtual void Add(Exception e, string message, string token = null)
         {
+            if (e is AggregateException es)
+            {
+                foreach (var e1 in es.InnerExceptions) Add(e1, message, token);
+                return;
+            }
+
             Add(Converter.ToMessage(e));
             if (e.InnerException != null) Add(e.InnerException);
         }

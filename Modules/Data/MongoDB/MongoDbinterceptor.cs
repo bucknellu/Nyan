@@ -20,6 +20,11 @@ using Nyan.Core.Settings;
 
 namespace Nyan.Modules.Data.MongoDB
 {
+    public class StaticLock<T> where T : MicroEntity<T>
+    {
+        public static object EntityLock { get; set; } = new object();
+    }
+
     public class MongoDbinterceptor : IInterceptor
     {
         private static IMongoClient _client;
@@ -106,6 +111,18 @@ namespace Nyan.Modules.Data.MongoDB
                 var col = Collection.Find(filter).ToList();
                 var target = col.FirstOrDefault();
 
+                if (target == null)
+                {
+                    var isNumeric = long.TryParse(locator, out long n);
+
+                    if (isNumeric)
+                    {
+                        filter = Builders<BsonDocument>.Filter.Eq("_id", n);
+                        col = Collection.Find(filter).ToList();
+                        target = col.FirstOrDefault();
+                    }
+                }
+
                 return target == null ? null : BsonSerializer.Deserialize<T>(target);
             } catch (Exception e)
             {
@@ -119,22 +136,22 @@ namespace Nyan.Modules.Data.MongoDB
             string id = null;
             try
             {
-                if (obj.GetEntityIdentifier() == "")
-                {
-                    obj.SetEntityIdentifier(Guid.NewGuid().ToString());
-                }
+                if (obj.GetEntityIdentifier() == "") obj.SetEntityIdentifier(Guid.NewGuid().ToString());
 
                 id = obj.GetEntityIdentifier();
 
-                var probe = Get<T>(id);
-
-                var document = BsonSerializer.Deserialize<BsonDocument>(obj.ToJson());
-
-                if (probe == null) { Collection.InsertOne(document); }
-                else
+                lock (StaticLock<T>.EntityLock)
                 {
-                    var filter = Builders<BsonDocument>.Filter.Eq("_id", id);
-                    Collection.ReplaceOne(filter, document);
+                    var probe = Get<T>(id);
+
+                    var document = BsonSerializer.Deserialize<BsonDocument>(obj.ToJson());
+
+                    if (probe == null) { Collection.InsertOne(document); }
+                    else
+                    {
+                        var filter = Builders<BsonDocument>.Filter.Eq("_id", id);
+                        Collection.ReplaceOne(filter, document);
+                    }
                 }
 
                 return id;
@@ -164,6 +181,26 @@ namespace Nyan.Modules.Data.MongoDB
             Collection.InsertOne(document);
         }
 
+        public List<T> Do<T>(InterceptorQuery.EOperation pOperation, object query, object parm = null)
+        {
+            switch (pOperation)
+            {
+                case InterceptorQuery.EOperation.Query: break;
+                case InterceptorQuery.EOperation.Distinct: break;
+                case InterceptorQuery.EOperation.Update:
+
+                    if (parm == null) return null;
+                    var bQuery = BsonDocument.Parse(Serialization.ToJson(query));
+                    var bTrans = BsonDocument.Parse("{$set: " + Serialization.ToJson(parm) + " }");
+                    Collection.UpdateMany(bQuery, bTrans);
+
+                    return null;
+                default: throw new ArgumentOutOfRangeException(nameof(pOperation), pOperation, null);
+            }
+
+            return null;
+        }
+
         public List<T> Query<T>(string sqlStatement, object rawObject) where T : MicroEntity<T> { return Query<T, T>(sqlStatement, rawObject); }
 
         public List<TU> GetAll<T, TU>(string extraParms = null) where T : MicroEntity<T>
@@ -181,40 +218,11 @@ namespace Nyan.Modules.Data.MongoDB
 
         public List<TU> GetAll<T, TU>(MicroEntityParametrizedGet parm, string extraParms = null) where T : MicroEntity<T>
         {
-            SortDefinition<BsonDocument> sortFilter = new BsonDocument();
+            var queryFilter = parm.ToBsonQuery(extraParms);
+            var querySort = parm.ToBsonFilter();
+            SortDefinition<BsonDocument> sortFilter = querySort;
 
-            var queryFilter = ToBsonString(parm, extraParms);
-
-            if (parm.OrderBy != null)
-            {
-                var sign = parm.OrderBy[0];
-                var deSignedValue = parm.OrderBy.Substring(1);
-
-                int dir;
-                string field;
-
-                switch (sign)
-                {
-                    case '+':
-                        field = deSignedValue;
-                        dir = +1;
-                        break;
-                    case '-':
-                        field = deSignedValue;
-                        dir = -1;
-                        break;
-                    default:
-                        field = parm.OrderBy;
-                        dir = +1;
-                        break;
-                }
-
-                var filtero = new BsonDocument(field, dir);
-
-                sortFilter = new BsonDocument(field, dir);
-
-                Collection.Indexes.CreateOne(filtero.ToJson(new JsonWriterSettings {OutputMode = JsonOutputMode.Strict}));
-            }
+            if (parm.OrderBy != null) Collection.Indexes.CreateOne(querySort.ToJson(new JsonWriterSettings {OutputMode = JsonOutputMode.Strict}));
 
             IFindFluent<BsonDocument, BsonDocument> col;
 
@@ -253,7 +261,7 @@ namespace Nyan.Modules.Data.MongoDB
 
         public long RecordCount<T>(MicroEntityParametrizedGet qTerm, string parm) where T : MicroEntity<T>
         {
-            var q = ToBsonString(qTerm, parm);
+            var q = qTerm.ToBsonQuery(parm);
             return Collection.Count(q);
         }
 
@@ -278,25 +286,17 @@ namespace Nyan.Modules.Data.MongoDB
             Connect<T>(_statements.ConnectionString, _statements.Bundle);
         }
 
-        public List<TU> Query<T, TU>(string statement, object rawObject, InterceptorQuery.EType ptype) where T : MicroEntity<T>
+        public List<TU> Query<T, TU>(string statement, object rawObject, InterceptorQuery.EType ptype) where T : MicroEntity<T> { return Query<T, TU>(statement, rawObject, ptype, InterceptorQuery.EOperation.Query); }
+
+        public List<TU> Query<T, TU>(string statement, object rawObject, InterceptorQuery.EType ptype, InterceptorQuery.EOperation pOperation) where T : MicroEntity<T>
         {
             List<TU> ret = null;
 
-            switch (ptype)
+            switch (pOperation)
             {
-                case InterceptorQuery.EType.StaticArray:
-
-                    switch (statement)
-                    {
-                        case "distinct":
-
-                            var parm = rawObject.ToString();
-
-                            ret = Collection.Distinct<TU>(parm, new BsonDocument()).ToList();
-                            break;
-                        default: break;
-                    }
-
+                case InterceptorQuery.EOperation.Distinct:
+                    var parm = rawObject.ToString();
+                    ret = Collection.Distinct<TU>(parm, statement == null ? new BsonDocument() : BsonDocument.Parse(statement)).ToList();
                     break;
                 default: throw new ArgumentOutOfRangeException(nameof(ptype), ptype, null);
             }
@@ -307,10 +307,7 @@ namespace Nyan.Modules.Data.MongoDB
         public void Initialize<T>() where T : MicroEntity<T>
         {
             // Check for the presence of text indexes '$**'
-            try { Collection.Indexes.CreateOne(Builders<BsonDocument>.IndexKeys.Text("$**")); } catch (Exception e)
-            {
-                Current.Log.Add($"{ThreadHelper.Uid} {Database.Client?.Settings?.Credential?.Username}@{Database?.DatabaseNamespace} - {Collection?.CollectionNamespace} {e.Message} | ERR Creating index {SourceCollection}: {e.Message}", Message.EContentType.Warning);
-            }
+            try { Collection.Indexes.CreateOne(Builders<BsonDocument>.IndexKeys.Text("$**")); } catch (Exception e) { Current.Log.Add($"{ThreadHelper.Uid} {Database.Client?.Settings?.Credential?.Username}@{Database?.DatabaseNamespace} - {Collection?.CollectionNamespace} {e.Message} | ERR Creating index {SourceCollection}: {e.Message}", Message.EContentType.Warning); }
         }
 
         public List<T> GetAll<T>(string extraParms = null) where T : MicroEntity<T> { return GetAll<T, T>(); }
@@ -356,44 +353,6 @@ namespace Nyan.Modules.Data.MongoDB
                 .ToList();
 
             return res;
-        }
-
-        public static BsonDocument ToBsonString(MicroEntityParametrizedGet parm, string extraParms = null)
-        {
-            string query = null;
-
-            BsonDocument queryFilter;
-
-            if (!string.IsNullOrEmpty(parm.QueryTerm)) query = $"$text:{{$search: \'{parm.QueryTerm.Replace("'", "\\'")}\',$caseSensitive: false,$diacriticSensitive: false}}";
-
-            if (extraParms != null)
-            {
-                extraParms = extraParms.Trim();
-
-                if (extraParms[0] == '{') extraParms = extraParms.Substring(1, extraParms.Length - 2);
-
-                if (query != null) query += ",";
-                query += extraParms;
-            }
-
-            if (!string.IsNullOrEmpty(parm.Filter))
-            {
-                if (parm.Filter[0] == '{') parm.Filter = parm.Filter.Substring(1, parm.Filter.Length - 2);
-                if (query != null) query += ",";
-                query += parm.Filter;
-            }
-
-            if (query != null)
-            {
-                if (query[0] != '{') query = "{" + query + "}";
-
-                Current.Log.Add("QUERYALL " + query);
-
-                queryFilter = BsonDocument.Parse(query);
-            }
-            else { queryFilter = new BsonDocument(); }
-
-            return queryFilter;
         }
 
         private void RegisterGenericChain(Type type)

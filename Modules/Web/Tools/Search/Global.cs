@@ -63,7 +63,7 @@ namespace Nyan.Modules.Web.Tools.Search
                         var cts = new CancellationTokenSource();
                         var cancellableTask = task.ContinueWith(ignored => { }, cts.Token);
                         cts.Cancel();
-                        Task.WaitAny(new[] { cancellableTask }, TimeSpan.FromSeconds(0.1));
+                        Task.WaitAny(new[] { cancellableTask }, TimeSpan.FromSeconds(1));
                     }
                     else
                     {
@@ -105,6 +105,13 @@ namespace Nyan.Modules.Web.Tools.Search
 
                 foreach (var i in retcon)
                 {
+
+                    foreach (var j in i.Value)
+                    {
+                        j.Body = j.Body?.StripHtml();
+                        j.Description = j.Description?.StripHtml();
+                    }
+
                     regCount += i.Value.Count;
                     finalCon.Add(i.Key, i.Value);
                 }

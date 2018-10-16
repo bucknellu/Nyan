@@ -595,7 +595,7 @@ namespace Nyan.Modules.Web.REST
                 var parametrizedGet = new MicroEntityParametrizedGet();
                 long tot = 0;
 
-                var mustUseParametrizedGet = false;
+                var mustUseParametrizedGet = (extraParms != null);
 
                 var queryString = Request?.GetQueryNameValuePairs().ToDictionary(x => x.Key, x => x.Value) ?? new Dictionary<string, string>();
 

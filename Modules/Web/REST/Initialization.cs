@@ -55,8 +55,10 @@ namespace Nyan.Modules.Web.REST
             config.Formatters.Add(new SyndicationFeedFormatter());
             config.AddJsonpFormatter();
 
+            config.Formatters.XmlFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/xml"));
             config.Formatters.JsonFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("text/html"));
-            //config.Formatters.Add(new CsvMediaTypeFormatter());
+
+            GlobalConfiguration.Configuration.Services.Replace(typeof(IContentNegotiator), new DefaultContentNegotiator(true));
 
             Current.Log.Add("WebApi REST       : Routes registered.", Message.EContentType.Info);
         }

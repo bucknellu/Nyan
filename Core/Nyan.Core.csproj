@@ -55,12 +55,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assembly\Management.cs" />
+    <Compile Include="Diagnostics\ThresholdAccumulator.cs" />
     <Compile Include="Diagnostics\ThreadManager.cs" />
     <Compile Include="Diagnostics\TraceInfoContainer.cs" />
     <Compile Include="Extensions\Reflections.cs" />
     <Compile Include="Extensions\Serialization.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="Media\Utilities.cs" />
+    <Compile Include="Modules\Data\Extensions.cs" />
     <Compile Include="Modules\Identity\Helper.cs" />
     <Compile Include="Modules\Log\Converter.cs" />
     <Compile Include="Modules\Log\Local.cs" />
