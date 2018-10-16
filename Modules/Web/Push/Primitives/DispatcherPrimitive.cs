@@ -41,9 +41,12 @@ namespace Nyan.Modules.Web.Push.Primitives
         {
             while (_messageQueue.Count != 0)
             {
-                var a = _messageQueue.Peek();
+                Entry a = _messageQueue.Peek();
 
-                try { Send(a.EndpointEntry, a.Payload); }
+                try
+                {
+                    Send(a.EndpointEntry, a.Payload);
+                }
                 catch (Exception e)
                 {
                     Current.Log.Add(e, "DispatchQueue:");
@@ -57,6 +60,7 @@ namespace Nyan.Modules.Web.Push.Primitives
         public virtual void Register(EndpointEntry ep) { }
         public virtual void Deregister(EndpointEntry ep) { }
         public virtual void HandlePushAttempt(string endpoint, bool success) { }
+
         private class Entry
         {
             public EndpointEntry EndpointEntry { get; set; }
