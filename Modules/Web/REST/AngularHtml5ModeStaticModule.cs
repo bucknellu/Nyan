@@ -12,7 +12,7 @@ namespace Nyan.Modules.Web.REST
 {
     public class AngularHtml5ModeStaticModule : IHttpModule
     {
-        private static readonly List<string> ReplaceablePages = new List<string> {"index.htm", "main.html"};
+        private static readonly List<string> ReplaceablePages = new List<string> { "index.htm", "main.html" };
         private StreamWatcher _watcher;
 
         // ReSharper disable once EmptyConstructor
@@ -42,7 +42,7 @@ namespace Nyan.Modules.Web.REST
                 url = context.Request.Url.AbsolutePath.ToLower();
                 if (ReplaceablePages.All(i => url.IndexOf(i, StringComparison.Ordinal) == -1)) return;
 
-                Current.Log.Add("POSTPROCESS " + url, Message.EContentType.StartupSequence);
+                // Current.Log.Add("POSTPROCESS " + url, Message.EContentType.StartupSequence);
 
                 step = "obtaining version";
 
@@ -70,12 +70,16 @@ namespace Nyan.Modules.Web.REST
                 context.Response.Write(ret);
                 //step = "flushing response output";
                 //context.Response.End();
-            } catch (Exception e) { Current.Log.Add("Post-process failed while {0} for {1}: {2}".format(step, url, e.Message), Message.EContentType.Warning); }
+            }
+            catch (Exception e)
+            {
+                Current.Log.Add("Post-process failed while {0} for {1}: {2}".format(step, url, e.Message), Message.EContentType.Warning);
+            }
         }
 
         private void Application_PostMapRequestHandler(object sender, EventArgs e)
         {
-            var r = ((HttpApplication) sender).Request;
+            var r = ((HttpApplication)sender).Request;
             var a = r.RequestContext.HttpContext;
 
             if (a.Handler == null) return;
@@ -86,7 +90,7 @@ namespace Nyan.Modules.Web.REST
 
             // Create HttpApplication and HttpContext objects to access
             // request and response properties.
-            var application = (HttpApplication) sender;
+            var application = (HttpApplication)sender;
             var context = application.Context;
             var contextBase = context.Request.RequestContext.HttpContext;
 

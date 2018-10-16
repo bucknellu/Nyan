@@ -37,15 +37,15 @@ namespace Nyan.Core.Modules.Maintenance
                 base[tag] = value;
             }
         }
-
         public void Click(string tag) { this[tag]++; }
+        public void Click(string tag, long count) { this[tag] += count; }
 
-        public void ToLog()
+        public void ToLog(Message.EContentType type = Message.EContentType.MoreInfo)
         {
             if (Keys.Count <= 0) return;
 
             foreach (var key in Keys)
-                Current.Log.Add(key.PadLeft(_maxLength + 4) + (_suffix != null ? " " + _suffix : "") + ": " + base[key], Message.EContentType.MoreInfo);
+                Current.Log.Add(key.PadLeft(_maxLength + 4) + (_suffix != null ? " " + _suffix : "") + ": " + base[key], type);
         }
     }
 }

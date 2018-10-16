@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace Nyan.Core.Modules.Data.Contracts
 {
@@ -20,9 +16,7 @@ namespace Nyan.Core.Modules.Data.Contracts
         public string Locator { get; set; }
         public string Description { get; set; }
         public string Body { get; set; }
-        public double Score { get; set; }
+        public double? Score { get; set; }
         public bool IsKeyMatch { get; set; }
     }
-
-
 }
