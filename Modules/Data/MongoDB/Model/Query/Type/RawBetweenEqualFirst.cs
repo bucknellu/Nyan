@@ -5,17 +5,17 @@ using Nyan.Core.Extensions;
 
 namespace Nyan.Modules.Data.MongoDB.Model.Query.Type
 {
-    public class RawBetweenEqual : IRawMongoValue
+    public class RawBetweenEqualFirst : IRawMongoValue
     {
-        public RawBetweenEqual() { }
+        public RawBetweenEqualFirst() { }
 
-        public RawBetweenEqual(DateTime value, DateTime value2)
+        public RawBetweenEqualFirst(DateTime value, DateTime value2)
         {
             Value = new JRaw(value.ToISODateString());
             Value2 = new JRaw(value2.ToISODateString());
         }
 
-        [JsonProperty("$lte")]
+        [JsonProperty("$lt")]
         public JRaw Value2 { get; set; }
 
         [JsonProperty("$gte")]
