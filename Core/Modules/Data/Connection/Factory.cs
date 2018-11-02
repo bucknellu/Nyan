@@ -52,8 +52,7 @@ namespace Nyan.Core.Modules.Data.Connection
 
                 // now, compile all entries, using definition order;
 
-                if (creds.Count > 0)
-                    Current.Log.Add("[" + ret.AssociatedBundleType + "] Credential sets: " + string.Join(",", creds.Select(i => "[" + i.GetType().Name + "]")), Message.EContentType.Info);
+                // if (creds.Count > 0) Current.Log.Add("[" + ret.AssociatedBundleType + "] Credential sets: " + string.Join(",", creds.Select(i => "[" + i.GetType().Name + "]")), Message.EContentType.Info);
 
                 foreach (var i in creds)
                 {
