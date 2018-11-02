@@ -8,11 +8,10 @@ namespace Nyan.Core.Modules.Maintenance
 {
     public class Clicker
     {
+        private static readonly NumberFormatInfo Format = new NumberFormatInfo {PercentPositivePattern = 1, PercentNegativePattern = 1};
         private long _pIndex;
         private string _pMessage;
         private int _pNotifySlice;
-
-        private static readonly NumberFormatInfo Format = new NumberFormatInfo { PercentPositivePattern = 1, PercentNegativePattern = 1 };
 
         private Stopwatch _s;
 
@@ -21,10 +20,17 @@ namespace Nyan.Core.Modules.Maintenance
 
         public long Count { get; private set; }
 
-        public void Start(string pMessage, long pCount, int pNotifySlice = 100)
+        public void Start(string pMessage, long pCount, int pNotifySlice = -1)
         {
             _pMessage = pMessage;
             Count = pCount;
+
+            if (pNotifySlice == -1) // auto
+            {
+                var digits = pCount.ToString().Length;
+                pNotifySlice = digits < 3 ? 100 : Convert.ToInt32("1" + new string('0', digits - 2));
+            }
+
             _pNotifySlice = pNotifySlice;
 
             _s = new Stopwatch();
@@ -38,7 +44,7 @@ namespace Nyan.Core.Modules.Maintenance
             _pIndex++;
             if (_pIndex % _pNotifySlice != 0) return;
 
-            var part = ((double) _pIndex / Count);
+            var part = (double) _pIndex / Count;
             var partStr = part.ToString("P2", Format).PadLeft(7);
 
             var invPart = TimeSpan.FromMilliseconds(_s.ElapsedMilliseconds * (1 / part));
@@ -53,8 +59,7 @@ namespace Nyan.Core.Modules.Maintenance
 
             var msg = $"    {_pMessage}: {sIndex}/{Count} ({partStr} | E{currT} L{leftT} T{totlT})";
 
-            Current.Log.Add(msg, Message.EContentType.MoreInfo);
-            Console.WriteLine(msg);
+            Current.Log.Add(msg);
         }
 
         public void End()

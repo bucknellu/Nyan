@@ -22,7 +22,7 @@ namespace Nyan.Modules.Storage.FileSystem
 
         public FileSystemStorageConfiguration Configuration { get; set; }
 
-        public string Suffix { get; set; } = ".storage";
+        public string Suffix { get; set; } = "";
 
         public Stream this[string key] { get => Get(key); set => Put(value, key); }
 
@@ -74,7 +74,7 @@ namespace Nyan.Modules.Storage.FileSystem
             if (fileKey == null || partialName)
                 using (var md5 = MD5.Create())
                 {
-                    fileKey = md5.ComputeHash(source).ToHex() + "-" + source.Length.ToString("X") + (fileKey != null? "-" + fileKey.ToFriendlyUrl():"");
+                    fileKey = md5.ComputeHash(source).ToHex() + "-" + source.Length.ToString("X") + (fileKey != null? "-" + fileKey:"");
                 }
 
             if (source == null)
@@ -92,7 +92,7 @@ namespace Nyan.Modules.Storage.FileSystem
 
             File.WriteAllBytes(GetFullPath(fileKey), buffer);
 
-            Current.Log.Add("Stream PUT " + buffer.Length + "b @ " + GetFullPath(fileKey));
+            // Current.Log.Add("Stream PUT " + buffer.Length + "b @ " + GetFullPath(fileKey));
 
             ms.Dispose();
 
