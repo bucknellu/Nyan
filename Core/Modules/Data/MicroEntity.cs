@@ -22,7 +22,9 @@ using Nyan.Core.Modules.Data.Operators;
 using Nyan.Core.Modules.Data.Operators.AnsiSql;
 using Nyan.Core.Modules.Data.Pipeline;
 using Nyan.Core.Modules.Log;
+using Nyan.Core.Modules.Maintenance;
 using Nyan.Core.Settings;
+using Factory = Nyan.Core.Modules.Data.Connection.Factory;
 
 namespace Nyan.Core.Modules.Data
 {
@@ -134,6 +136,7 @@ namespace Nyan.Core.Modules.Data
 
                 ret = retCol.Count > 0 ? retCol[0] : null;
             }
+
             return ret;
         }
 
@@ -152,33 +155,41 @@ namespace Nyan.Core.Modules.Data
 
             var tasks = new List<Task<List<T>>>();
 
-            foreach (var innerList in list)
+            if (Statements.Interceptor != null)
+                ret = Statements.Interceptor.Get<T>(identifiers);
+            else
             {
-                for (var index = 0; index < innerList.Count; index++) innerList[index] = innerList[index].Replace("'", "''");
 
-                var qryparm = "'" + string.Join("','", innerList) + "'";
+                foreach (var innerList in list)
+                {
+                    for (var index = 0; index < innerList.Count; index++) innerList[index] = innerList[index].Replace("'", "''");
 
-                var q = string.Format(Statements.SqlAllFieldsQueryTemplate,
-                                      Statements.IdPropertyRaw + " IN (" + qryparm + ")");
+                    var qryparm = "'" + string.Join("','", innerList) + "'";
 
-                tasks.Add(new Task<List<T>>(() => Query(q)));
+                    var q = string.Format(Statements.SqlAllFieldsQueryTemplate,
+                                          Statements.IdPropertyRaw + " IN (" + qryparm + ")");
+
+                    tasks.Add(new Task<List<T>>(() => Query(q)));
+                }
+
+                foreach (var task in tasks) task.Start();
+
+                // ReSharper disable once CoVariantArrayConversion
+                Task.WaitAll(tasks.ToArray());
+
+                ret = tasks.Aggregate(ret, (current, task) => current.Concat(task.Result));
             }
-
-            foreach (var task in tasks) task.Start();
-
-            // ReSharper disable once CoVariantArrayConversion
-            Task.WaitAll(tasks.ToArray());
-
-            ret = tasks.Aggregate(ret, (current, task) => current.Concat(task.Result));
 
             if (!TableData.UseCaching) return ret;
 
-            foreach (var item in ret)
-            {
-                var id = item.GetEntityIdentifier();
 
-                if (!IsCached(id)) Current.Cache[CacheKey(id)] = item.ToJson();
-            }
+
+            Parallel.ForEach(ret, new ParallelOptions { MaxDegreeOfParallelism = 10 }, item =>
+              {
+                  var id = item.GetEntityIdentifier();
+                  //if (!IsCached(id))
+                  Current.Cache[CacheKey(id)] = item.ToJson();
+              });
 
             return ret;
         }
@@ -321,7 +332,8 @@ break; */
         {
             if (Statements.AfterActionPipeline.Count <= 0) return;
 
-            foreach (var afterActionPipeline in Statements.AfterActionPipeline) try { afterActionPipeline.Process(action, current, source); } catch (Exception e) { Current.Log.Add(e); }
+            foreach (var afterActionPipeline in Statements.AfterActionPipeline)
+                try { afterActionPipeline.Process(action, current, source); } catch (Exception e) { Current.Log.Add(e); }
         }
 
         private static T ProcBeforePipeline(string action, T current, T source)
@@ -329,7 +341,12 @@ break; */
             if (current == null) return null;
             if (Statements.BeforeActionPipeline.Count <= 0) return current;
 
-            foreach (var beforeActionPipeline in Statements.BeforeActionPipeline) try { if (current != null) current = beforeActionPipeline.Process(action, current, source); } catch (Exception e) { Current.Log.Add(e); }
+            foreach (var beforeActionPipeline in Statements.BeforeActionPipeline)
+                try
+                {
+                    if (current != null) current = beforeActionPipeline.Process(action, current, source);
+                }
+                catch (Exception e) { Current.Log.Add(e); }
 
             return current;
         }
@@ -338,26 +355,21 @@ break; */
         ///     Get all entity entries.
         /// </summary>
         /// <returns>An enumeration with all the entries from database.</returns>
-        public static IEnumerable<T> Get()
-        {
-            return GetAll();
-        }
+        public static IEnumerable<T> Get() { return GetAll(); }
 
-        public static IEnumerable<T> GetAll(string extraParms = null) { return GetAll<T>(); }
+        public static IEnumerable<T> GetAll(string extraParms = null) { return GetAll<T>(extraParms); }
 
         public static IEnumerable<TU> GetAll<TU>(string extraParms = null)
         {
             ValidateEntityState();
 
             //GetAll should never use cache, always hitting the DB.
-            var ret = Statements.Interceptor != null ? Statements.Interceptor.GetAll<T, TU>(extraParms) : Query<TU>(Statements.SqlGetAll);
+            var ret = Statements.Interceptor != null ? Statements.Interceptor.GetAll<T, TU>(extraParms) : Query<TU>(extraParms ?? Statements.SqlGetAll);
 
             return ret;
         }
 
         public static long Count() { return Statements.Interceptor?.RecordCount<T>() ?? QuerySingleValue<long>(Statements.SqlRowCount); }
-
-
 
         public static long Count(MicroEntityParametrizedGet qTerm, string extraParms = null)
         {
@@ -370,6 +382,7 @@ break; */
         }
 
         public static IEnumerable<T> Get(MicroEntityParametrizedGet parm) { return Get(parm, null); }
+
         public static IEnumerable<T> Get(MicroEntityParametrizedGet parm, string extraParms)
         {
             ValidateEntityState();
@@ -400,6 +413,7 @@ break; */
 
                 ret = Query(op, bag);
             }
+
             if (!TableData.UseCaching) return ret;
 
             //...populates/refresh the cache with all the individual results, saving time for future individual FETCHes.
@@ -408,28 +422,27 @@ break; */
             foreach (var o in ret) Current.Cache[CacheKey(o.GetEntityIdentifier())] = o.ToJson();
             return ret;
         }
+
         public static IEnumerable<TU> Get<TU>(MicroEntityParametrizedGet parm, string extraParms)
         {
             ValidateEntityState();
 
             List<TU> ret = null;
 
-            if (Statements.Interceptor != null)
-            {
-                ret = Statements.Interceptor.GetAll<T, TU>(parm, extraParms);
-            }
+            if (Statements.Interceptor != null) { ret = Statements.Interceptor.GetAll<T, TU>(parm, extraParms); }
             else
             {
                 var tmp = Query<TU>(Statements.SqlGetAll);
-                if (parm.QueryTerm != null) tmp = tmp.Where(i =>
-                {
-                    var vals = i.ToDictionary()
-                        .Select(ii => ii.Value?.ToString().ToLower())
-                        .Where(ij => ij != null)
-                        .ToList().ToJson();
-                    return vals.IndexOf(parm.QueryTerm.ToLower(), StringComparison.Ordinal) != -1;
-                }).ToList();
-                if (parm.PageSize != 0) tmp = tmp.Skip((int)((parm.PageIndex) * parm.PageSize)).Take((int)parm.PageSize).ToList();
+                if (parm.QueryTerm != null)
+                    tmp = tmp.Where(i =>
+                    {
+                        var vals = i.ToDictionary()
+                            .Select(ii => ii.Value?.ToString().ToLower())
+                            .Where(ij => ij != null)
+                            .ToList().ToJson();
+                        return vals.IndexOf(parm.QueryTerm.ToLower(), StringComparison.Ordinal) != -1;
+                    }).ToList();
+                if (parm.PageSize != 0) tmp = tmp.Skip((int)(parm.PageIndex * parm.PageSize)).Take((int)parm.PageSize).ToList();
                 ret = tmp;
             }
 
@@ -491,11 +504,87 @@ break; */
 
         public static void Update(List<T> objs) { Save(objs); }
 
-        public static void Save(List<T> objs)
+        public class BulkOpResult
         {
+            public List<T> Success;
+            public List<T> Failure;
+            public Dictionary<string, ControlEntry> Control = new Dictionary<string, ControlEntry>();
+
+            public class ControlEntry
+            {
+                public T Current;
+                public T Original;
+                public bool Success = true;
+                public string Message;
+            }
+        }
+
+        public static BulkOpResult Save(List<T> objs)
+        {
+            var res = new BulkOpResult();
+
             if (TableData.IsReadOnly) throw new ReadOnlyException("This entity is set as read-only.");
 
-            foreach (var obj in objs) obj.Save();
+            var proc = new List<T>();
+            var noProc = new List<T>();
+
+            var pre = new Clicker($"[{typeof(T).FullName}] PRE BULK Save", objs.Count);
+
+            // First populate the control strut.
+            res.Control = objs.ToDictionary(i => i.GetEntityIdentifier(), i => new BulkOpResult.ControlEntry() { Current = i });
+
+            // Now obtain all original record IDs
+            var allIds = res.Control.Keys.ToList();
+
+            // Then obtain the records themselves
+            var allCurrRecs = Get(allIds);
+
+            // Populate Control with the results
+            foreach (var i in allCurrRecs) { res.Control[i.GetEntityIdentifier()].Original = i; }
+
+            foreach (var i in res.Control)
+            {
+                var obj = i.Value.Current;
+                var rec = i.Value.Original;
+
+                rec = ProcBeforePipeline(Support.EAction.Remove, obj, rec);
+
+                if (rec == null)
+                {
+                    noProc.Add(obj);
+                    i.Value.Success = false;
+                    i.Value.Message = "Failed ProcBeforePipeline";
+                }
+                else
+                {
+                    proc.Add(rec);
+                    rec.BeforeSave();
+                    i.Value.Success = true;
+                }
+                pre.Click();
+            };
+
+            if (Statements.Interceptor != null)
+                Statements.Interceptor.BulkSave(proc);
+            else
+                foreach (var obj in proc) obj.Save();
+
+            var post = new Clicker($"[{typeof(T).FullName}] POST BULK Save", proc.Count);
+
+            Parallel.ForEach(res.Control.Where(i => i.Value.Success), new ParallelOptions { MaxDegreeOfParallelism = 10 }, rec =>
+             {
+                 var id = rec.Key;
+                 post.Click();
+                 rec.Value.Current.OnSave(id);
+                 ProcAfterPipeline(Support.EAction.Update, rec.Value.Current, rec.Value.Original);
+                 if (!TableData.UseCaching) return;
+                 Current.Cache.Remove(CacheKey(id));
+             });
+
+            res.Success = proc;
+            res.Failure = noProc;
+
+            return res;
         }
 
         public static void Put(List<T> objs)
@@ -569,7 +658,9 @@ break; */
         {
             var probe = GetEntityIdentifier();
 
-            if (!TableData.IsInsertableIdentifier) if (probe == "" || probe == "0") return true;
+            if (!TableData.IsInsertableIdentifier)
+                if (probe == "" || probe == "0")
+                    return true;
 
             oProbe = Get(probe);
             return oProbe == null;
@@ -904,7 +995,7 @@ break; */
         {
             using (var conn = Statements.Adapter.Connection(Statements.ConnectionString))
             {
-                var ret = conn.Query<T1>(sqlStatement, sqlParameters, null, true, null, CommandType.Text).First();
+                var ret = conn.Query<T1>(sqlStatement, sqlParameters, null, true, null, CommandType.Text).FirstOrDefault();
                 return ret;
             }
         }
@@ -960,7 +1051,8 @@ break; */
 
                     var a = p.ParameterNames.ToList();
 
-                    foreach (var name in a) try { result[name] = p.Get<dynamic>(name); } catch { result[name] = null; }
+                    foreach (var name in a)
+                        try { result[name] = p.Get<dynamic>(name); } catch { result[name] = null; }
                 }
             }
             catch (Exception e)
@@ -1037,18 +1129,17 @@ break; */
 
         #region Bootstrappers
 
+        private static Dictionary<string, string> _status = new Dictionary<string, string>();
+
         static MicroEntity()
         {
-            var si = new Dictionary<string, string>();
+
 
             lock (AccessLock)
             {
                 try
                 {
-                    var nm = typeof(T).FullName;
-
-                    LogLocal($"Initializing {nm}", Message.EContentType.StartupSequence);
-
+                    // LogLocal($"Initializing {nm}", Message.EContentType.StartupSequence);
                     ClassRegistration.TryAdd(typeof(T), new MicroEntityCompiledStatements());
 
                     var ps = typeof(T).GetCustomAttributes(true).OfType<PipelineAttribute>().ToList();
@@ -1070,11 +1161,8 @@ break; */
                          select (IAfterActionPipeline)type.GetConstructor(new Type[] { }).Invoke(new object[] { }))
                         .ToList();
 
-                    if (Statements.BeforeActionPipeline.Count != 0)
-                        LogLocal($"BeforeActionPipeline: {Statements.BeforeActionPipeline.Count} items - " + Statements.BeforeActionPipeline.Select(i => i.GetType().Name).Aggregate((i, j) => i + "," + j), Message.EContentType.Info);
-
-                    if (Statements.AfterActionPipeline.Count != 0)
-                        LogLocal($"AfterActionPipeline: {Statements.AfterActionPipeline.Count} items - " + Statements.AfterActionPipeline.Select(i => i.GetType().Name).Aggregate((i, j) => i + "," + j), Message.EContentType.Info);
+                    if (Statements.BeforeActionPipeline.Count != 0) _status["data.BeforeActionPipeline"] = Statements.BeforeActionPipeline.Select(i => i.GetType().Name).Aggregate((i, j) => i + "," + j);
+                    if (Statements.AfterActionPipeline.Count != 0) _status["data.AfterActionPipeline"] = Statements.AfterActionPipeline.Select(i => i.GetType().Name).Aggregate((i, j) => i + "," + j);
 
                     Statements.State.Status = MicroEntityCompiledStatements.EStatus.Initializing;
                     Statements.State.Step = "Starting TableData/Statements setup";
@@ -1089,15 +1177,14 @@ break; */
 
                     Statements.State.Step = "Setting up Machine/Environment SI dict";
 
-                    si["Machine"] = System.Environment.MachineName;
-                    si["Environment"] = Current.Environment.Current.Code;
-
+                    // _status["env.Machine"] = System.Environment.MachineName;
+                    _status["env.Environment"] = Current.Environment.Current.Code;
 
                     Statements.State.Step = "Setting up Statements.EnvironmentCode";
                     Statements.EnvironmentCode = ResolveEnvironment();
 
-                    if (Statements.EnvironmentCode != Current.Environment.Current.Code)
-                        si["Environment"] = Statements.EnvironmentCode + " (overriding [" + Current.Environment.Current.Code + "])";
+                    if (Statements.EnvironmentCode != Current.Environment.Current.Code) { }
+                        _status["env.Environment"] = Statements.EnvironmentCode + " (overriding [" + Current.Environment.Current.Code + "])";
 
                     //LogLocal("INIT START", Message.EContentType.Info);
 
@@ -1112,7 +1199,7 @@ break; */
                     Statements.PropertyFieldMap =
                         (from pInfo in probeType.GetProperties()
                          let p1 = pInfo.GetCustomAttributes(false).OfType<ColumnAttribute>().ToList()
-                         let fieldName = p1.Count != 0 ? (p1[0].Name ?? pInfo.Name) : pInfo.Name
+                         let fieldName = p1.Count != 0 ? p1[0].Name ?? pInfo.Name : pInfo.Name
                          select new KeyValuePair<string, string>(pInfo.Name, fieldName))
                         .ToDictionary(x => x.Key, x => x.Value);
 
@@ -1148,7 +1235,7 @@ break; */
                         Statements.Bundle = refType;
 
                         refType.ValidateDatabase();
-                        si["Connection bundle"] = refType.GetType().Name;
+                        _status["data.ConnectionBundle"] = refType.GetType().Name;
                         Statements.State.Step = "Transferring configuration settings from Bundle to Entity Statements";
                         Statements.Adapter = (DataAdapterPrimitive)Activator.CreateInstance(refType.AdapterType);
                         Statements.ConnectionCypherKeys = refType.ConnectionCypherKeys;
@@ -1166,9 +1253,10 @@ break; */
                     //Then pick Credential sets
 
                     Statements.State.Step = "determining CredentialSets to use";
-                    Statements.CredentialSet = Factory.GetCredentialSetPerConnectionBundle(Statements.Bundle,
-                                                                                           TableData.CredentialSetType);
+                    Statements.CredentialSet = Factory.GetCredentialSetPerConnectionBundle(Statements.Bundle, TableData.CredentialSetType);
                     Statements.CredentialCypherKeys = Statements.CredentialSet.CredentialCypherKeys;
+
+                    _status["data.CredentialSet"] = Statements.CredentialSet?.GetType().Name;
 
                     var identifierColumnName = TableData.IdentifierColumnName;
 
@@ -1194,11 +1282,8 @@ break; */
                     {
                         if (TableData.TableName != null)
                         {
-                            si["Key"] = "(missing)";
-                            LogLocal("Missing [Key] definition", Message.EContentType.Warning);
-                            throw new ConfigurationErrorsException(GetTypeName() +
-                                                                   ": Entity (with Table name {0}) is missing a [Key] definition."
-                                                                       .format(TableData.TableName));
+                            _status["data.Key"] = "ERR Missing [Key] definition";
+                            throw new ConfigurationErrorsException(GetTypeName() + ": Entity (with Table name {0}) is missing a [Key] definition.".format(TableData.TableName));
                         }
                     }
 
@@ -1215,9 +1300,7 @@ break; */
                     Statements.State.Step = "Checking Connection";
                     Statements.Adapter.SetConnectionString<T>();
 
-                    LogLocal(
-                        Statements.ConnectionString.SafeArray("Data Source", "=", ";",
-                                                              Transformation.ESafeArrayMode.Allow), Message.EContentType.MoreInfo);
+                    _status["data.ConnectionString"] = Statements.ConnectionString.SafeArray("Data Source", "=", ";", Transformation.ESafeArrayMode.Allow);
 
                     Statements.State.Step = "Evaluating Interceptor";
 
@@ -1236,7 +1319,7 @@ break; */
                             if (TableData.AutoGenerateMissingSchema)
                             {
                                 Statements.State.Step = "Checking database entities";
-                                si["Database Adapter"] = Statements.Adapter.GetType().Name;
+                                _status["data.DatabaseAdapter"] = Statements.Adapter.GetType().Name;
                                 Statements.Adapter.CheckDatabaseEntities<T>();
                             }
                     }
@@ -1250,34 +1333,30 @@ break; */
                     }
                     catch (Exception e)
                     {
-                        var tmpWarn = typeof(T).FullName + " : Error while " + Statements.State.Step + " - "
-                                      + e.Message;
+                        var tmpWarn = typeof(T).FullName + " : Error while " + Statements.State.Step + " - " + e.Message;
                         LogWrap(tmpWarn, Message.EContentType.Warning);
                     }
 
                     Current.Environment.EnvironmentChanged += Environment_EnvironmentChanged;
 
-                    LogLocal("INIT OK " + si.ToJson(), Message.EContentType.Info);
+                    _status = _status.Where(i => !string.IsNullOrWhiteSpace(i.Value)).OrderBy(i => i.Key).ToDictionary(i => i.Key, i => i.Value);
+
+                    LogLocal(_status.ToJson(), Message.EContentType.Info);
 
                     Statements.State.Status = MicroEntityCompiledStatements.EStatus.Operational;
                 }
                 catch (Exception e)
                 {
+                    _status = _status.Where(i => !string.IsNullOrWhiteSpace(i.Value)).OrderBy(i => i.Key).ToDictionary(i => i.Key, i => i.Value);
+
                     Statements.State.Status = MicroEntityCompiledStatements.EStatus.CriticalFailure;
-                    Statements.State.Description = typeof(T).FullName + " : Error while " + Statements.State.Step +
-                                                   " - " + e.Message;
+                    Statements.State.Description = typeof(T).FullName + " : Error while " + Statements.State.Step + " - " + e.Message;
                     Statements.State.Stack = new StackTrace(e, true).FancyString();
 
                     Log.System.Add(Statements.State.Description);
-                    Log.System.Add("    " +
-                                   Statements.ConnectionString.SafeArray("Data Source", "=", ";",
-                                                                         Transformation.ESafeArrayMode.Allow));
+                    Log.System.Add("    " + Statements.ConnectionString.SafeArray("Data Source", "=", ";", Transformation.ESafeArrayMode.Allow));
                     Log.System.Add("    Environment: " + Current.Environment.CurrentCode);
                     Log.System.Add("    " + Statements.State.Stack);
-
-                    LogLocal(
-                        Statements.ConnectionString.SafeArray("Data Source", "=", ";",
-                                                              Transformation.ESafeArrayMode.Allow), Message.EContentType.Warning);
 
                     var refEx = e;
                     while (refEx.InnerException != null)
@@ -1288,7 +1367,7 @@ break; */
 
                     LogWrap(Statements.State.Description, Message.EContentType.Exception);
 
-                    LogLocal("INIT FAIL " + si.ToJson(), Message.EContentType.Warning);
+                    LogLocal("INIT FAIL " + _status.ToJson(), Message.EContentType.Warning);
 
                     //throw;
                 }
@@ -1297,7 +1376,6 @@ break; */
 
         private static string ResolveEnvironment()
         {
-
             var envCode = TableData.PersistentEnvironmentCode;
             var mapSrc = "TableData.PersistentEnvironmentCode";
 
@@ -1325,8 +1403,8 @@ break; */
                 envCode = "DEV";
             }
 
-
-            if (!TableData.SuppressErrors) Current.Log.Add(typeof(T), "Environment [" + envCode + "] set by " + mapSrc);
+            if (!TableData.SuppressErrors)
+                _status["env.Environment"] = "[" + envCode + "] (set by " + mapSrc + ")";
 
             Statements.EnvironmentCode = envCode;
 
@@ -1351,9 +1429,7 @@ break; */
                 {
                     var ret = atts.ToDictionary(i => i.Origin, i => i.Target);
 
-                    LogWrap(typeof(T),
-                            "Environment mappings found: " +
-                            string.Join(";", ret.Select(x => x.Key + ">" + x.Value).ToArray()));
+                    _status["env.EnvironmentMappings"] = string.Join(";", ret.Select(x => x.Key + ">" + x.Value).ToArray());
 
                     return ret;
                 }
@@ -1413,20 +1489,11 @@ break; */
 
         public virtual void OnSave(string newIdentifier) { }
 
-        public virtual void BeforeSave()
-        {
+        public virtual void BeforeSave() { }
 
-        }
+        public virtual void BeforeInsert() { }
 
-        public virtual void BeforeInsert()
-        {
-
-        }
-
-        public virtual void BeforeRemove()
-        {
-
-        }
+        public virtual void BeforeRemove() { }
 
         public virtual void OnRemove() { }
 

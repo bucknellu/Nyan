@@ -26,6 +26,7 @@ namespace Nyan.Core.Modules.Data
         T Get<T>(string locator) where T : MicroEntity<T>;
         string Save<T>(MicroEntity<T> microEntity) where T : MicroEntity<T>;
         void Remove<T>(string locator) where T : MicroEntity<T>;
+        void BulkSave<T>(List<T> source) where T : MicroEntity<T>;
         void Remove<T>(MicroEntity<T> microEntity) where T : MicroEntity<T>;
         void RemoveAll<T>() where T : MicroEntity<T>;
         void Insert<T>(MicroEntity<T> microEntity) where T : MicroEntity<T>;
@@ -45,5 +46,6 @@ namespace Nyan.Core.Modules.Data
         List<T> ReferenceQueryByField<T>(string field, string id) where T : MicroEntity<T>;
         List<T> ReferenceQueryByField<T>(object query) where T : MicroEntity<T>;
         void Setup<T>(MicroEntityCompiledStatements statements) where T : MicroEntity<T>;
+        List<T> Get<T>(List<string> identifiers);
     }
 }
