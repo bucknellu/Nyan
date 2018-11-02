@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using Nyan.Core.Modules.Log;
 using Nyan.Core.Settings;
 
@@ -7,15 +6,13 @@ namespace Nyan.Core.Modules.Maintenance
 {
     public class TagClicker : ConcurrentDictionary<string, long>
     {
-        public TagClicker()
-        {
+        private int _maxLength;
 
-        }
+        private readonly string _suffix;
+
+        public TagClicker() { }
 
         public TagClicker(string suffix) { _suffix = suffix; }
-
-        private string _suffix;
-        private int _maxLength;
 
         public new long this[string tag]
         {
@@ -34,6 +31,7 @@ namespace Nyan.Core.Modules.Maintenance
                     TryAdd(tag, 0);
                     if (tag.Length > _maxLength) _maxLength = tag.Length;
                 }
+
                 base[tag] = value;
             }
         }
@@ -44,8 +42,7 @@ namespace Nyan.Core.Modules.Maintenance
         {
             if (Keys.Count <= 0) return;
 
-            foreach (var key in Keys)
-                Current.Log.Add(key.PadLeft(_maxLength + 4) + (_suffix != null ? " " + _suffix : "") + ": " + base[key], type);
+            foreach (var key in Keys) Current.Log.Add(key.PadLeft(_maxLength + 4) + (_suffix != null ? " " + _suffix : "") + ": " + base[key], type);
         }
     }
 }
