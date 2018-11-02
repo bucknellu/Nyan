@@ -131,9 +131,16 @@ namespace Nyan.Core.Modules.Data.Adapter
             }
 
             statements.SqlInsertSingle = string.Format(statements.SqlInsertSingle, preInsFieldList, preInsParamList);
+
+
+
+
             statements.SqlInsertSingleWithReturn = string.Format(statements.SqlInsertSingleWithReturn, preInsFieldList, preInsParamList, statements.IdPropertyRaw);
             statements.SqlUpdateSingle = string.Format(statements.SqlUpdateSingle, preUpd, statements.IdColumn, statements.IdProperty);
             statements.SqlRemoveSingleParametrized = string.Format(statements.SqlRemoveSingleParametrized, statements.IdColumn, ParameterDefinition);
+
+            statements.SqlGetAllSpecified = sqlTemplateGetAllSpecified.format(preInsFieldList, refTableName);
+
         }
 
         public virtual void SetConnectionString<T>() where T : MicroEntity<T>
@@ -395,6 +402,7 @@ namespace Nyan.Core.Modules.Data.Adapter
         protected internal string sqlTemplateAllFieldsQuery = "SELECT * FROM {0} WHERE ({1})";
         protected internal string sqlTemplateCustomSelectQuery = "SELECT {0} FROM {2} WHERE ({1})";
         protected internal string sqlTemplateGetAll = "SELECT * FROM {0}";
+        protected internal string sqlTemplateGetAllSpecified = "SELECT {0} FROM {1}";
         protected internal string sqlTemplateGetSingle = "SELECT * FROM {0} WHERE {1} = {2}Id";
         protected internal string sqlTemplateInsertSingle = "INSERT INTO {0} ({1}) VALUES ({2})";
         protected internal string sqlTemplateInsertSingleWithReturn = "INSERT INTO {0} ({1}) VALUES ({2}); select last_insert_rowid() as {4}newid";
