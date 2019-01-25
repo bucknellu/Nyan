@@ -46,6 +46,22 @@ namespace Nyan.Modules.Web.REST
             }
         }
 
+        public static HttpResponseMessage RenderStringResult(string contents)
+        {
+            try
+            {
+                var ret = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(contents) };
+                ret.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                return ret;
+            }
+            catch (Exception e)
+            {
+                Current.Log.Add(e, "RenderStringResult ERR: ");
+                Current.Log.Add("RenderStringResult" + contents.ToJson(), Message.EContentType.Info);
+                throw;
+            }
+        }
+
         public static HttpResponseMessage RenderExceptionMessage(Exception e, HttpRequestMessage request)
         {
             var httpError = new HttpError(e, true);
