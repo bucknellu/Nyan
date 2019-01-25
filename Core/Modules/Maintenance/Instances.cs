@@ -49,7 +49,7 @@ namespace Nyan.Core.Modules.Maintenance
                     Setup = setup,
                     Priority = priority.Level,
                     Task = i.CreateInstance<IMaintenanceTask>(),
-                    Id = (i.FullName + ": " + setup.Name).ToFriendlyUrl(),
+                    Id = (i.FullName + ": " + setup.Name).MetaHash(),
                     Namespace = i.FullName,
                     Name = setup.Name,
                     Schedule = setup.ScheduleTimeSpan
