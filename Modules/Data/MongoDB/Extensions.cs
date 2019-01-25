@@ -1,4 +1,7 @@
-﻿using MongoDB.Bson;
+﻿using System;
+using System.Linq;
+using MongoDB.Bson;
+using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Data;
 
 namespace Nyan.Modules.Data.MongoDB
@@ -30,9 +33,22 @@ namespace Nyan.Modules.Data.MongoDB
                 query += parm.Filter;
             }
 
+
             if (query != null)
             {
                 if (query[0] != '{') query = "{" + query + "}";
+
+                // Post-processing: Identify and format ISODates
+                var qParts = query.Split('\"').Where(i => i.Length == 24).ToList();
+
+                if (qParts.Count > 0)
+                    foreach (var qPart in qParts)
+                    {
+                        if (DateTime.TryParse(qPart, out var dateValue)) // Yay! It's a date
+                        {
+                            query = query.Replace("\"" + qPart + "\"", dateValue.ToISODateString());
+                        }
+                    }
 
                 queryFilter = BsonDocument.Parse(query);
             }
