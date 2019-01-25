@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using MongoDB.Driver;
+using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Log;
 using Nyan.Core.Settings;
 
@@ -9,7 +11,7 @@ namespace Nyan.Modules.Data.MongoDB
 {
     public static class Instances
     {
-        public static Dictionary<string, MongoClient> Clients = new Dictionary<string, MongoClient>();
+        public static ConcurrentDictionary<string, MongoClient> Clients = new ConcurrentDictionary<string, MongoClient>();
 
         private static readonly object LockObj = new object();
 
@@ -17,13 +19,13 @@ namespace Nyan.Modules.Data.MongoDB
         {
             lock (LockObj)
             {
-                var key = Current.Encryption.Encrypt(connectionString);
+                var key = Current.Encryption.Encrypt(connectionString).Md5Hash();
 
                 if (Clients.ContainsKey(key)) return Clients[key];
 
                 var client = new MongoClient(connectionString);
 
-                Clients.Add(key, client);
+                Clients[key] = client;
 
                 string server;
 
