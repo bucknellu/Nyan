@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Nyan.Core.Extensions;
 using Nyan.Core.Settings;
 
 namespace Nyan.Core.Modules.Maintenance
@@ -62,6 +63,32 @@ namespace Nyan.Core.Modules.Maintenance
             public string ValueName { get; set; }
             public string OriginalValue { get; set; }
             public string NewValue { get; set; }
+        }
+
+        public class DebugInfoBlock
+        {
+            public string Step { get; set; }
+            public string TraceInfo { get; set; }
+            public string Target { get; set; }
+        }
+
+        public DebugInfoBlock DebugInfo { get; set; } = new DebugInfoBlock();
+
+        public void SetStep(string step)
+        {
+            Current.Log.Add(step, Log.Message.EContentType.Info);
+            DebugInfo.Step = step;
+        }
+        public void SetDebugTarget(string target, Exception e = null)
+        {
+            Current.Log.Add(target, Log.Message.EContentType.Warning);
+            DebugInfo.Target = target;
+
+            if (e == null) return;
+
+            Current.Log.Add(e);
+            DebugInfo.TraceInfo = e.ToSummary();
+
         }
     }
 }
