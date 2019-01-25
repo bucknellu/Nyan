@@ -101,8 +101,8 @@ namespace Nyan.Modules.Web.REST
 
         internal InternalGetAllPayload InternalGetAll(string extraParms = null) { return InternalCustomGetAll(extraParms) ?? InternalGetAll<T>(extraParms); }
 
-        public virtual void PostCollectionAction(RequestType pRequestType, AccessType pAccessType,
-                                                 ref object collectionList, ref long totalRecords, string pidentifier = null, T pObject = null,
+        public virtual void PostCollectionAction<TU>(RequestType pRequestType, AccessType pAccessType,
+                                                 ref List<TU> collectionList, ref long totalRecords, string pidentifier = null, T pObject = null,
                                                  string pContext = null) { }
 
         private static void TryAgentImprinting(ref T item)
@@ -256,6 +256,9 @@ namespace Nyan.Modules.Web.REST
 
                 var method = GetType().GetMethod("InternalGetAll", BindingFlags.NonPublic | BindingFlags.Instance);
                 var preRet = (InternalGetAllPayload) method.Invoke(this, new object[] {null});
+
+                if (ClassBehavior?.SummaryType != null)
+                    preRet.Content = (IEnumerable<object>) preRet.Content.ToJson().FromJson(ClassBehavior.SummaryType, true);
 
                 step = "Preparing JSON payload";
                 var ret = ControllerHelper.RenderJsonResult(preRet.Content);
@@ -637,11 +640,10 @@ namespace Nyan.Modules.Web.REST
 
                 tot = mustUseParametrizedGet ? MicroEntity<T>.Count(parametrizedGet, extraParms) : MicroEntity<T>.Count();
 
-                var preRet = mustUseParametrizedGet ? MicroEntity<T>.Get<TU>(parametrizedGet, extraParms) : MicroEntity<T>.GetAll<TU>();
+                var preRet = mustUseParametrizedGet ? MicroEntity<T>.Get<TU>(parametrizedGet, extraParms).ToList() : MicroEntity<T>.GetAll<TU>().ToList();
 
-                var oPreRet = (object) preRet;
+                PostCollectionAction(RequestType.GetAll, AccessType.Read, ref preRet, ref tot);
 
-                PostCollectionAction(RequestType.GetAll, AccessType.Read, ref oPreRet, ref tot);
                 PostAction(RequestType.GetAll, AccessType.Read);
 
                 sw.Stop();
