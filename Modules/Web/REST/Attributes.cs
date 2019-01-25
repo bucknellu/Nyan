@@ -34,6 +34,7 @@ namespace Nyan.Modules.Web.REST
     {
         public Type SummaryType { get; set; }
         public bool MustPaginate { get; set; }
+        public bool CacheResults { get; set; }
     }
 
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]

@@ -63,6 +63,7 @@
     <Compile Include="Configuration.cs" />
     <Compile Include="Media\Utilities.cs" />
     <Compile Include="Modules\Data\Extensions.cs" />
+    <Compile Include="Modules\Environment\Shell.cs" />
     <Compile Include="Modules\Identity\Helper.cs" />
     <Compile Include="Modules\Log\Converter.cs" />
     <Compile Include="Modules\Log\Local.cs" />
@@ -88,6 +89,7 @@
     <Compile Include="Modules\Data\Pipeline\PipelinePrimitive.cs" />
     <Compile Include="Modules\Maintenance\TagClicker.cs" />
     <Compile Include="Modules\Process\TagClicker.cs" />
+    <Compile Include="Modules\Storage\LocalCache.cs" />
     <Compile Include="Process\Operations.cs" />
     <Compile Include="Startup\ServiceDescriptor.cs" />
     <Compile Include="Startup\ServiceLauncher.cs">
@@ -167,7 +169,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Modules\Data\Operators\Expressions\" />
-    <Folder Include="Modules\Storage\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

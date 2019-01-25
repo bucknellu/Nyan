@@ -57,7 +57,7 @@ namespace Nyan.Core.Modules.Maintenance
 
                                 if (!mustSkip)
                                 {
-                                    Current.Log.Add("START " + maintenanceTask.Id, Message.EContentType.Maintenance);
+                                    Current.Log.Add("START " + maintenanceTask.Name, Message.EContentType.Maintenance);
 
                                     var sw = new Stopwatch();
                                     sw.Start();
@@ -88,7 +88,7 @@ namespace Nyan.Core.Modules.Maintenance
                             }
                             catch (Exception e)
                             {
-                                Current.Log.Add($"    TASK {maintenanceTask.Id} FAILURE: {e.Message} @ {e.FancyString()}", Message.EContentType.Maintenance);
+                                Current.Log.Add($"    TASK [{maintenanceTask.Name}] FAILURE: {e.Message} @ {e.FancyString()}", Message.EContentType.Maintenance);
                                 Current.Log.Add(e);
                             }
                         });

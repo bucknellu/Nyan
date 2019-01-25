@@ -27,7 +27,7 @@ namespace Nyan.Modules.Data.MongoDB
 
     public class MongoDbinterceptor : IInterceptor
     {
-        private static IMongoClient _client;
+        private IMongoClient _client;
         private static readonly List<Type> _typeCache = new List<Type>();
 
         private string _idProp;
@@ -55,8 +55,8 @@ namespace Nyan.Modules.Data.MongoDB
             }
         }
 
-        public void Connect<T>(string statementsConnectionString, ConnectionBundlePrimitive bundle)
-            where T : MicroEntity<T>
+
+        public void Connect<T>(string statementsConnectionString, ConnectionBundlePrimitive bundle) where T : MicroEntity<T>
         {
             _refType = typeof(T);
 
@@ -72,6 +72,11 @@ namespace Nyan.Modules.Data.MongoDB
             try { BsonTypeMapper.RegisterCustomTypeMapper(typeof(JObject), new JObjectMapper()); } catch { }
 
             _client = Instances.GetClient(statementsConnectionString);
+            var server = _client.Settings.Servers.ToList()[0].Host; 
+
+            // Current.Log.Add($"{typeof(T).FullName} client for {statementsConnectionString}: {_client?.Settings?.Credential?.Username}@{server}", Message.EContentType.StartupSequence);
+
+
             var dbname = MongoUrl.Create(statementsConnectionString).DatabaseName;
 
             try
@@ -95,12 +100,16 @@ namespace Nyan.Modules.Data.MongoDB
             ConventionRegistry.Register("EnumStringConvention", new ConventionPack { new EnumRepresentationConvention(BsonType.String) }, t => true);
 
             Database = _client.GetDatabase(dbname);
+
+            // Current.Log.Add($"{typeof(T).FullName} {Database.Client?.Settings?.Credential?.Username}:{Database?.DatabaseNamespace}@{server} - REGISTERING", Message.EContentType.StartupSequence);
+
             _statements = MicroEntity<T>.Statements;
             _tabledata = MicroEntity<T>.TableData;
 
             RegisterGenericChain(typeof(T));
 
             SetSourceCollection();
+
         }
 
         public T Get<T>(string locator) where T : MicroEntity<T>
@@ -174,6 +183,18 @@ namespace Nyan.Modules.Data.MongoDB
         public void BulkSave<T>(List<T> source) where T : MicroEntity<T>
         {
             var c = 0;
+
+            if (source == null)
+            {
+                Current.Log.Add($"{ThreadHelper.Uid} - {Collection.CollectionNamespace}:BulkSave NULL list", Message.EContentType.Info);
+                return;
+            }
+
+            if (source.Count == 0)
+            {
+                Current.Log.Add($"{ThreadHelper.Uid} - {Collection.CollectionNamespace}:BulkSave Empty list", Message.EContentType.Info);
+                return;
+            }
 
             try
             {
@@ -354,7 +375,13 @@ namespace Nyan.Modules.Data.MongoDB
         public void Initialize<T>() where T : MicroEntity<T>
         {
             // Check for the presence of text indexes '$**'
-            try { Collection.Indexes.CreateOne(Builders<BsonDocument>.IndexKeys.Text("$**")); } catch (Exception e) { Current.Log.Add($"{ThreadHelper.Uid} {Database.Client?.Settings?.Credential?.Username}@{Database?.DatabaseNamespace} - {Collection?.CollectionNamespace} {e.Message} | ERR Creating index {SourceCollection}: {e.Message}", Message.EContentType.Warning); }
+            try { Collection.Indexes.CreateOne(Builders<BsonDocument>.IndexKeys.Text("$**")); }
+            catch (Exception e)
+            {
+                string server;
+                try { server = Database.Client.Settings.Servers.ToList()[0].Host; } catch (Exception) { server = Database.Client.Settings.Server.Host; }
+                Current.Log.Add($"{ThreadHelper.Uid} {Database.Client?.Settings?.Credential?.Username}:{Database?.DatabaseNamespace}@{server} - {Collection?.CollectionNamespace} {e.Message} | ERR Creating index {SourceCollection}: {e.Message}", Message.EContentType.Warning);
+            }
         }
 
         public List<T> GetAll<T>(string extraParms = null) where T : MicroEntity<T> { return GetAll<T, T>(); }
@@ -401,6 +428,36 @@ namespace Nyan.Modules.Data.MongoDB
 
             return res;
         }
+
+        public TU Get<TU>(IMongoCollection<BsonDocument> sourceCollection, string locator) where TU : MicroEntity<TU>
+        {
+            try
+            {
+                var filter = Builders<BsonDocument>.Filter.Eq("_id", locator);
+                var col = sourceCollection.Find(filter).ToList();
+                var target = col.FirstOrDefault();
+
+                if (target == null)
+                {
+                    var isNumeric = long.TryParse(locator, out var n);
+
+                    if (isNumeric)
+                    {
+                        filter = Builders<BsonDocument>.Filter.Eq("_id", n);
+                        col = sourceCollection.Find(filter).ToList();
+                        target = col.FirstOrDefault();
+                    }
+                }
+
+                return target == null ? null : BsonSerializer.Deserialize<TU>(target);
+            }
+            catch (Exception e)
+            {
+                Current.Log.Add($"{Database.Client.Settings.Credential.Username}@{Database.DatabaseNamespace} - {sourceCollection.CollectionNamespace}:{locator} {e.Message}", Message.EContentType.Warning);
+                throw;
+            }
+        }
+
 
         private void RegisterGenericChain(Type type)
         {
@@ -474,6 +531,7 @@ namespace Nyan.Modules.Data.MongoDB
         public void ClearCollection(string name) { Database.GetCollection<BsonDocument>(name).DeleteMany(new BsonDocument()); }
         public void DropCollection(string name) { Database.DropCollection(name); }
         public List<TU> GetCollection<TU>(string name) { return GetAll<TU>(Database.GetCollection<BsonDocument>(name)); }
+        public TU GetCollectionMember<TU>(string name, string locator) where TU : MicroEntity<TU> { return Get<TU>(Database.GetCollection<BsonDocument>(name), locator); } 
 
         public void AddSourceCollectionSuffix(string suffix)
         {
