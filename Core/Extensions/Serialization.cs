@@ -263,6 +263,7 @@ namespace Nyan.Core.Extensions
             return decodedString;
         }
 
+
         
         public static string ToJson(this object obj, int pLevels = 0)
         {
@@ -300,6 +301,23 @@ namespace Nyan.Core.Extensions
         }
 
         public static T FromJson<T>(this string obj) { return obj == null ? default(T) : JsonConvert.DeserializeObject<T>(obj); }
+
+        public static object FromJson(this string obj, Type destinyFormat, bool asList)
+        {
+            var type = destinyFormat;
+
+            if (asList)
+            {
+                var genericListType = typeof(List<>);
+
+                var specificListType = genericListType.MakeGenericType(destinyFormat);
+                type = ((IEnumerable<object>)Activator.CreateInstance(specificListType)).GetType();
+
+            }
+
+            if (obj == null) return null;
+            return JsonConvert.DeserializeObject(obj, type);
+        }
 
         public static byte[] ToSerializedBytes(this object obj)
         {
