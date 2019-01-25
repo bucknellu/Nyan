@@ -11,5 +11,9 @@ namespace Nyan.Core.Modules.Maintenance
         Dictionary<int, List<MaintenanceTaskResult>> Results { get; set; }
         int TaskCount { get; set; }
         DateTime Timestamp { get; set; }
+        TagClicker Counters { get; set; }
+        List<MaintenanceTaskResult.ChangeEntry> Changes { get; set; }
+        MaintenanceTaskResult.DebugInfoBlock DebugInfo { get; set; }
+
     }
 }
