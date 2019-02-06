@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
+using Nyan.Core.Modules.Data;
 using Nyan.Core.Settings;
 using Nyan.Core.Wrappers;
 

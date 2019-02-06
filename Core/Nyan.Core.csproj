@@ -63,6 +63,7 @@
     <Compile Include="Configuration.cs" />
     <Compile Include="Media\Utilities.cs" />
     <Compile Include="Modules\Data\Extensions.cs" />
+    <Compile Include="Modules\Data\Tools\Migration.cs" />
     <Compile Include="Modules\Environment\Shell.cs" />
     <Compile Include="Modules\Identity\Helper.cs" />
     <Compile Include="Modules\Log\Converter.cs" />
