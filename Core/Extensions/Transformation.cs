@@ -41,6 +41,12 @@ namespace Nyan.Core.Extensions
             "CommonLanguageRuntimeLibrary"
         };
 
+        public static DateTime RoundUp(this DateTime dt, TimeSpan d)
+        {
+            //https://stackoverflow.com/a/7029464/1845714
+            return new DateTime((dt.Ticks + d.Ticks - 1) / d.Ticks * d.Ticks, dt.Kind);
+        }
+
         public static string ToOrdinal(this int num)
         {
             if (num <= 0) return num.ToString();
