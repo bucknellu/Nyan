@@ -38,6 +38,9 @@ namespace Nyan.Core.Modules.Data
     /// </example>
     public abstract class MicroEntity<T> where T : MicroEntity<T>
     {
+
+        public string GetCacheKey() => CacheKey(GetEntityIdentifier());
+
         // ReSharper disable once StaticFieldInGenericType
         private static readonly ConcurrentDictionary<Type, MicroEntityCompiledStatements> ClassRegistration = new ConcurrentDictionary<Type, MicroEntityCompiledStatements>();
 
@@ -515,6 +518,8 @@ break; */
             }
         }
 
+        public static BulkOpResult Save(IEnumerable<T> objs) { return Save(objs.ToList()); }
+
         public static BulkOpResult Save(List<T> objs)
         {
             var step = "Starting";
@@ -722,8 +727,12 @@ break; */
             return IsNew(ref ignore);
         }
 
+        private bool? _cachedIsNew;
+
         public bool IsNew(ref T oProbe)
         {
+            if (_cachedIsNew.HasValue) return _cachedIsNew.Value;
+
             var probe = GetEntityIdentifier();
 
             if (!TableData.IsInsertableIdentifier)
@@ -731,7 +740,9 @@ break; */
                     return true;
 
             oProbe = Get(probe);
-            return oProbe == null;
+
+            _cachedIsNew = oProbe == null;
+            return _cachedIsNew.Value;
         }
 
         public string GetEntityIdentifier(MicroEntity<T> oRef = null)
@@ -824,6 +835,7 @@ break; */
             }
 
             OnSave(ret);
+            _cachedIsNew = null;
 
             if (Statements.AfterActionPipeline.Count <= 0) return ret;
 
