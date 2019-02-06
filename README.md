@@ -13,9 +13,9 @@ Not quite. It provides not only ORM but also caching, encryption and RESTful end
 
 To have it working straight out of the box with no setup required, add a reference to `Nyan.Core.dll`, `Nyan.Modules.Cache.Memory.dll` and `Nyan.Modules.Data.SQLCompact.dll`. Compile from source, or check NuGet for these packages:
 
-- [Nyan.Core] (https://www.nuget.org/packages/Nyan.Core/)
-- [Nyan.Modules.Cache.Memory] (https://www.nuget.org/packages/Nyan.Modules.Cache.Memory/)
-- [Nyan.Modules.Data.SQLCompact] (https://www.nuget.org/packages/Nyan.Modules.Data.SQLCompact/)
+- [📦 Nyan.Core](https://www.nuget.org/packages/Nyan.Core/)
+- [📦 Nyan.Modules.Cache.Memory](https://www.nuget.org/packages/Nyan.Modules.Cache.Memory/)
+- [📦 Nyan.Modules.Data.SQLCompact](https://www.nuget.org/packages/Nyan.Modules.Data.SQLCompact/)
 
 ## Usage
 
