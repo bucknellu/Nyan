@@ -518,9 +518,10 @@ namespace Nyan.Modules.Data.MongoDB
             }
             else
             {
-                s = string.IsNullOrEmpty(_tabledata.TableName)
-                    ? _refType.FullName
-                    : _tabledata.TableName;
+                s = _refType.FullName;
+
+                if (!string.IsNullOrEmpty(_tabledata.TablePrefix)) s = _tabledata.TablePrefix + "." + _refType.Name;
+                if (!string.IsNullOrEmpty(_tabledata.TableName)) s = _tabledata.TableName;
             }
 
             SourceCollection = _statements.EnvironmentCode + "." + s;
