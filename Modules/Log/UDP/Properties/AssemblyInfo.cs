@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 [assembly: AssemblyDescription("A UDP Log module for the Nyan data service stack")]
 [assembly: AssemblyCompany("Nyan Development Team")]
-[assembly: AssemblyCopyright("Copyright © 2015 Nyan Development Team")]
+[assembly: AssemblyCopyright("Copyright © 2015-present Nyan Development Team")]
 [assembly: AssemblyTitle("Nyan.Modules.Log.UDP")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyProduct("Nyan.Modules.Log.UDP")]

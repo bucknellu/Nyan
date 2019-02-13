@@ -31,8 +31,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Dapper, Version=1.40.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\Dapper.1.42\lib\net45\Dapper.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\..\..\..\Apps\packages\Dapper.1.42\lib\net45\Dapper.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\..\..\..\Apps\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -62,7 +61,12 @@
     <Compile Include="Extensions\Serialization.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="Media\Utilities.cs" />
+    <Compile Include="Modules\Data\Contracts\EntityReference.cs" />
+    <Compile Include="Modules\Data\Contracts\IMigration.cs" />
+    <Compile Include="Modules\Data\Contracts\ISearchDisabled.cs" />
+    <Compile Include="Modules\Data\Contracts\SearchResult.cs" />
     <Compile Include="Modules\Data\Extensions.cs" />
+    <Compile Include="Modules\Data\LabelAttribute.cs" />
     <Compile Include="Modules\Data\Tools\Migration.cs" />
     <Compile Include="Modules\Environment\Shell.cs" />
     <Compile Include="Modules\Identity\Helper.cs" />
@@ -176,27 +180,7 @@
     <PostBuildEvent>if $(ConfigurationName) == Debug (
 	ECHO NuGet package generation only available on Release mode. Skipping.
 ) ELSE (
-	ECHO ===========================================================
-	ECHO   NuGet package generation started.
-	ECHO -----------------------------------------------------------
-	ECHO   Project : $(ProjectName)
-	ECHO   Location: $(ProjectDir)
-
-	CD $(ProjectDir)
-
-	nuget spec
-	DEL *.nupkg
-	nuget pack -Prop Configuration=Release
-
-	ECHO Placing new release...
-	MD $(SolutionDir)dist 2&gt;NUL
-	MD $(SolutionDir)dist\packages 2&gt;NUL
-	COPY *.nupkg $(SolutionDir)dist\packages
-	DEL *.nupkg
-
-	ECHO -----------------------------------------------------------
-	ECHO NuGet package generation finished.
-	ECHO ===========================================================
+REM 	powershell.exe -file \\nspace2\web\common\buAppFrm\config.ps1 -SourcePath $(ProjectDir) -AppCode $(ProjectName) -a PACK
 )</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
