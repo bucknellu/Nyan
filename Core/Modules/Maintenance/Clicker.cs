@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using Nyan.Core.Modules.Log;
 using Nyan.Core.Settings;
 
@@ -14,6 +16,8 @@ namespace Nyan.Core.Modules.Maintenance
         private int _pNotifySlice;
 
         private Stopwatch _s;
+
+        public Clicker(string pMessage, IEnumerable<object> source) { Start(pMessage, source.Count()); }
 
         public Clicker(string pMessage, long pCount) { Start(pMessage, pCount); }
         public Clicker(string pMessage, long pCount, int sliceSize) { Start(pMessage, pCount, sliceSize); }
