@@ -273,6 +273,8 @@ namespace Nyan.Core.Extensions
             try { return JsonConvert.SerializeObject(obj); } catch { return null; }
         }
 
+        public static object ToJObject(this object src) { return JObject.Parse(src.ToJson()); }
+
         public static string CleanSqlFormatting(this string source)
         {
             var ret = source.Replace("\r", " ").Replace("\n", " ").Replace("\t", " ").Trim();
