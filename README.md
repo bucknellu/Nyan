@@ -7,15 +7,19 @@ A lightweight .NET data service stack
 
 ## Yet another ORM framework? Really?
 
-Not quite. It provides not only ORM but also caching, encryption and RESTful endpoints out of the box with zero setup in some cases. Think of it like a drop-in assembly set that'll get your data flowing from persistent storage to REST endpoints in no time and with minimal effort.
+Not quite. It provides not only ORM but also caching, encryption and RESTful endpoints out of the box with zero setup in some cases. Think of it like a drop-in package set that'll get your data flowing from/to persistent storage to REST endpoints in no time and with minimal effort in most cases.
 
 ## Installation
 
-To have it working straight out of the box with no setup required, add a reference to `Nyan.Core.dll`, `Nyan.Modules.Cache.Memory.dll` and `Nyan.Modules.Data.SQLCompact.dll`. (Check NuGet for their packages!)
+To have it working straight out of the box with no setup required, add a reference to `Nyan.Core.dll`, `Nyan.Modules.Cache.Memory.dll` and `Nyan.Modules.Data.SQLCompact.dll`. Compile from source, or check NuGet for these packages:
+
+- [📦 Nyan.Core](https://www.nuget.org/packages/Nyan.Core/)
+- [📦 Nyan.Modules.Cache.Memory](https://www.nuget.org/packages/Nyan.Modules.Cache.Memory/)
+- [📦 Nyan.Modules.Data.SQLCompact](https://www.nuget.org/packages/Nyan.Modules.Data.SQLCompact/)
 
 ## Usage
 
-Very complicated example steps aread: 
+Very complicated example steps aread, you better pay attention: 
  - Create a class that inherits from the `MicroEntity<>` generic class
  - Add a `MicroEntitySetup` attribute, and assign a table name
  - Mark the property you want to use as a unique identifier with the [Key] attribute
@@ -47,7 +51,7 @@ Congratulations! You created a SQL Compact- and memory cache-backed ORM class. A
 
 Oh, REST! Right. So, once you decide you want to expose your ORM class data through a REST endpoint, do this:
 
-- Reference `Nyan.Modules.Web.REST`;  
+- Reference `Nyan.Modules.Web.REST` ([NuGet](https://www.nuget.org/packages/Nyan.Modules.Web.REST/));  
 - Implement a class deriving from `MicroEntityWebApiController<>`, and assign a route prefix to it:
 ```
    [RoutePrefix("users")]  
