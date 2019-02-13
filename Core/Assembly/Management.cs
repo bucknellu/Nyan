@@ -102,6 +102,7 @@ namespace Nyan.Core.Assembly
                         errCount++;
                     }
                 }
+
                 Modules.Log.System.Add("    Previous " + lastErrCount + ", current " + errCount + " errors");
             }
 
@@ -287,23 +288,48 @@ namespace Nyan.Core.Assembly
 
         public static List<Type> GetClassesByBaseClass(Type refType, bool limitToMainAssembly = false)
         {
-            var classCol = new List<Type>();
+            System.Reflection.Assembly currAssembly = null;
 
-            var assySource = new List<System.Reflection.Assembly>();
+            try
+            {
+                var classCol = new List<Type>();
 
-            if (limitToMainAssembly) assySource.Add(Configuration.ApplicationAssembly);
-            else assySource = AssemblyCache.Values.ToList();
+                var assySource = new List<System.Reflection.Assembly>();
 
-            foreach (var asy in assySource)
-                classCol.AddRange(asy
-                                      .GetTypes()
-                                      .Where(type => type.BaseType != null)
-                                      .Where(
-                                          type =>
-                                              type.BaseType.IsGenericType && type.BaseType.GetGenericTypeDefinition() == refType
-                                              || type.BaseType == refType));
+                if (limitToMainAssembly) assySource.Add(Configuration.ApplicationAssembly);
+                else assySource = AssemblyCache.Values.ToList();
 
-            return classCol;
+                foreach (var asy in assySource)
+                {
+                    currAssembly = asy;
+
+                    classCol.AddRange(asy
+                                          .GetTypes()
+                                          .Where(type => type.BaseType != null)
+                                          .Where(
+                                              type =>
+                                                  type.BaseType.IsGenericType && type.BaseType.GetGenericTypeDefinition() == refType
+                                                  || type.BaseType == refType));
+                }
+
+                return classCol;
+            }
+            catch (ReflectionTypeLoadException ex)
+            {
+                foreach (var item in ex.LoaderExceptions)
+                {
+                    Current.Log.Add(currAssembly?.GetName().Name + " @ " + currAssembly?.Location + ": " + item.Message, Message.EContentType.Warning);
+                }
+
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                Current.Log.Add($"GetClassesByBaseClass ERR for {refType.Name}: {ex.Message}", Message.EContentType.Warning);
+                throw ex;
+            }
+
+
         }
 
         public static List<Type> GetGenericsByBaseClass(Type refType)
