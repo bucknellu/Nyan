@@ -74,6 +74,14 @@ namespace Nyan.Core.Modules.Log
 
         public virtual void Add(string pattern, params object[] replacementStrings) { Add(string.Format(pattern, replacementStrings)); }
 
+        public virtual void Add(Exception[] es)
+        {
+            foreach (var exception in es)
+            {
+                Add(exception, null, null);
+            }
+        }
+
         public virtual void Add(Exception e) { Add(e, null, null); }
 
         public virtual void Add(Exception e, string message, string token = null)
