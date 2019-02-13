@@ -318,6 +318,8 @@ namespace Nyan.Core.Extensions
 
             var stFrames = source.GetFrames();
 
+            if (stFrames == null) return null;
+
             var validFrames = stFrames.ToList();
 
             validFrames.Reverse();
