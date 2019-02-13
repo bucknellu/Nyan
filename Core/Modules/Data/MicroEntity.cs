@@ -143,10 +143,15 @@ namespace Nyan.Core.Modules.Data
             return ret;
         }
 
+
+        public static IEnumerable<T> Get(IEnumerable<string> identifiers) { return Get(identifiers.ToList()); }
+
+
         /// <summary>
         /// </summary>
         /// <param name="identifiers"></param>
         /// <returns></returns>
+        ///
         public static IEnumerable<T> Get(List<string> identifiers)
         {
             IEnumerable<T> ret = new List<T>();
@@ -506,7 +511,7 @@ break; */
         {
             public List<T> Success;
             public List<T> Failure;
-            public Dictionary<string, ControlEntry> Control = new Dictionary<string, ControlEntry>();
+            public ConcurrentDictionary<string, ControlEntry> Control = new ConcurrentDictionary<string, ControlEntry>();
 
             public class ControlEntry
             {
@@ -520,143 +525,157 @@ break; */
 
         public static BulkOpResult Save(IEnumerable<T> objs) { return Save(objs.ToList()); }
 
+        private static object _bulkSaveLock = new object();
+
         public static BulkOpResult Save(List<T> objs)
         {
-            var step = "Starting";
 
-            try
+            lock (_bulkSaveLock)
             {
-                step = "Preparing BulkOpResult";
-                var res = new BulkOpResult();
+                var step = "Starting";
 
-                if (TableData.IsReadOnly) throw new ReadOnlyException("This entity is set as read-only.");
-
-                var proc = new List<T>();
-                var noProc = new List<T>();
-
-                var pre = new Clicker($"[{typeof(T).FullName}] PRE BULK Save", objs.Count);
-
-                // First populate the control strut.
-
-                // Old direct code:
-                // res.Control = objs.ToDictionary(i => i.GetEntityIdentifier(), i => new BulkOpResult.ControlEntry() { Current = i });
-
-
-                step = "Preparing res.Control";
-
-                res.Control = new Dictionary<string, BulkOpResult.ControlEntry>();
-
-                foreach (var i in objs)
+                try
                 {
-                    if (i.IsNew())
+                    step = "Preparing BulkOpResult";
+                    var res = new BulkOpResult();
+
+                    if (TableData.IsReadOnly) throw new ReadOnlyException("This entity is set as read-only.");
+
+                    var proc = new List<T>();
+                    var noProc = new List<T>();
+
+                    var pre = new Clicker($"[{typeof(T).FullName}] PRE BULK Save", objs);
+
+                    // First populate the control strut.
+
+                    // Old direct code:
+                    // res.Control = objs.ToDictionary(i => i.GetEntityIdentifier(), i => new BulkOpResult.ControlEntry() { Current = i });
+
+
+                    step = "Preparing res.Control";
+
+                    res.Control = new ConcurrentDictionary<string, BulkOpResult.ControlEntry>();
+
+
+                    // Parallel.ForEach(objs, new ParallelOptions { MaxDegreeOfParallelism = 5 }, i =>
+
+
+                    foreach (var i in objs)
                     {
-                        res.Control[i.ToJson().Sha512Hash()] = new BulkOpResult.ControlEntry { Current = i, IsNew = true, Original = null };
-                        continue;
-                    }
+                        step = $"Preparing res.Control for {i.ToJson()}";
 
-                    var oId = i.GetEntityIdentifier();
+                        pre.Click();
 
-                    if (res.Control.ContainsKey(oId))
-                    {
-                        Current.Log.Add($"WARN Repeated Identifier: {oId}. Data: {i.ToJson()}", Message.EContentType.Warning);
-                        continue;
-                    }
-
-                    res.Control[oId] = new BulkOpResult.ControlEntry { Current = i };
-
-                }
-
-
-                step = "obtaining all original record IDs";
-                var allIds = res.Control.Where(i => !i.Value.IsNew).Select(i => i.Key).ToList();
-
-                step = "obtaining all original records";
-                var allCurrRecs = Get(allIds);
-
-                step = "Populating Control with the results";
-                foreach (var i in allCurrRecs) { res.Control[i.GetEntityIdentifier()].Original = i; }
-
-
-                step = "processing Control queue";
-                foreach (var i in res.Control)
-                {
-                    var obj = i.Value.Current;
-                    var rec = i.Value.Original;
-
-                    var canProceed = true;
-
-                    step = "checking if record is new";
-
-                    if (!i.Value.IsNew)
-                    {
-
-                        step = $"processing current record {obj.ToJson()}";
-
-                        rec = ProcBeforePipeline(Support.EAction.Remove, obj, rec);
-
-                        if (rec == null)
+                        if (i.IsNew())
                         {
-                            noProc.Add(obj);
-                            i.Value.Success = false;
-                            i.Value.Message = "Failed ProcBeforePipeline";
-                            canProceed = false;
+                            res.Control[i.ToJson().Sha512Hash()] = new BulkOpResult.ControlEntry { Current = i, IsNew = true, Original = null };
+                            continue;
                         }
-                    }
-                    else { rec = obj; }
 
-                    if (canProceed)
+                        var oId = i.GetEntityIdentifier();
+
+                        if (res.Control.ContainsKey(oId))
+                        {
+                            Current.Log.Add($"WARN Repeated Identifier: {oId}. Data: {i.ToJson()}", Message.EContentType.Warning);
+                            continue;
+                        }
+
+                        res.Control[oId] = new BulkOpResult.ControlEntry { Current = i };
+
+                    };
+
+                    pre.End();
+
+                    step = "obtaining all original record IDs";
+                    var allIds = res.Control.Where(i => !i.Value.IsNew).Select(i => i.Key).ToList();
+
+                    step = "obtaining all original records";
+                    var allCurrRecs = Get(allIds);
+
+                    step = "Populating Control with the results";
+                    foreach (var i in allCurrRecs) { res.Control[i.GetEntityIdentifier()].Original = i; }
+
+
+                    step = "processing Control queue";
+
+                    foreach (var i in res.Control)
                     {
-                        step = $"adding record {obj.ToJson()} to proc list";
+                        var obj = i.Value.Current;
+                        var rec = i.Value.Original;
 
-                        proc.Add(rec);
-                        rec.BeforeSave();
-                        i.Value.Success = true;
+                        var canProceed = true;
+
+                        step = "checking if record is new";
+
+                        if (!i.Value.IsNew)
+                        {
+
+                            step = $"processing current record {obj.ToJson()}";
+
+                            rec = ProcBeforePipeline(Support.EAction.Remove, obj, rec);
+
+                            if (rec == null)
+                            {
+                                noProc.Add(obj);
+                                i.Value.Success = false;
+                                i.Value.Message = "Failed ProcBeforePipeline";
+                                canProceed = false;
+                            }
+                        }
+                        else { rec = obj; }
+
+                        if (canProceed)
+                        {
+                            step = $"adding record {obj.ToJson()} to proc list";
+
+                            proc.Add(rec);
+                            rec.BeforeSave();
+                            i.Value.Success = true;
+                        }
+
+                        pre.Click();
                     }
 
-                    pre.Click();
+
+                    step = "saving individual objects";
+
+                    if (Statements.Interceptor != null) Statements.Interceptor.BulkSave(proc);
+                    else
+                        foreach (var obj in proc)
+                            obj.Save();
+
+
+
+                    var post = new Clicker($"[{typeof(T).FullName}] POST BULK Save", proc.Count);
+
+                    step = "post-processing individual objects";
+
+                    Parallel.ForEach(res.Control.Where(i => i.Value.Success), new ParallelOptions { MaxDegreeOfParallelism = 5 }, rec =>
+                      {
+                          var id = rec.Key;
+                          post.Click();
+                          rec.Value.Current.OnSave(id);
+
+                          if (rec.Value.IsNew) ProcAfterPipeline(Support.EAction.Insert, rec.Value.Current, null);
+                          else ProcAfterPipeline(Support.EAction.Update, rec.Value.Current, rec.Value.Original);
+
+                          if (!TableData.UseCaching) return;
+                          Current.Cache.Remove(CacheKey(id));
+                      });
+
+                    step = "preparing return package";
+
+                    res.Success = proc;
+                    res.Failure = noProc;
+
+                    return res;
+
                 }
-
-
-                step = "saving individual objects";
-
-                if (Statements.Interceptor != null) Statements.Interceptor.BulkSave(proc);
-                else
-                    foreach (var obj in proc)
-                        obj.Save();
-
-
-
-                var post = new Clicker($"[{typeof(T).FullName}] POST BULK Save", proc.Count);
-
-                step = "post-processing individual objects";
-
-                Parallel.ForEach(res.Control.Where(i => i.Value.Success), new ParallelOptions { MaxDegreeOfParallelism = 5 }, rec =>
-                  {
-                      var id = rec.Key;
-                      post.Click();
-                      rec.Value.Current.OnSave(id);
-
-                      if (rec.Value.IsNew)
-                          ProcAfterPipeline(Support.EAction.Insert, rec.Value.Current, null);
-                      else
-                          ProcAfterPipeline(Support.EAction.Update, rec.Value.Current, rec.Value.Original);
-
-                      if (!TableData.UseCaching) return;
-                      Current.Cache.Remove(CacheKey(id));
-                  });
-
-                step = "preparing return package";
-
-                res.Success = proc;
-                res.Failure = noProc;
-
-                return res;
-
-            }
-            catch (Exception e)
-            {
-                var ex = new System.Exception($"Error while {step}: {e.Message}", e);
-                throw ex;
+                catch (Exception e)
+                {
+                    var ex = new System.Exception($"Error while {step}: {e.Message}", e);
+                    throw ex;
+                }
             }
         }
 
@@ -748,8 +767,13 @@ break; */
         public string GetEntityIdentifier(MicroEntity<T> oRef = null)
         {
             if (oRef == null) oRef = this;
+            return (GetType().GetProperty(Statements.IdPropertyRaw)?.GetValue(oRef, null) ?? "").ToString();
+        }
 
-            return (GetType().GetProperty(Statements.IdPropertyRaw).GetValue(oRef, null) ?? "").ToString();
+        public string GetEntityLabel(MicroEntity<T> oRef = null)
+        {
+            if (oRef == null) oRef = this;
+            return (GetType().GetProperty(Statements.LabelProperty)?.GetValue(oRef, null) ?? "").ToString();
         }
 
         public void SetEntityIdentifier(object value)
@@ -1340,9 +1364,10 @@ break; */
 
                     if (identifierColumnName == null)
                     {
-                        var props = probeType.GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(KeyAttribute), true)).ToList();
-                        if (props.Count > 0) identifierColumnName = props[0].Name;
+                        var props = probeType.GetProperties().FirstOrDefault(prop => Attribute.IsDefined(prop, typeof(KeyAttribute), true));
+                        if (props != null) identifierColumnName = props.Name;
                     }
+
 
                     if (identifierColumnName != null)
                     {
@@ -1364,6 +1389,8 @@ break; */
                             throw new ConfigurationErrorsException(GetTypeName() + ": Entity (with Table name {0}) is missing a [Key] definition.".format(TableData.TableName));
                         }
                     }
+
+                    Statements.LabelProperty = probeType.GetProperties().FirstOrDefault(prop => Attribute.IsDefined(prop, typeof(LabelAttribute), true))?.Name ?? Statements.IdPropertyRaw;
 
                     Statements.State.Step = "Preparing Schema entities";
                     Statements.Adapter.RenderSchemaEntityNames<T>();

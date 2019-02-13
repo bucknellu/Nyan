@@ -85,5 +85,6 @@ namespace Nyan.Core.Modules.Data
         public string EnvironmentCode;
         public string SqlRowCount;
         public string SqlGetAllSpecified;
+        public string LabelProperty { get; set; }
     }
 }
