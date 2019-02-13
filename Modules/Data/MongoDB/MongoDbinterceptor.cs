@@ -196,16 +196,22 @@ namespace Nyan.Modules.Data.MongoDB
                 return;
             }
 
+            T current = null;
+
             try
             {
 
                 var buffer = new List<ReplaceOneModel<BsonDocument>>();
 
 
+
                 foreach (var i in source)
                 {
 
                     c++;
+
+                    current = i;
+
                     buffer.Add(new ReplaceOneModel<BsonDocument>(
                                        Builders<BsonDocument>.Filter.Eq("_id", i.GetEntityIdentifier()),
                                        BsonSerializer.Deserialize<BsonDocument>(i.ToJson())
@@ -220,6 +226,7 @@ namespace Nyan.Modules.Data.MongoDB
             catch (Exception e)
             {
                 Current.Log.Add($"{ThreadHelper.Uid} - {Collection.CollectionNamespace}:BulkSave {c}/{source.Count} items ERR {e.Message}", Message.EContentType.Warning);
+                Current.Log.Add($"{ThreadHelper.Uid} - {current.ToJson()}", Message.EContentType.Warning);
                 Current.Log.Add(e);
                 throw;
             }
