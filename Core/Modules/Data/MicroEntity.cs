@@ -23,6 +23,7 @@ using Nyan.Core.Modules.Data.Operators.AnsiSql;
 using Nyan.Core.Modules.Data.Pipeline;
 using Nyan.Core.Modules.Log;
 using Nyan.Core.Modules.Maintenance;
+using Nyan.Core.Modules.Process;
 using Nyan.Core.Settings;
 using Factory = Nyan.Core.Modules.Data.Connection.Factory;
 
@@ -456,7 +457,18 @@ break; */
 
         public static void Remove(List<T> objs)
         {
-            foreach (var obj in objs) obj.Remove();
+            if (objs == null) return;
+            if (objs.Count == 0) return;
+
+            var c = new Clicker(objs[0].GetType().Name + ": REMOVE", objs.Count);
+
+            foreach (var obj in objs)
+            {
+                c.Click();
+                obj.Remove();
+            }
+
+            c.End();
         }
 
         public static void RemoveAll()
@@ -530,6 +542,13 @@ break; */
         public static BulkOpResult Save(List<T> objs)
         {
 
+            if (objs == null) return null;
+            if (objs.Count == 0) return null;
+
+            // First let's obtain any ServiceTokenGuid set by the user.
+
+            var threadContextGuid = ThreadContext.Get<string>("ServiceTokenGuid");
+
             lock (_bulkSaveLock)
             {
                 var step = "Starting";
@@ -544,7 +563,7 @@ break; */
                     var proc = new List<T>();
                     var noProc = new List<T>();
 
-                    var pre = new Clicker($"[{typeof(T).FullName}] PRE BULK Save", objs);
+                    var pre = new Clicker($"[{typeof(T).FullName}] BULK Save PREPARE", objs);
 
                     // First populate the control strut.
 
@@ -557,11 +576,14 @@ break; */
                     res.Control = new ConcurrentDictionary<string, BulkOpResult.ControlEntry>();
 
 
-                    // Parallel.ForEach(objs, new ParallelOptions { MaxDegreeOfParallelism = 5 }, i =>
+                     Parallel.ForEach(objs, new ParallelOptions { MaxDegreeOfParallelism = 5 }, i =>
 
 
-                    foreach (var i in objs)
+                    //foreach (var i in objs)
                     {
+
+                        if (threadContextGuid != null) ThreadContext.Set("ServiceTokenGuid", threadContextGuid);
+
                         step = $"Preparing res.Control for {i.ToJson()}";
 
                         pre.Click();
@@ -569,7 +591,7 @@ break; */
                         if (i.IsNew())
                         {
                             res.Control[i.ToJson().Sha512Hash()] = new BulkOpResult.ControlEntry { Current = i, IsNew = true, Original = null };
-                            continue;
+                            return;
                         }
 
                         var oId = i.GetEntityIdentifier();
@@ -577,14 +599,18 @@ break; */
                         if (res.Control.ContainsKey(oId))
                         {
                             Current.Log.Add($"WARN Repeated Identifier: {oId}. Data: {i.ToJson()}", Message.EContentType.Warning);
-                            continue;
+                            return;
                         }
 
                         res.Control[oId] = new BulkOpResult.ControlEntry { Current = i };
 
-                    };
+                    });
 
                     pre.End();
+
+
+                    pre = new Clicker($"[{typeof(T).FullName}] BULK Save PROC_BEFORE", objs);
+
 
                     step = "obtaining all original record IDs";
                     var allIds = res.Control.Where(i => !i.Value.IsNew).Select(i => i.Key).ToList();
@@ -629,7 +655,15 @@ break; */
                             step = $"adding record {obj.ToJson()} to proc list";
 
                             proc.Add(rec);
-                            rec.BeforeSave();
+                            try
+                            {
+                                rec.BeforeSave();
+                            }
+                            catch (Exception e)
+                            {
+                                throw;
+                            }
+
                             i.Value.Success = true;
                         }
 
@@ -646,7 +680,7 @@ break; */
 
 
 
-                    var post = new Clicker($"[{typeof(T).FullName}] POST BULK Save", proc.Count);
+                    var post = new Clicker($"[{typeof(T).FullName}] BULK Save PROC_AFTER", proc.Count);
 
                     step = "post-processing individual objects";
 
@@ -654,6 +688,9 @@ break; */
                       {
                           var id = rec.Key;
                           post.Click();
+
+                          if (threadContextGuid != null) ThreadContext.Set("ServiceTokenGuid", threadContextGuid);
+
                           rec.Value.Current.OnSave(id);
 
                           if (rec.Value.IsNew) ProcAfterPipeline(Support.EAction.Insert, rec.Value.Current, null);
@@ -673,6 +710,7 @@ break; */
                 }
                 catch (Exception e)
                 {
+                    Current.Log.Add(e);
                     var ex = new System.Exception($"Error while {step}: {e.Message}", e);
                     throw ex;
                 }
