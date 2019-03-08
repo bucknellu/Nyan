@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Formatting;
+﻿using System.Net;
+using System.Net.Http.Formatting;
 using System.Net.Http.Headers;
 using System.Web.Http;
 using System.Web.Http.Cors;
@@ -59,6 +60,10 @@ namespace Nyan.Modules.Web.REST
             config.Formatters.JsonFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("text/html"));
 
             GlobalConfiguration.Configuration.Services.Replace(typeof(IContentNegotiator), new DefaultContentNegotiator(true));
+
+            // WCF WF Service, Could not establish secure channel for SSL/TLS with authority
+            //https://stackoverflow.com/a/46281784/1845714
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12; 
 
             Current.Log.Add("WebApi REST       : Routes registered.", Message.EContentType.Info);
         }
