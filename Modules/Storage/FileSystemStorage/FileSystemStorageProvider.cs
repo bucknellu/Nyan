@@ -30,8 +30,10 @@ namespace Nyan.Modules.Storage.FileSystem
 
         public FileStream Get(string key)
         {
-            Current.Log.Add("Stream GET " + GetFullPath(key));
-            return new FileStream(GetFullPath(key), FileMode.Open);
+            var path = GetFullPath(key);
+
+            Current.Log.Add("Stream GET " + path);
+            return new FileStream(path, FileMode.Open);
         }
 
         public string GetFullPath(string key) { return Configuration.StoragePath + key + Suffix; }
