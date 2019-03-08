@@ -10,7 +10,9 @@ namespace Nyan.Core.Modules.Cache
     {
         #region Cache Management methods
 
-        public static List<T> FetchCacheableListResultByKey<T>(Func<string, List<T>> method, string key)
+        public static List<T> FetchCacheableListResultByKey<T>(Func<string, List<T>> method, string key) { return FetchCacheableListResultByKey<T>(method, key, 600); }
+
+        public static List<T> FetchCacheableListResultByKey<T>(Func<string, List<T>> method, string key, int cacheTimeOutSeconds = 600)
         {
             var cacheid = typeof(T).CacheKey(key);
 
@@ -23,7 +25,7 @@ namespace Nyan.Core.Modules.Cache
             var ret = method(key);
 
             if (Current.Cache.OperationalStatus == EOperationalStatus.Operational)
-                Current.Cache[cacheid] = ret.ToJson();
+                Current.Cache[cacheid, null, cacheTimeOutSeconds] = ret.ToJson();
 
             return ret;
         }
