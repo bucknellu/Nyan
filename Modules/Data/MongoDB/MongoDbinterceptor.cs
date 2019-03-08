@@ -72,7 +72,7 @@ namespace Nyan.Modules.Data.MongoDB
             try { BsonTypeMapper.RegisterCustomTypeMapper(typeof(JObject), new JObjectMapper()); } catch { }
 
             _client = Instances.GetClient(statementsConnectionString);
-            var server = _client.Settings.Servers.ToList()[0].Host; 
+            var server = _client.Settings.Servers.ToList()[0].Host;
 
             // Current.Log.Add($"{typeof(T).FullName} client for {statementsConnectionString}: {_client?.Settings?.Credential?.Username}@{server}", Message.EContentType.StartupSequence);
 
@@ -404,8 +404,12 @@ namespace Nyan.Modules.Data.MongoDB
                         new Dictionary<string, object> {{"$match", new BsonDocument()}},
                         new Dictionary<string, object> {{"$out", destinationSet}}
                     }
-                }
-            };
+                },
+
+                // https://stackoverflow.com/questions/47472688/spring-data-mongodb-the-cursor-option-is-required
+                {"cursor", new Dictionary<string, object> {{ "batchSize", 1024 }}
+            }
+    };
 
             var doc = new BsonDocument(aggDoc);
             var command = new BsonDocumentCommand<BsonDocument>(doc);
@@ -539,7 +543,7 @@ namespace Nyan.Modules.Data.MongoDB
         public void ClearCollection(string name) { Database.GetCollection<BsonDocument>(name).DeleteMany(new BsonDocument()); }
         public void DropCollection(string name) { Database.DropCollection(name); }
         public List<TU> GetCollection<TU>(string name) { return GetAll<TU>(Database.GetCollection<BsonDocument>(name)); }
-        public TU GetCollectionMember<TU>(string name, string locator) where TU : MicroEntity<TU> { return Get<TU>(Database.GetCollection<BsonDocument>(name), locator); } 
+        public TU GetCollectionMember<TU>(string name, string locator) where TU : MicroEntity<TU> { return Get<TU>(Database.GetCollection<BsonDocument>(name), locator); }
 
         public void AddSourceCollectionSuffix(string suffix)
         {
