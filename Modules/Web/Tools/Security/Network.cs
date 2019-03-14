@@ -59,7 +59,7 @@ namespace Nyan.Modules.Web.Tools.Security
         {
             if (HttpContext.Current == null) throw new ArgumentNullException("No available HTTP context.");
             var remAddr = HttpContext.Current.Request.UserHostAddress;
-            if (HttpContext.Current.Request.ServerVariables["HTTP_X_FORWARDED_FOR"] != null) remAddr = HttpContext.Current.Request.Headers["HTTP_X_FORWARDED_FOR"];
+            if (HttpContext.Current.Request.ServerVariables["HTTP_X_FORWARDED_FOR"] != null) remAddr = HttpContext.Current.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
 
             return Check(remAddr);
         }
