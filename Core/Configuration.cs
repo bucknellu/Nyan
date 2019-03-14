@@ -7,7 +7,7 @@ namespace Nyan.Core
 {
     public static class Configuration
     {
-        public static string BaseDirectory { get; private set; }
+        public static string BaseDirectory { get; private set;    }
         public static string DataDirectory { get; private set; }
         public static string Version { get; private set; }
         public static string ApplicationAssemblyName { get; private set; }
