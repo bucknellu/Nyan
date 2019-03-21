@@ -1,19 +1,11 @@
 ﻿using System.IO;
 using System.Web.Compilation;
 using System.Web.Hosting;
-using Nyan.Core.Diagnostics;
 
 namespace Nyan.Core
 {
     public static class Configuration
     {
-        public static string BaseDirectory { get; private set;    }
-        public static string DataDirectory { get; private set; }
-        public static string Version { get; private set; }
-        public static string ApplicationAssemblyName { get; private set; }
-        public static System.Reflection.Assembly ApplicationAssembly { get; private set; }
-        public static string Host { get; private set; }
-
         static Configuration()
         {
             var isWeb = HostingEnvironment.MapPath("~/bin") != null;
@@ -27,21 +19,21 @@ namespace Nyan.Core
             ApplicationAssembly = GetAppAssembly();
             ApplicationAssemblyName = ApplicationAssembly.GetName().Name;
 
-            if (!Directory.Exists(DataDirectory))
-                Directory.CreateDirectory(DataDirectory);
+            if (!Directory.Exists(DataDirectory)) Directory.CreateDirectory(DataDirectory);
         }
+
+        public static string BaseDirectory { get; }
+        public static string DataDirectory { get; }
+        public static string Version { get; }
+        public static string ApplicationAssemblyName { get; }
+        public static System.Reflection.Assembly ApplicationAssembly { get; }
+        public static string Host { get; }
 
         private static System.Reflection.Assembly GetAppAssembly()
         {
             System.Reflection.Assembly ret;
-            try
-            {
-                ret = BuildManager.GetGlobalAsaxType().BaseType.Assembly;
-            }
-            catch
-            {
-                ret = System.Reflection.Assembly.GetEntryAssembly();
-            }
+            try { ret = BuildManager.GetGlobalAsaxType().BaseType.Assembly; } catch { ret = System.Reflection.Assembly.GetEntryAssembly(); }
+
             return ret;
         }
     }
