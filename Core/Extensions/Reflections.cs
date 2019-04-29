@@ -289,6 +289,8 @@ namespace Nyan.Core.Extensions
                 (Convert.GetTypeCode(type) != TypeCode.Object);
         }
 
+        public static IEnumerable<T> CreateInstances<T>(this IEnumerable<Type> typeRefs) { return typeRefs.Select(CreateInstance<T>); }
+
         public static T CreateInstance<T>(this Type typeRef)
         {
             try
