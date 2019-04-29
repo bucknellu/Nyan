@@ -68,11 +68,17 @@
     <Compile Include="Modules\Data\Extensions.cs" />
     <Compile Include="Modules\Data\LabelAttribute.cs" />
     <Compile Include="Modules\Data\Tools\Migration.cs" />
+    <Compile Include="Modules\Diagnostics\DiagnosticsEvaluation.cs" />
+    <Compile Include="Modules\Diagnostics\DiagnosticsEvaluationSetupAttribute.cs" />
+    <Compile Include="Modules\Diagnostics\Factory.cs" />
+    <Compile Include="Modules\Diagnostics\IDiagnosticsEvaluation.cs" />
+    <Compile Include="Modules\Diagnostics\Instances.cs" />
     <Compile Include="Modules\Environment\Shell.cs" />
     <Compile Include="Modules\Identity\Helper.cs" />
     <Compile Include="Modules\Log\Converter.cs" />
     <Compile Include="Modules\Log\Local.cs" />
     <Compile Include="Modules\Maintenance\Clicker.cs" />
+    <Compile Include="Modules\Maintenance\IDisabledMaintenanceTask.cs" />
     <Compile Include="Modules\Maintenance\IMaintenanceEventHandler.cs" />
     <Compile Include="Modules\Maintenance\Instances.cs" />
     <Compile Include="Modules\Maintenance\MaintenanceEventEntry.cs" />

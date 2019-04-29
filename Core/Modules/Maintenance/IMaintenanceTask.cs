@@ -4,8 +4,6 @@
     {
         MaintenanceTaskResult MaintenanceTask(bool force);
     }
-    public interface IDisabledMaintenanceTask
-    {
-        MaintenanceTaskResult MaintenanceTask(bool force);
-    }
+
+
 }

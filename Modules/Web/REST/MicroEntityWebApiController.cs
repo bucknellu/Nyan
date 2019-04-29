@@ -101,6 +101,8 @@ namespace Nyan.Modules.Web.REST
 
         internal InternalGetAllPayload InternalGetAll(string extraParms = null) { return InternalCustomGetAll(extraParms) ?? InternalGetAll<T>(extraParms); }
 
+        public virtual void PreCollectionAction(ref MicroEntityParametrizedGet parametrizedGet, ref string extraParms) { }
+
         public virtual void PostCollectionAction<TU>(RequestType pRequestType, AccessType pAccessType,
                                                  ref List<TU> collectionList, ref long totalRecords, string pidentifier = null, T pObject = null,
                                                  string pContext = null) { }
@@ -638,6 +640,8 @@ namespace Nyan.Modules.Web.REST
                             parametrizedGet.PageIndex = 0;
                         }
 
+                PreCollectionAction(ref parametrizedGet, ref extraParms);
+
                 tot = mustUseParametrizedGet ? MicroEntity<T>.Count(parametrizedGet, extraParms) : MicroEntity<T>.Count();
 
                 var preRet = mustUseParametrizedGet ? MicroEntity<T>.Get<TU>(parametrizedGet, extraParms).ToList() : MicroEntity<T>.GetAll<TU>().ToList();
@@ -664,6 +668,8 @@ namespace Nyan.Modules.Web.REST
                 throw e;
             }
         }
+
+        
 
         #endregion
 

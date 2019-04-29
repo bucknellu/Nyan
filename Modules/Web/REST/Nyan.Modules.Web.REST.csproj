@@ -84,6 +84,7 @@
     <Compile Include="auth\AddChallengeOnUnauthorizedResult.cs" />
     <Compile Include="auth\AuthenticationFailureResult.cs" />
     <Compile Include="auth\NyanAuthenticationFilter.cs" />
+    <Compile Include="Diagnostics\StackToolsDiagnosticsController.cs" />
     <Compile Include="Instances.cs" />
     <Compile Include="IRequestDelegatingHandler.cs" />
     <Compile Include="RequestDelegatingHandler.cs" />

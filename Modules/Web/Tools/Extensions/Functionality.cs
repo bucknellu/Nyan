@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.ServiceModel.Channels;
 using System.Text;
 using System.Web;
+using Nyan.Core.Extensions;
 using Nyan.Core.Settings;
 
 namespace Nyan.Modules.Web.Tools.Extensions
@@ -18,9 +19,9 @@ namespace Nyan.Modules.Web.Tools.Extensions
         public static string GetClientIp(this HttpRequestMessage request)
         {
             if (request == null) return null;
-            if (request.Properties.ContainsKey("MS_HttpContext")) return ((HttpContextWrapper) request.Properties["MS_HttpContext"]).Request.UserHostAddress;
+            if (request.Properties.ContainsKey("MS_HttpContext")) return ((HttpContextWrapper)request.Properties["MS_HttpContext"]).Request.UserHostAddress;
             if (!request.Properties.ContainsKey(RemoteEndpointMessageProperty.Name)) return HttpContext.Current != null ? HttpContext.Current.Request.UserHostAddress : null;
-            var prop = (RemoteEndpointMessageProperty) request.Properties[RemoteEndpointMessageProperty.Name];
+            var prop = (RemoteEndpointMessageProperty)request.Properties[RemoteEndpointMessageProperty.Name];
             return prop.Address;
         }
 
@@ -49,7 +50,8 @@ namespace Nyan.Modules.Web.Tools.Extensions
                     if (0 == i % 2)
                         if (i == 10) macDest = macDest.Insert(0, macSrc.Substring(i, 2));
                         else macDest = ":" + macDest.Insert(0, macSrc.Substring(i, 2));
-            } catch (Exception err) { Current.Log.Add(err); }
+            }
+            catch (Exception err) { Current.Log.Add(err); }
 
             if (macDest == "") macDest = null;
 
@@ -97,7 +99,22 @@ namespace Nyan.Modules.Web.Tools.Extensions
             {
                 var entry = Dns.GetHostEntry(ip);
                 return entry.HostName;
-            } catch (Exception) { return null; }
+            }
+            catch (Exception) { return null; }
+        }
+    }
+
+    public static class WebClientTools
+    {
+        public static T FetchAndCast<T>(this WebClient client, string url)
+        {
+            var rawPayload = client.DownloadString(url);
+            client.Dispose();
+
+            var payload = rawPayload.FromJson<T>();
+
+            return payload;
+
         }
     }
 }
