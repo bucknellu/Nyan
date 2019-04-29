@@ -119,6 +119,10 @@ namespace Nyan.Core.Modules.Data
             var ret = TableData.UseCaching
                 ? Helper.FetchCacheableSingleResultByKey(GetFromDatabase, identifier)
                 : GetFromDatabase(identifier);
+
+
+            ret?.OnGet();
+
             return ret;
         }
 
@@ -140,6 +144,8 @@ namespace Nyan.Core.Modules.Data
 
                 ret = retCol.Count > 0 ? retCol[0] : null;
             }
+
+            ret?.OnGet();
 
             return ret;
         }
@@ -189,9 +195,10 @@ namespace Nyan.Core.Modules.Data
                 ret = tasks.Aggregate(ret, (current, task) => current.Concat(task.Result));
             }
 
+            Parallel.ForEach(ret, new ParallelOptions { MaxDegreeOfParallelism = 10 }, item => item.OnGet());
+
+
             if (!TableData.UseCaching) return ret;
-
-
 
             Parallel.ForEach(ret, new ParallelOptions { MaxDegreeOfParallelism = 10 }, item =>
               {
@@ -361,7 +368,14 @@ break; */
         /// <returns>An enumeration with all the entries from database.</returns>
         public static IEnumerable<T> Get() { return GetAll(); }
 
-        public static IEnumerable<T> GetAll(string extraParms = null) { return GetAll<T>(extraParms); }
+        public static IEnumerable<T> GetAll(string extraParms = null)
+        {
+            var ret = GetAll<T>(extraParms).ToList();
+
+            Parallel.ForEach(ret, new ParallelOptions { MaxDegreeOfParallelism = 10 }, i => { i.OnGet(); });
+
+            return ret;
+        }
 
         public static IEnumerable<TU> GetAll<TU>(string extraParms = null)
         {
@@ -381,7 +395,10 @@ break; */
 
             var bag = GetNewDynamicParameterBag();
             bag.Add("qParm", qTerm.QueryTerm);
-            var term = Statements.SqlRowCount + " WHERE " + Statements.SqlSimpleQueryTerm;
+            var term = Statements.SqlRowCount + " WHERE (" + Statements.SqlSimpleQueryTerm + ")";
+
+            if (qTerm.Filter != null) term = term + " AND (" + qTerm.Filter + ")";
+
             return QuerySingleValue<long>(term, bag);
         }
 
@@ -418,12 +435,18 @@ break; */
                 ret = Query(op, bag);
             }
 
+            Parallel.ForEach(ret, new ParallelOptions { MaxDegreeOfParallelism = 10 }, i => { i.OnGet(); });
+
             if (!TableData.UseCaching) return ret;
 
             //...populates/refresh the cache with all the individual results, saving time for future individual FETCHes.
             if (Current.Cache.OperationalStatus != EOperationalStatus.Operational) return ret;
 
-            foreach (var o in ret) Current.Cache[CacheKey(o.GetEntityIdentifier())] = o.ToJson();
+            foreach (var o in ret)
+            {
+                o.OnGet();
+                Current.Cache[CacheKey(o.GetEntityIdentifier())] = o.ToJson();
+            }
             return ret;
         }
 
@@ -433,10 +456,14 @@ break; */
 
             List<TU> ret = null;
 
-            if (Statements.Interceptor != null) { ret = Statements.Interceptor.GetAll<T, TU>(parm, extraParms); }
+            if (Statements.Interceptor != null)
+            {
+                ret = Statements.Interceptor.GetAll<T, TU>(parm, extraParms);
+            }
             else
             {
-                var tmp = Query<TU>(Statements.SqlGetAll);
+                var tmp = Query<TU>(parm.Filter == null ? Statements.SqlGetAll: string.Format(Statements.SqlAllFieldsQueryTemplate, parm.Filter)); 
+
                 if (parm.QueryTerm != null)
                     tmp = tmp.Where(i =>
                     {
@@ -446,9 +473,18 @@ break; */
                             .ToList().ToJson();
                         return vals.IndexOf(parm.QueryTerm.ToLower(), StringComparison.Ordinal) != -1;
                     }).ToList();
+
                 if (parm.PageSize != 0) tmp = tmp.Skip((int)(parm.PageIndex * parm.PageSize)).Take((int)parm.PageSize).ToList();
+
                 ret = tmp;
             }
+
+
+            var onGetMethod = typeof(T).GetMethod("OnGet", BindingFlags.Public);
+
+            if (onGetMethod != null)
+                if (typeof(TU) == typeof(MicroEntity<>))
+                    Parallel.ForEach(ret, new ParallelOptions { MaxDegreeOfParallelism = 10 }, delegate (TU i) { onGetMethod.Invoke(i, null); });
 
             return ret;
         }
@@ -576,7 +612,7 @@ break; */
                     res.Control = new ConcurrentDictionary<string, BulkOpResult.ControlEntry>();
 
 
-                     Parallel.ForEach(objs, new ParallelOptions { MaxDegreeOfParallelism = 5 }, i =>
+                    Parallel.ForEach(objs, new ParallelOptions { MaxDegreeOfParallelism = 5 }, i =>
 
 
                     //foreach (var i in objs)
@@ -836,6 +872,8 @@ break; */
             rec = ProcBeforePipeline(Support.EAction.Remove, rec, rec);
 
             if (rec == null) return false;
+
+            BeforeRemove();
 
             if (Statements.Interceptor != null) Statements.Interceptor.Remove(this);
             else Execute(Statements.SqlRemoveSingleParametrized, new { id = GetEntityIdentifier() });
@@ -1644,6 +1682,8 @@ break; */
         public virtual void OnRemove() { }
 
         public virtual void OnInsert() { }
+
+        public virtual void OnGet() { }
 
         public static void OnSchemaInitialization() { }
 
