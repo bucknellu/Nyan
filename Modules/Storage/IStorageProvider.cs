@@ -9,7 +9,7 @@ namespace Nyan.Modules.Storage
         EOperationalStatus OperationalStatus { get; }
         string Put(Stream source, string fileKey = null, bool partialName = false);
         FileStream Get(string key);
-        string GetFullPath(string key);
+        List<string> GetFullPath(string key);
         string GetBasePath();
         IEnumerable<string> GetKeys();
         bool Exists(string key);

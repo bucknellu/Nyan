@@ -1,9 +1,10 @@
-﻿using Nyan.Core;
+﻿using System.Collections.Generic;
+using Nyan.Core;
 
 namespace Nyan.Modules.Storage.FileSystem
 {
     public class FileSystemStorageConfiguration : IStorageConfiguration
     {
-        public virtual string StoragePath => Configuration.DataDirectory + @"\storage\";
+        public virtual List<string> StoragePath => new List<string> { Configuration.DataDirectory + @"\storage\" };
     }
 }

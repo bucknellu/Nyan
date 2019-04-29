@@ -12,7 +12,7 @@ namespace Nyan.Modules.Storage
         public EOperationalStatus OperationalStatus { get; } = EOperationalStatus.NonOperational;
         public string Put(Stream source, string fileKey = null, bool partialName = false) { throw new System.NotImplementedException(); }
         public FileStream Get(string key) { throw new System.NotImplementedException(); }
-        public string GetFullPath(string key) { throw new System.NotImplementedException(); }
+        public List<string> GetFullPath(string key) { throw new System.NotImplementedException(); }
         public string GetBasePath() { throw new System.NotImplementedException(); }
         public IEnumerable<string> GetKeys() { throw new System.NotImplementedException(); }
         public bool Exists(string key) { throw new System.NotImplementedException(); }
