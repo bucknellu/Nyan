@@ -60,6 +60,7 @@
     <Compile Include="Extensions\Reflections.cs" />
     <Compile Include="Extensions\Serialization.cs" />
     <Compile Include="Configuration.cs" />
+    <Compile Include="Factories\Tree.cs" />
     <Compile Include="Media\Utilities.cs" />
     <Compile Include="Modules\Data\Contracts\EntityReference.cs" />
     <Compile Include="Modules\Data\Contracts\IMigration.cs" />
