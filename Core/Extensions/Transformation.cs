@@ -229,6 +229,17 @@ namespace Nyan.Core.Extensions
             return compiledRet;
         }
 
+        public static string HashGuid(this string input, string salt = null)
+        {
+            using (var md5 = MD5.Create())
+            {
+                var hash = md5.ComputeHash(Encoding.UTF8.GetBytes(input + salt));
+                var guid = new Guid(hash).ToString("N");
+                return guid;
+            }
+        }
+
+
         public static string Md5Hash(this string input, string salt = null)
         {
             if (input == null) return null;
