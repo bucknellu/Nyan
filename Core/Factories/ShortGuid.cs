@@ -75,7 +75,7 @@ namespace Nyan.Core.Factories
         /// </summary>
         public string Value
         {
-            get { return _value; }
+            get => _value;
             set
             {
                 if (value != _value)
