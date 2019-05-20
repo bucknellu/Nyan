@@ -12,7 +12,6 @@ namespace Nyan.Core.Modules.Data
         public Dictionary<string, string> CredentialCypherKeys = new Dictionary<string, string>();
 
         public string WebApiControllerName;
-
         /// <summary>
         ///     When set, allows a basic corresponding schema to be created on the database, based on the current class'
         ///     properties.
@@ -59,5 +58,6 @@ namespace Nyan.Core.Modules.Data
         public Type CredentialSetType { get; set; } = null;
         public string PersistentEnvironmentCode { get; set; }
         public bool SuppressErrors { get; set; }
+        public bool IgnoreEnvironmentPrefix { get; set; }
     }
 }

@@ -288,7 +288,7 @@ namespace Nyan.Modules.Data.MongoDB
             var querySort = parm.ToBsonFilter();
             SortDefinition<BsonDocument> sortFilter = querySort;
 
-            if (parm.OrderBy != null) Collection.Indexes.CreateOne(querySort.ToJson(new JsonWriterSettings { OutputMode = JsonOutputMode.Strict }));
+            if (_tabledata.AutoGenerateMissingSchema) if (parm.OrderBy != null) Collection.Indexes.CreateOne(querySort.ToJson(new JsonWriterSettings { OutputMode = JsonOutputMode.Strict }));
 
             IFindFluent<BsonDocument, BsonDocument> col;
 
@@ -431,9 +431,13 @@ namespace Nyan.Modules.Data.MongoDB
 
         public List<TU> GetAll<TU>(IMongoCollection<BsonDocument> sourceCollection)
         {
-            var res = sourceCollection
+            var src = sourceCollection
                 .Find(new BsonDocument())
-                .ToList()
+                .ToList();
+
+                var res = src
+                .AsParallel()
+                .AsOrdered()
                 .Select(v => BsonSerializer.Deserialize<TU>(v))
                 .ToList();
 
@@ -535,7 +539,7 @@ namespace Nyan.Modules.Data.MongoDB
                 if (!string.IsNullOrEmpty(_tabledata.TableName)) s = _tabledata.TableName;
             }
 
-            SourceCollection = _statements.EnvironmentCode + "." + s;
+            SourceCollection = _tabledata.IgnoreEnvironmentPrefix ? s : _statements.EnvironmentCode + "." + s;
             SetCollection();
         }
 

@@ -9,8 +9,6 @@ namespace Nyan.Core.Modules.Maintenance
 {
     public static class Instances
     {
-        internal static readonly IEnumerable<Type> RegisteredMaintenanceTaskTypes = Management.GetClassesByInterface<IMaintenanceTask>();
-
         public static readonly List<MaintenanceSchedule> Schedule;
 
         public static Dictionary<int, List<MaintenanceSchedule>> GetScheduledTasksByPriority()
@@ -25,8 +23,6 @@ namespace Nyan.Core.Modules.Maintenance
 
             return ret;
         }
-
-        internal static readonly Type MaintenanceEventHandlerType = Management.GetClassesByInterface<IMaintenanceEventHandler>()[0];
 
         private static IMaintenanceEventHandler _handler;
 
@@ -78,5 +74,9 @@ namespace Nyan.Core.Modules.Maintenance
                 return _handler;
             }
         }
+
+        internal static Type MaintenanceEventHandlerType => Management.GetClassesByInterface<IMaintenanceEventHandler>()[0];
+
+        internal static IEnumerable<Type> RegisteredMaintenanceTaskTypes => Management.GetClassesByInterface<IMaintenanceTask>();
     }
 }
