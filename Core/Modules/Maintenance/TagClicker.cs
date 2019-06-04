@@ -1,4 +1,6 @@
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using Nyan.Core.Modules.Log;
 using Nyan.Core.Settings;
 
@@ -36,7 +38,18 @@ namespace Nyan.Core.Modules.Maintenance
             }
         }
         public void Click(string tag) { this[tag]++; }
-        public void Click(string tag, long count) { this[tag] += count; }
+
+        public void Click<T>(string tag, IEnumerable<T> source)
+        {
+            Click(tag, source.Count());
+        }
+
+        public void Click(string tag, long count)
+        {
+            this[tag] += count;
+
+            if (count > 1) Current.Log.Add($"{tag}: {count}");
+        }
 
         public void ToLog(Message.EContentType type = Message.EContentType.MoreInfo)
         {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using Nyan.Core.Extensions;
 using Nyan.Core.Modules.Log;
@@ -10,7 +11,9 @@ namespace Nyan.Core.Modules.Maintenance
 {
     public static class Factory
     {
-        public static IMaintenanceEventEntry DoMaintenance(bool force = false, bool saveLog = true)
+        public static IMaintenanceEventEntry DoMaintenance(bool force = false, bool saveLog = true) { return DoMaintenance(force, saveLog, false); }
+
+        public static IMaintenanceEventEntry DoMaintenance(bool force, bool saveLog, bool onlyLocal = false)
         {
             var ret = new List<MaintenanceTaskResult>();
             var msw = new Stopwatch();
@@ -28,7 +31,7 @@ namespace Nyan.Core.Modules.Maintenance
 
             try
             {
-                var scheduleByPriority = Instances.GetScheduledTasksByPriority();
+                var scheduleByPriority = Instances.GetScheduledTasksByPriority(onlyLocal);
 
                 Current.Log.Add("    Warm-up summary:", Message.EContentType.Maintenance);
 

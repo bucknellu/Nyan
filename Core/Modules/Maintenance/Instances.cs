@@ -11,11 +11,16 @@ namespace Nyan.Core.Modules.Maintenance
     {
         public static readonly List<MaintenanceSchedule> Schedule;
 
-        public static Dictionary<int, List<MaintenanceSchedule>> GetScheduledTasksByPriority()
+        public static Dictionary<int, List<MaintenanceSchedule>> GetScheduledTasksByPriority() { return GetScheduledTasksByPriority(false); }
+
+        public static Dictionary<int, List<MaintenanceSchedule>> GetScheduledTasksByPriority(bool onlyLocal)
         {
             var ret = new Dictionary<int, List<MaintenanceSchedule>>();
 
-            foreach (var ms in Schedule)
+            var src = onlyLocal ? Schedule.Where(i => i.Source == Nyan.Core.Configuration.ApplicationAssemblyName).ToList() : Schedule;
+
+
+            foreach (var ms in src)
             {
                 if (!ret.ContainsKey(ms.Priority)) ret.Add(ms.Priority, new List<MaintenanceSchedule>());
                 ret[ms.Priority].Add(ms);
@@ -48,7 +53,8 @@ namespace Nyan.Core.Modules.Maintenance
                     Id = (i.FullName + ": " + setup.Name).MetaHash(),
                     Namespace = i.FullName,
                     Name = setup.Name,
-                    Schedule = setup.ScheduleTimeSpan
+                    Schedule = setup.ScheduleTimeSpan,
+                    Source = i.Assembly.GetName().Name
                 };
 
                 ret.Add(entry);

@@ -14,6 +14,7 @@ using System.Text.RegularExpressions;
 using System.Web;
 using Newtonsoft.Json.Linq;
 using Nyan.Core.Factories;
+using Nyan.Core.Modules.Data;
 using Nyan.Core.Settings;
 
 namespace Nyan.Core.Extensions
@@ -23,8 +24,12 @@ namespace Nyan.Core.Extensions
         public enum ESafeArrayMode
         {
             Remove,
-
             Allow
+        }
+
+        public static TU ToType<TU, T>(this T source) where TU : MicroEntity<TU> where T : MicroEntity<T>
+        {
+            return source.ToJson().FromJson<TU>();
         }
 
         public static void CopyProperties<T>(this T source, T destination)

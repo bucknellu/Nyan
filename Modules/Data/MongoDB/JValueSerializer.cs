@@ -9,8 +9,8 @@ namespace Nyan.Modules.Data.MongoDB
     {
         public override JValue Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
         {
-            var myBSONDoc = BsonDocumentSerializer.Instance.Deserialize(context);
-            return new JValue(myBSONDoc.ToString());
+            var myBsonDoc = BsonDocumentSerializer.Instance.Deserialize(context);
+            return new JValue(myBsonDoc.ToString());
         }
 
         public override void Serialize(BsonSerializationContext context, BsonSerializationArgs args, JValue value)

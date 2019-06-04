@@ -13,11 +13,18 @@ namespace Nyan.Modules.Web.Tools.Maintenance
             return Factory.DoMaintenance();
         }
 
+        [Route("run/local")]
+        [HttpGet]
+        public IMaintenanceEventEntry DoMaintenanceLocal()
+        {
+            return Factory.DoMaintenance(false, true, true);
+        }
+
         [Route("run/force")]
         [HttpGet]
         public IMaintenanceEventEntry DoMaintenanceFull()
         {
-            return Factory.DoMaintenance(true);
+            return Factory.DoMaintenance(true, false, false);
         }
 
         [Route("task/list")]

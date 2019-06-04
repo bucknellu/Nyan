@@ -64,6 +64,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DictionarySerializer.cs" />
+    <Compile Include="EnumStringSerializer.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Instances.cs" />
     <Compile Include="DictionaryRepresentationConvention.cs" />

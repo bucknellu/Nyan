@@ -11,5 +11,6 @@ namespace Nyan.Core.Modules.Maintenance {
         internal IMaintenanceTask Task;
         public string Namespace { get; set; }
         public string Name { get; set; }
+        public string Source { get; set; }
     }
 }
