@@ -27,7 +27,7 @@ namespace Nyan.Core.Extensions
             Allow
         }
 
-        public static TU ToType<TU, T>(this T source) where TU : MicroEntity<TU> where T : MicroEntity<T>
+        public static TU ToType<TU, T>(this T source) where T : MicroEntity<T>
         {
             return source.ToJson().FromJson<TU>();
         }
@@ -460,6 +460,18 @@ namespace Nyan.Core.Extensions
             return result;
         }
 
+        public static ExpandoObject DictionaryToExpandoObject(this IDictionary<string, object> source)
+        {
+            // https://stackoverflow.com/a/7596697/1845714
+
+            var eo = new ExpandoObject();
+            var eoColl = (ICollection<KeyValuePair<string, object>>)eo;
+
+            foreach (var kvp in source) eoColl.Add(kvp);
+
+            return eo;
+        }
+
         public static T ToObject<T>(this IDictionary<string, object> source)
             where T : class, new()
         {
@@ -509,7 +521,7 @@ namespace Nyan.Core.Extensions
         public static ExpandoObject ToExpando(this object staticObject)
         {
             var expando = new ExpandoObject();
-            var dict = expando as IDictionary<string, object>;
+            var dict = (IDictionary<string, object>) expando;
             var properties = staticObject.GetType().GetProperties();
 
             foreach (var property in properties) dict[property.Name] = property.GetValue(staticObject, null);

@@ -6,7 +6,7 @@ using Nyan.Core.Process;
 
 namespace Nyan.Core.Modules.Log
 {
-    public abstract class LogProvider
+    public abstract class LogProvider : ILogProvider
     {
         private static bool _isResetting;
 

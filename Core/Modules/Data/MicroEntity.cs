@@ -1548,8 +1548,7 @@ break; */
 
         public static MicroEntityCompiledStatements Statements => ClassRegistration[typeof(T)];
 
-        public static MicroEntitySetupAttribute TableData => (MicroEntitySetupAttribute)
-            Attribute.GetCustomAttribute(typeof(T), typeof(MicroEntitySetupAttribute));
+        public static MicroEntitySetupAttribute TableData => (MicroEntitySetupAttribute)Attribute.GetCustomAttribute(typeof(T), typeof(MicroEntitySetupAttribute));
 
         public static Dictionary<string, string> EnvironmentMappingData
         {

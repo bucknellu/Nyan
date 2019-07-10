@@ -77,6 +77,7 @@
     <Compile Include="Modules\Environment\Shell.cs" />
     <Compile Include="Modules\Identity\Helper.cs" />
     <Compile Include="Modules\Log\Converter.cs" />
+    <Compile Include="Modules\Log\ILogProvider.cs" />
     <Compile Include="Modules\Log\Local.cs" />
     <Compile Include="Modules\Maintenance\Clicker.cs" />
     <Compile Include="Modules\Maintenance\IDisabledMaintenanceTask.cs" />
