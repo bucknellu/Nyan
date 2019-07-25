@@ -27,7 +27,7 @@ namespace Nyan.Core.Extensions
             Allow
         }
 
-        public static TU ToType<TU, T>(this T source) where T : MicroEntity<T>
+        public static TU ToType<TU, T>(this T source)
         {
             return source.ToJson().FromJson<TU>();
         }
