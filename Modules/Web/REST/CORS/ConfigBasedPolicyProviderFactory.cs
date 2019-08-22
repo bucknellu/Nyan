@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
@@ -22,6 +23,15 @@ namespace Nyan.Modules.Web.REST.CORS
 
         public bool IsValidOrigin(string origin)
         {
+            // strip origin port, if present.
+
+            var uri = new Uri(origin);
+
+            var clean = uri.GetComponents(UriComponents.Scheme | UriComponents.Host, UriFormat.Unescaped);
+
+
+            origin = clean;
+
             foreach (var pattern in Current.WebApiCORSDomainMasks)
                 if (origin.MatchWildcardPattern(pattern))
                 {

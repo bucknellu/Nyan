@@ -99,31 +99,8 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>if $(ConfigurationName) == Debug (
-	ECHO NuGet package generation only available on Release mode. Skipping.
-) ELSE (
-	ECHO ===========================================================
-	ECHO   NuGet package generation started.
-	ECHO -----------------------------------------------------------
-	ECHO   Project : $(ProjectName)
-	ECHO   Location: $(ProjectDir)
-
-	CD $(ProjectDir)
-
-	nuget spec
-	DEL *.nupkg
-	nuget pack -Prop Configuration=Release
-
-	ECHO Placing new release...
-	MD $(SolutionDir)dist 2&gt;NUL
-	MD $(SolutionDir)dist\packages 2&gt;NUL
-	COPY *.nupkg $(SolutionDir)dist\packages
-	DEL *.nupkg
-
-	ECHO -----------------------------------------------------------
-	ECHO NuGet package generation finished.
-	ECHO ===========================================================
-)</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
