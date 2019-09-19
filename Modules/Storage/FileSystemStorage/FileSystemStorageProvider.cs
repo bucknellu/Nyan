@@ -36,7 +36,6 @@ namespace Nyan.Modules.Storage.FileSystem
         public FileStream Get(string key)
         {
             var path = GetFullPath(key);
-            Current.Log.Add($"Stream {key} GET");
 
             foreach (var i in path)
             {
