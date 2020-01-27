@@ -3,7 +3,8 @@
 A lightweight .NET data service stack
 </p>
 
-
+## Status
+Nyan is no longer in active development, and is currently in maintenance mode. If you want the same features but for .NET Core, check out [Zen](https://github.com/lbotinelly/zen).
 
 ## Yet another ORM framework? Really?
 
