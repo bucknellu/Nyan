@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Data;
 using System.Globalization;
 using System.IO;
@@ -13,6 +15,7 @@ using System.Xml.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using static System.String;
+using Formatting = Newtonsoft.Json.Formatting;
 
 namespace Nyan.Core.Extensions
 {
@@ -57,11 +60,18 @@ namespace Nyan.Core.Extensions
             return new string(chars);
         }
 
-        public static string FromXmlToJson(this string obj)
+        public static string FromXmlToJson(this string obj, bool clean=false)
         {
             var doc = new XmlDocument();
             doc.LoadXml(obj);
-            return JsonConvert.SerializeXmlNode(doc);
+
+            if (!clean) return JsonConvert.SerializeXmlNode(doc );
+
+            var step1 = JsonConvert.SerializeXmlNode(doc, Formatting.None);
+            var step2 = step1.FromJson<object>();
+            var step3 = step2.ToJson(0, true);
+
+            return step3;
         }
 
         public static string GetJsonNode(this string obj, string nodeName)
@@ -263,14 +273,47 @@ namespace Nyan.Core.Extensions
             return decodedString;
         }
 
-
-
-        public static string ToJson(this object obj, int pLevels = 0)
+        public static Dictionary<TKey, TValue> ToDictionary<TKey, TValue>(this NameValueCollection col)
         {
-            //var s = new JavaScriptSerializer {MaxJsonLength = 50000000};
-            //if (pLevels != 0) s.RecursionLimit = pLevels;
+            var dict = new Dictionary<TKey, TValue>();
+            var keyConverter = TypeDescriptor.GetConverter(typeof(TKey));
+            var valueConverter = TypeDescriptor.GetConverter(typeof(TValue));
+
+            foreach (string name in col)
+            {
+                TKey key = (TKey)keyConverter.ConvertFromString(name);
+                TValue value = (TValue)valueConverter.ConvertFromString(col[name]);
+                dict.Add(key, value);
+            }
+
+            return dict;
+        }
+
+        public static string ToJson(this object obj, int pLevels = 0) { return ToJson(obj, 0, false); }
+
+        public static string ToJson(this object obj, int pLevels, bool ignoreEmpty)
+        {
             //return s.Serialize(obj);
-            try { return JsonConvert.SerializeObject(obj); } catch { return null; }
+            try
+            {
+                var result = JsonConvert.SerializeObject(obj);
+
+                if (!ignoreEmpty) return result;
+
+                var temp = JObject.Parse(result);
+                temp.Descendants()
+                    .OfType<JProperty>()
+                    .Where(attr => attr.Value.ToString() == "" || attr.Value == null)
+                    .ToList() // you should call ToList because you're about to changing the result, which is not possible if it is IEnumerable
+                    .ForEach(attr => attr.Remove()); // removing unwanted attributes
+
+                result = temp.ToString();
+
+                return result;
+            } catch { return null; }
+
+
+       
         }
 
         public static object ToJObject(this object src) { return JObject.Parse(src.ToJson()); }
