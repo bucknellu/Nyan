@@ -11,8 +11,8 @@ namespace Nyan.Modules.Data.MongoDB.Model.Query.Type
 
         public RawBetweenEqual(DateTime value, DateTime value2)
         {
-            Value = new JRaw(value.ToISODateString());
-            Value2 = new JRaw(value2.ToISODateString());
+            Value = new JRaw(value.ToISODateString(true));
+            Value2 = new JRaw(value2.ToISODateString(true));
         }
 
         [JsonProperty("$lte")]

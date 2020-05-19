@@ -248,7 +248,16 @@ namespace Nyan.Core.Extensions
         }
 
         // ReSharper disable once InconsistentNaming
-        public static string ToISODateString(this DateTime obj) { return $"ISODate(\"{obj:o}\")"; }
+
+        public static string ToISODateString(this DateTime obj) { return ToISODateString(obj, false); }
+
+        public static string ToISODateString(this DateTime obj, bool includeLocalTimezone)
+        {
+
+            if (!includeLocalTimezone) return $"ISODate(\"{obj:o}\")";
+
+            return $"ISODate(\"{obj:o}{TimeZoneInfo.Local.BaseUtcOffset.Hours.ToString().PadLeft(2,'0')}:00\")";
+        }
 
         // ReSharper disable once InconsistentNaming
         public static string ToRawDateHash(this DateTime obj) { return obj.ToString("yyyyMMddHHmmss"); }
