@@ -23,7 +23,15 @@ namespace Nyan.Modules.Data.MongoDB
 
                 if (Clients.ContainsKey(key)) return Clients[key];
 
-                var client = new MongoClient(connectionString);
+                var settings = MongoClientSettings.FromUrl(new MongoUrl(connectionString));
+
+                settings.SslSettings = new SslSettings
+                {
+                    CheckCertificateRevocation = false,
+                    EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls11 | System.Security.Authentication.SslProtocols.Tls12
+                };
+
+                var client = new MongoClient(settings);
 
                 Clients[key] = client;
 
