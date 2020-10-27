@@ -13,12 +13,27 @@ namespace Nyan.Core.Modules.Maintenance
 
         public static Dictionary<int, List<MaintenanceSchedule>> GetScheduledTasksByPriority() { return GetScheduledTasksByPriority(false); }
 
-        public static Dictionary<int, List<MaintenanceSchedule>> GetScheduledTasksByPriority(bool onlyLocal)
+        public static Dictionary<int, List<MaintenanceSchedule>> GetSubTasksByPriority(this Type parentMaintenanceType, bool onlyLocal = false)
+        {
+            return GetScheduledTasksByPriority(onlyLocal, parentMaintenanceType);
+        }
+
+        public static Dictionary<int, List<MaintenanceSchedule>> GetScheduledTasksByPriority(bool onlyLocal, Type parentMaintenanceType = null)
         {
             var ret = new Dictionary<int, List<MaintenanceSchedule>>();
+            List<MaintenanceSchedule> src = null;
 
-            var src = onlyLocal ? Schedule.Where(i => i.Source == Nyan.Core.Configuration.ApplicationAssemblyName).ToList() : Schedule;
+            src = onlyLocal ? Schedule.Where(i => i.Source == Configuration.ApplicationAssemblyName).ToList() : Schedule;
 
+            if (parentMaintenanceType != null)
+            {
+                var parentName = parentMaintenanceType.FullName;
+                src = src.Where(i => i.ParentTaskFullName == parentName).ToList();
+            }
+            else
+            {
+                src = src.Where(i => i.ParentTaskFullName == null).ToList();
+            }
 
             foreach (var ms in src)
             {
@@ -54,7 +69,8 @@ namespace Nyan.Core.Modules.Maintenance
                     Namespace = i.FullName,
                     Name = setup.Name,
                     Schedule = setup.ScheduleTimeSpan,
-                    Source = i.Assembly.GetName().Name
+                    Source = i.Assembly.GetName().Name,
+                    ParentTaskFullName =setup.ParentTask?.FullName
                 };
 
                 ret.Add(entry);

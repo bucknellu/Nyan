@@ -9,6 +9,7 @@ namespace Nyan.Core.Modules.Maintenance {
         public TimeSpan Schedule;
         public MaintenanceTaskSetupAttribute Setup;
         internal IMaintenanceTask Task;
+        public string ParentTaskFullName;
         public string Namespace { get; set; }
         public string Name { get; set; }
         public string Source { get; set; }

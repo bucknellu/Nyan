@@ -12,5 +12,6 @@ namespace Nyan.Core.Modules.Maintenance {
             get { return ScheduleTimeSpan.ToString(); }
             set { ScheduleTimeSpan = TimeSpan.Parse(value); }
         }
+        public Type ParentTask { get; set; }
     }
 }
