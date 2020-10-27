@@ -11,6 +11,73 @@ namespace Nyan.Core.Modules.Maintenance
 {
     public static class Factory
     {
+
+        public static void ProcessTask(this List<MaintenanceTaskResult> resultSet, MaintenanceSchedule maintenanceTask, bool force)
+        {
+            if (resultSet == null) resultSet = new List<MaintenanceTaskResult>();
+
+            var proc = new MaintenanceTaskResult { Id = maintenanceTask.Id };
+            var mustSkip = false;
+
+            if (!force)
+                if (!Instances.Handler.CanRun(maintenanceTask))
+                {
+                    proc.Status = MaintenanceTaskResult.EResultStatus.Skipped;
+                    proc.Message = "Skipped";
+                    mustSkip = true;
+                }
+
+            if (!mustSkip)
+            {
+                Current.Log.Add("START " + maintenanceTask.Name, Message.EContentType.Maintenance);
+
+                var sw = new Stopwatch();
+                sw.Start();
+
+                try
+                {
+                    proc = maintenanceTask.Task.MaintenanceTask(force);
+                    if (proc.Status == MaintenanceTaskResult.EResultStatus.Undefined) proc.Status = MaintenanceTaskResult.EResultStatus.Success;
+                    if (proc.Message == null) proc.Message = "SUCCESS";
+
+                    // Are there sub-tasks?
+                    var subTasks = Instances.GetSubTasksByPriority(maintenanceTask.Task.GetType(), false).ToList();
+
+                    if (subTasks.Count > 0)
+                    {
+
+                        Current.Log.Add($"    START: {subTasks.Count} subtasks", Message.EContentType.Maintenance);
+
+                        foreach (var st in subTasks)
+                        {
+                            foreach (var stPerPrio in st.Value)
+                            {
+                                resultSet.ProcessTask(stPerPrio, force);
+                            }
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    proc.Status = MaintenanceTaskResult.EResultStatus.Failed;
+                    proc.Message = $"ERROR: {e.Message} @ {e.FancyString()}";
+                }
+
+                proc.Id = maintenanceTask.Id;
+                proc.Priority = maintenanceTask.Priority;
+
+                sw.Stop();
+
+                proc.Duration = TimeSpan.FromMilliseconds(sw.ElapsedMilliseconds);
+            }
+
+            resultSet.Add(proc);
+
+            Instances.Handler.AfterRun(maintenanceTask, proc);
+
+
+        }
+
         public static IMaintenanceEventEntry DoMaintenance(bool force = false, bool saveLog = true) { return DoMaintenance(force, saveLog, false); }
 
         public static IMaintenanceEventEntry DoMaintenance(bool force, bool saveLog, bool onlyLocal = false)
@@ -47,47 +114,9 @@ namespace Nyan.Core.Modules.Maintenance
                         {
                             try
                             {
-                                var proc = new MaintenanceTaskResult { Id = maintenanceTask.Id };
-                                var mustSkip = false;
 
-                                if (!force)
-                                    if (!Instances.Handler.CanRun(maintenanceTask))
-                                    {
-                                        proc.Status = MaintenanceTaskResult.EResultStatus.Skipped;
-                                        proc.Message = "Skipped";
-                                        mustSkip = true;
-                                    }
+                                ret.ProcessTask(maintenanceTask, force);
 
-                                if (!mustSkip)
-                                {
-                                    Current.Log.Add("START " + maintenanceTask.Name, Message.EContentType.Maintenance);
-
-                                    var sw = new Stopwatch();
-                                    sw.Start();
-
-                                    try
-                                    {
-                                        proc = maintenanceTask.Task.MaintenanceTask(force);
-                                        if (proc.Status == MaintenanceTaskResult.EResultStatus.Undefined) proc.Status = MaintenanceTaskResult.EResultStatus.Success;
-                                        if (proc.Message == null) proc.Message = "SUCCESS";
-                                    }
-                                    catch (Exception e)
-                                    {
-                                        proc.Status = MaintenanceTaskResult.EResultStatus.Failed;
-                                        proc.Message = $"ERROR: {e.Message} @ {e.FancyString()}";
-                                    }
-
-                                    proc.Id = maintenanceTask.Id;
-                                    proc.Priority = maintenanceTask.Priority;
-
-                                    sw.Stop();
-
-                                    proc.Duration = TimeSpan.FromMilliseconds(sw.ElapsedMilliseconds);
-                                }
-
-                                ret.Add(proc);
-
-                                Instances.Handler.AfterRun(maintenanceTask, proc);
                             }
                             catch (Exception e)
                             {
