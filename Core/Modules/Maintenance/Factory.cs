@@ -52,7 +52,7 @@ namespace Nyan.Core.Modules.Maintenance
                         {
                             foreach (var stPerPrio in st.Value)
                             {
-                                resultSet.ProcessTask(stPerPrio, force);
+                                resultSet.ProcessTask(stPerPrio, true);
                             }
                         }
                     }
