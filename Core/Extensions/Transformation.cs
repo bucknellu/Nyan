@@ -7,14 +7,12 @@ using System.Drawing;
 using System.Dynamic;
 using System.Globalization;
 using System.Linq;
-using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
 using Newtonsoft.Json.Linq;
 using Nyan.Core.Factories;
-using Nyan.Core.Modules.Data;
 using Nyan.Core.Settings;
 
 namespace Nyan.Core.Extensions
@@ -261,6 +259,13 @@ namespace Nyan.Core.Extensions
 
                 return sBuilder.ToString();
             }
+        }
+
+        public static string TinyHash(this string input)
+        {
+            if (input == null) return null;
+
+            return Sha512Hash(input);
         }
 
         // https://stackoverflow.com/a/5665784/1845714
@@ -521,7 +526,7 @@ namespace Nyan.Core.Extensions
         public static ExpandoObject ToExpando(this object staticObject)
         {
             var expando = new ExpandoObject();
-            var dict = (IDictionary<string, object>) expando;
+            var dict = (IDictionary<string, object>)expando;
             var properties = staticObject.GetType().GetProperties();
 
             foreach (var property in properties) dict[property.Name] = property.GetValue(staticObject, null);
