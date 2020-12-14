@@ -137,8 +137,8 @@ namespace Nyan.Core.Modules.Data
             else
             {
                 var retCol = Statements.Adapter.useNumericPrimaryKeyOnly
-                    ? Query(Statements.SqlGetSingle, new {Id = Convert.ToInt32(identifier)})
-                    : Query(Statements.SqlGetSingle, new {Id = identifier});
+                    ? Query(Statements.SqlGetSingle, new { Id = Convert.ToInt32(identifier) })
+                    : Query(Statements.SqlGetSingle, new { Id = identifier });
 
                 ret = retCol.Count > 0 ? retCol[0] : null;
             }
@@ -192,12 +192,12 @@ namespace Nyan.Core.Modules.Data
 
             if (!TableData.UseCaching) return ret;
 
-            Parallel.ForEach(ret, new ParallelOptions {MaxDegreeOfParallelism = 10}, item =>
-            {
-                var id = item.GetEntityIdentifier();
-                //if (!IsCached(id))
-                Current.Cache[CacheKey(id)] = item.ToJson();
-            });
+            Parallel.ForEach(ret, new ParallelOptions { MaxDegreeOfParallelism = 10 }, item =>
+              {
+                  var id = item.GetEntityIdentifier();
+                  //if (!IsCached(id))
+                  Current.Cache[CacheKey(id)] = item.ToJson();
+              });
 
             return ret;
         }
@@ -214,6 +214,8 @@ namespace Nyan.Core.Modules.Data
 
             if (body == null) return null;
 
+
+
             var leftSideValue = ResolveExpression(body.Left);
             var rightSideValue = ResolveExpression(body.Right);
 
@@ -221,12 +223,19 @@ namespace Nyan.Core.Modules.Data
             // ReSharper disable once PossibleNullReferenceException
             queryParm.Add(leftSideValue.ToString(), rightSideValue);
 
-            var querySpec = ResolveNodeType(body.NodeType, leftSideValue,
-                                            Statements.Adapter.ParameterDefinition.ToString() + leftSideValue);
+            var querySpec = ResolveNodeType(body.NodeType, leftSideValue, Statements.Adapter.ParameterDefinition.ToString() + leftSideValue);
+            List<T> ret = null;
 
-            var q = string.Format(Statements.SqlAllFieldsQueryTemplate, querySpec.First());
+            if (Statements.Interceptor != null)
+            {
+                return Statements.Interceptor.Query<T>(null, queryParm);
+            }
+            else
+            {
+                var q = string.Format(Statements.SqlAllFieldsQueryTemplate, querySpec.First());
+                ret = Query(q, queryParm);
+            }
 
-            var ret = Query(q, queryParm);
             if (!TableData.UseCaching) return ret;
 
             //...but it populates the cache with all the individual results, saving time for future FETCHes.
@@ -294,32 +303,32 @@ namespace Nyan.Core.Modules.Data
             switch (nodeType)
             {
                 case ExpressionType.AndAlso:
-                    foreach (var leftSide in (IEnumerable<IOperator>) leftValue) yield return leftSide;
-                    foreach (var rightSide in (IEnumerable<IOperator>) rightValue) yield return rightSide;
+                    foreach (var leftSide in (IEnumerable<IOperator>)leftValue) yield return leftSide;
+                    foreach (var rightSide in (IEnumerable<IOperator>)rightValue) yield return rightSide;
                     break;
                 case ExpressionType.GreaterThan:
-                    yield return new SqlGreaterThan {FieldName = leftValue.ToString(), FieldValue = rightValue};
+                    yield return new SqlGreaterThan { FieldName = leftValue.ToString(), FieldValue = rightValue };
                     break;
                 case ExpressionType.GreaterThanOrEqual:
-                    yield return new SqlGreaterOrEqualThan {FieldName = leftValue.ToString(), FieldValue = rightValue};
+                    yield return new SqlGreaterOrEqualThan { FieldName = leftValue.ToString(), FieldValue = rightValue };
                     break;
                 case ExpressionType.LessThan:
-                    yield return new SqlLessThan {FieldName = leftValue.ToString(), FieldValue = rightValue};
+                    yield return new SqlLessThan { FieldName = leftValue.ToString(), FieldValue = rightValue };
                     break;
                 case ExpressionType.LessThanOrEqual:
-                    yield return new SqlLessOrEqualThan {FieldName = leftValue.ToString(), FieldValue = rightValue};
+                    yield return new SqlLessOrEqualThan { FieldName = leftValue.ToString(), FieldValue = rightValue };
                     break;
                 // TODO: Discuss later.
                 /* case ExpressionType.OrElse:
 yield return new Or { OperadoresInternos = new List<IOperator> { ((IEnumerable<IOperator>)leftValue).First(), ((IEnumerable<IOperator>)rightValue).First() } };
 break; */
                 case ExpressionType.NotEqual:
-                    if (rightValue != null) yield return new SqlNotEqual {FieldName = leftValue.ToString(), FieldValue = rightValue};
-                    else yield return new SqlNotNull {FieldName = leftValue.ToString()};
+                    if (rightValue != null) yield return new SqlNotEqual { FieldName = leftValue.ToString(), FieldValue = rightValue };
+                    else yield return new SqlNotNull { FieldName = leftValue.ToString() };
                     break;
                 default:
-                    if (rightValue != null) yield return new SqlEqual {FieldName = leftValue.ToString(), FieldValue = rightValue};
-                    else yield return new SqlNull {FieldName = leftValue.ToString()};
+                    if (rightValue != null) yield return new SqlEqual { FieldName = leftValue.ToString(), FieldValue = rightValue };
+                    else yield return new SqlNull { FieldName = leftValue.ToString() };
                     break;
             }
         }
@@ -350,7 +359,8 @@ break; */
                 try
                 {
                     if (current != null) current = beforeActionPipeline.Process(action, current, source);
-                } catch (Exception e) { Current.Log.Add(e); }
+                }
+                catch (Exception e) { Current.Log.Add(e); }
 
             return current;
         }
@@ -462,7 +472,7 @@ break; */
                         return vals.IndexOf(parm.QueryTerm.ToLower(), StringComparison.Ordinal) != -1;
                     }).ToList();
 
-                if (parm.PageSize != 0) tmp = tmp.Skip((int) (parm.PageIndex * parm.PageSize)).Take((int) parm.PageSize).ToList();
+                if (parm.PageSize != 0) tmp = tmp.Skip((int)(parm.PageIndex * parm.PageSize)).Take((int)parm.PageSize).ToList();
 
                 ret = tmp;
             }
@@ -471,7 +481,7 @@ break; */
 
             if (onGetMethod != null)
                 if (typeof(TU) == typeof(MicroEntity<>))
-                    Parallel.ForEach(ret, new ParallelOptions {MaxDegreeOfParallelism = 10}, delegate(TU i) { onGetMethod.Invoke(i, null); });
+                    Parallel.ForEach(ret, new ParallelOptions { MaxDegreeOfParallelism = 10 }, delegate (TU i) { onGetMethod.Invoke(i, null); });
 
             return ret;
         }
@@ -522,7 +532,7 @@ break; */
             rec.BeforeRemove();
 
             if (Statements.Interceptor != null) Statements.Interceptor.Remove<T>(identifier);
-            else Execute(Statements.SqlRemoveSingleParametrized, new {Id = identifier});
+            else Execute(Statements.SqlRemoveSingleParametrized, new { Id = identifier });
 
             rec.OnRemove();
 
@@ -596,9 +606,9 @@ break; */
 
                     res.Control = new ConcurrentDictionary<string, BulkOpResult.ControlEntry>();
 
-                    Parallel.ForEach(objs, new ParallelOptions {MaxDegreeOfParallelism = 5}, i =>
+                    Parallel.ForEach(objs, new ParallelOptions { MaxDegreeOfParallelism = 5 }, i =>
 
-                        //foreach (var i in objs)
+                    //foreach (var i in objs)
                     {
                         if (threadContextGuid != null) ThreadContext.Set("ServiceTokenGuid", threadContextGuid);
 
@@ -608,7 +618,7 @@ break; */
 
                         if (i.IsNew())
                         {
-                            res.Control[i.ToJson().Sha512Hash()] = new BulkOpResult.ControlEntry {Current = i, IsNew = true, Original = null};
+                            res.Control[i.ToJson().Sha512Hash()] = new BulkOpResult.ControlEntry { Current = i, IsNew = true, Original = null };
                             return;
                         }
 
@@ -620,7 +630,7 @@ break; */
                             return;
                         }
 
-                        res.Control[oId] = new BulkOpResult.ControlEntry {Current = i};
+                        res.Control[oId] = new BulkOpResult.ControlEntry { Current = i };
                     });
 
                     pre.End();
@@ -687,21 +697,21 @@ break; */
 
                     step = "post-processing individual objects";
 
-                    Parallel.ForEach(res.Control.Where(i => i.Value.Success), new ParallelOptions {MaxDegreeOfParallelism = 5}, rec =>
-                    {
-                        var id = rec.Key;
-                        post.Click();
+                    Parallel.ForEach(res.Control.Where(i => i.Value.Success), new ParallelOptions { MaxDegreeOfParallelism = 5 }, rec =>
+                      {
+                          var id = rec.Key;
+                          post.Click();
 
-                        if (threadContextGuid != null) ThreadContext.Set("ServiceTokenGuid", threadContextGuid);
+                          if (threadContextGuid != null) ThreadContext.Set("ServiceTokenGuid", threadContextGuid);
 
-                        rec.Value.Current.OnSave(id);
+                          rec.Value.Current.OnSave(id);
 
-                        if (rec.Value.IsNew) ProcAfterPipeline(Support.EAction.Insert, rec.Value.Current, null);
-                        else ProcAfterPipeline(Support.EAction.Update, rec.Value.Current, rec.Value.Original);
+                          if (rec.Value.IsNew) ProcAfterPipeline(Support.EAction.Insert, rec.Value.Current, null);
+                          else ProcAfterPipeline(Support.EAction.Update, rec.Value.Current, rec.Value.Original);
 
-                        if (!TableData.UseCaching) return;
-                        Current.Cache.Remove(CacheKey(id));
-                    });
+                          if (!TableData.UseCaching) return;
+                          Current.Cache.Remove(CacheKey(id));
+                      });
 
                     step = "preparing return package";
 
@@ -709,7 +719,8 @@ break; */
                     res.Failure = noProc;
 
                     return res;
-                } catch (Exception e)
+                }
+                catch (Exception e)
                 {
                     Current.Log.Add(e);
                     var ex = new Exception($"Error while {step}: {e.Message}", e);
@@ -841,7 +852,7 @@ break; */
             BeforeRemove();
 
             if (Statements.Interceptor != null) Statements.Interceptor.Remove(this);
-            else Execute(Statements.SqlRemoveSingleParametrized, new {id = GetEntityIdentifier()});
+            else Execute(Statements.SqlRemoveSingleParametrized, new { id = GetEntityIdentifier() });
 
             var cKey = typeof(T).FullName + ":" + GetEntityIdentifier();
             Current.Cache.Remove(cKey);
@@ -866,7 +877,7 @@ break; */
             var isNew = IsNew(ref oldRec);
 
             var rec = this;
-            rec = ProcBeforePipeline(isNew ? Support.EAction.Insert : Support.EAction.Update, (T) rec, oldRec);
+            rec = ProcBeforePipeline(isNew ? Support.EAction.Insert : Support.EAction.Update, (T)rec, oldRec);
 
             if (rec == null) return null;
 
@@ -905,7 +916,7 @@ break; */
             if (Statements.AfterActionPipeline.Count <= 0) return ret;
 
             rec = Get(ret);
-            ProcAfterPipeline(isNew ? Support.EAction.Insert : Support.EAction.Update, (T) rec, oldRec);
+            ProcAfterPipeline(isNew ? Support.EAction.Insert : Support.EAction.Update, (T)rec, oldRec);
 
             return ret;
         }
@@ -961,7 +972,7 @@ break; */
 
                 var o =
                     conn.Query(sqlStatement, null, null, false, null, CommandType.Text)
-                        .Select(a => (IDictionary<string, object>) a)
+                        .Select(a => (IDictionary<string, object>)a)
                         .ToList();
 
                 conn.Close();
@@ -991,7 +1002,7 @@ break; */
                         {
                             var probe = m.Read<object>();
                             var buffer = probe
-                                .Select(a => (IDictionary<string, object>) a)
+                                .Select(a => (IDictionary<string, object>)a)
                                 .Select(v => v.ToDictionary(v2 => v2.Key, v2 => v2.Value))
                                 .ToList();
                             res.Add(buffer);
@@ -1002,7 +1013,8 @@ break; */
 
                     return res;
                 }
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 LogWrap(e,
                         GetTypeName() +
@@ -1041,7 +1053,7 @@ break; */
                     conn.Open();
 
                     var o = conn.Query(sqlStatement, sqlParameters, null, false, null, pCommandType)
-                        .Select(a => (IDictionary<string, object>) a)
+                        .Select(a => (IDictionary<string, object>)a)
                         .ToList();
                     conn.Close();
 
@@ -1049,7 +1061,8 @@ break; */
 
                     return ret;
                 }
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 DumpQuery(sqlStatement, dbConn, sqlParameters, e);
                 throw new DataException(
@@ -1105,7 +1118,8 @@ break; */
                     conn.Execute(sqlStatement, sqlParameters, null, null, pCommandType);
                     conn.Close();
                 }
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 DumpQuery(sqlStatement, dbConn, sqlParameters, e);
 
@@ -1124,7 +1138,8 @@ break; */
                 {
                     var ret = conn.Query<string>(sqlStatement, null, null, true, null, CommandType.Text).First();
                     return ret;
-                } catch (Exception e)
+                }
+                catch (Exception e)
                 {
                     LogWrap(e);
                     throw;
@@ -1164,7 +1179,8 @@ break; */
 
                     return ret;
                 }
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 DumpQuery(sqlStatement, dbConn, sqlParameters, e);
 
@@ -1193,7 +1209,8 @@ break; */
                     foreach (var name in a)
                         try { result[name] = p.Get<dynamic>(name); } catch { result[name] = null; }
                 }
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 throw new DataException(
                     "Entity/Dapper Execute: Error while issuing statements to the database. " +
@@ -1253,7 +1270,8 @@ break; */
                     conn.Query<string>(sqlStatement, p, null, true, null, pCommandType);
                     return p.Get<object>("newid").ToString();
                 }
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 throw new DataException("Entity/Dapper Query/Get: Error while issuing statements to the database. "
                                         + "Error:  [" + e.Message + "]."
@@ -1284,16 +1302,16 @@ break; */
 
                     Statements.BeforeActionPipeline =
                         (from pipelineAttribute in ps
-                            from type in pipelineAttribute.Types
-                            where typeof(IBeforeActionPipeline).IsAssignableFrom(type)
-                            select (IBeforeActionPipeline) type.GetConstructor(new Type[] { }).Invoke(new object[] { }))
+                         from type in pipelineAttribute.Types
+                         where typeof(IBeforeActionPipeline).IsAssignableFrom(type)
+                         select (IBeforeActionPipeline)type.GetConstructor(new Type[] { }).Invoke(new object[] { }))
                         .ToList();
 
                     Statements.AfterActionPipeline =
                         (from pipelineAttribute in ps
-                            from type in pipelineAttribute.Types
-                            where typeof(IAfterActionPipeline).IsAssignableFrom(type)
-                            select (IAfterActionPipeline) type.GetConstructor(new Type[] { }).Invoke(new object[] { }))
+                         from type in pipelineAttribute.Types
+                         where typeof(IAfterActionPipeline).IsAssignableFrom(type)
+                         select (IAfterActionPipeline)type.GetConstructor(new Type[] { }).Invoke(new object[] { }))
                         .ToList();
 
                     if (Statements.BeforeActionPipeline.Count != 0) _status["data.BeforeActionPipeline"] = Statements.BeforeActionPipeline.Select(i => i.GetType().Name).Aggregate((i, j) => i + "," + j);
@@ -1334,27 +1352,27 @@ break; */
 
                     Statements.PropertyFieldMap =
                         (from pInfo in probeType.GetProperties()
-                            let p1 = pInfo.GetCustomAttributes(false).OfType<ColumnAttribute>().ToList()
-                            let fieldName = p1.Count != 0 ? p1[0].Name ?? pInfo.Name : pInfo.Name
-                            select new KeyValuePair<string, string>(pInfo.Name, fieldName))
+                         let p1 = pInfo.GetCustomAttributes(false).OfType<ColumnAttribute>().ToList()
+                         let fieldName = p1.Count != 0 ? p1[0].Name ?? pInfo.Name : pInfo.Name
+                         select new KeyValuePair<string, string>(pInfo.Name, fieldName))
                         .ToDictionary(x => x.Key, x => x.Value);
 
                     Statements.State.Step = "Setting up PropertyLengthMap";
 
                     Statements.PropertyLengthMap =
                         (from pInfo in probeType.GetProperties()
-                            let p1 = pInfo.GetCustomAttributes(false).OfType<ColumnAttribute>().ToList()
-                            let fieldLength = p1.Count != 0 ? (p1[0].Length != 0 ? p1[0].Length : 0) : 0
-                            select new KeyValuePair<string, long>(pInfo.Name, fieldLength))
+                         let p1 = pInfo.GetCustomAttributes(false).OfType<ColumnAttribute>().ToList()
+                         let fieldLength = p1.Count != 0 ? (p1[0].Length != 0 ? p1[0].Length : 0) : 0
+                         select new KeyValuePair<string, long>(pInfo.Name, fieldLength))
                         .ToDictionary(x => x.Key, x => x.Value);
 
                     Statements.State.Step = "Setting up PropertySerializationMap";
 
                     Statements.PropertySerializationMap =
                         (from pInfo in probeType.GetProperties()
-                            let p1 = pInfo.GetCustomAttributes(false).OfType<ColumnAttribute>().ToList()
-                            let isSerializable = p1.Count != 0 && p1[0].Serialized
-                            select new KeyValuePair<string, bool>(pInfo.Name, isSerializable))
+                         let p1 = pInfo.GetCustomAttributes(false).OfType<ColumnAttribute>().ToList()
+                         let isSerializable = p1.Count != 0 && p1[0].Serialized
+                         select new KeyValuePair<string, bool>(pInfo.Name, isSerializable))
                         .ToDictionary(x => x.Key, x => x.Value);
 
                     Statements.State.Step = "Setting up CredentialCypherKeys";
@@ -1366,14 +1384,14 @@ break; */
                     {
                         Statements.State.Step = "Setting up ConnectionCypherKeys";
 
-                        var refType = (ConnectionBundlePrimitive) Activator.CreateInstance(refBundle);
+                        var refType = (ConnectionBundlePrimitive)Activator.CreateInstance(refBundle);
 
                         Statements.Bundle = refType;
 
                         refType.ValidateDatabase();
                         _status["data.ConnectionBundle"] = refType.GetType().Name;
                         Statements.State.Step = "Transferring configuration settings from Bundle to Entity Statements";
-                        Statements.Adapter = (DataAdapterPrimitive) Activator.CreateInstance(refType.AdapterType);
+                        Statements.Adapter = (DataAdapterPrimitive)Activator.CreateInstance(refType.AdapterType);
                         Statements.ConnectionCypherKeys = refType.ConnectionCypherKeys;
                     }
                     else
@@ -1468,9 +1486,13 @@ break; */
                         OnEntityInitializationHook();
 
                         Statements.Interceptor?.Initialize<T>();
-                    } catch (Exception e)
+                    }
+                    catch (Exception e)
                     {
-                        var tmpWarn = typeof(T).FullName + " : Error while " + Statements.State.Step + " - " + e.Message;
+                        var tmpWarn = typeof(T).FullName + " : Error while " + Statements.State.Step + " - " + e.Message + " " +
+                            (TableData.ConnectionBundleType != null ? " | CBT " + TableData.ConnectionBundleType.Name : "") +
+                            (TableData.CredentialSetType != null ? " | CST " + TableData.CredentialSetType.Name : "") +
+                            " | " + Statements.ConnectionString.SafeArray("Data Source", "=", ";", Transformation.ESafeArrayMode.Allow);
                         LogWrap(tmpWarn, Message.EContentType.Warning);
                     }
 
@@ -1481,12 +1503,20 @@ break; */
                     LogLocal(_status.ToJson(), Message.EContentType.Info);
 
                     Statements.State.Status = MicroEntityCompiledStatements.EStatus.Operational;
-                } catch (Exception e)
+                }
+                catch (Exception e)
                 {
                     _status = _status.Where(i => !string.IsNullOrWhiteSpace(i.Value)).OrderBy(i => i.Key).ToDictionary(i => i.Key, i => i.Value);
 
                     Statements.State.Status = MicroEntityCompiledStatements.EStatus.CriticalFailure;
-                    Statements.State.Description = typeof(T).FullName + " : Error while " + Statements.State.Step + " - " + e.Message;
+
+                    var descr = e.Message + " " +
+                        (TableData.ConnectionBundleType != null ? " | CBT " + TableData.ConnectionBundleType.Name : "") +
+                            (TableData.CredentialSetType != null ? " | CST " + TableData.CredentialSetType.Name : "") +
+                            " | " + Statements.ConnectionString.SafeArray("Data Source", "=", ";", Transformation.ESafeArrayMode.Allow);
+
+
+                    Statements.State.Description = descr;
                     Statements.State.Stack = new StackTrace(e, true).FancyString();
 
                     Log.System.Add(Statements.State.Description);
@@ -1555,7 +1585,7 @@ break; */
             get
             {
                 var atts = Attribute.GetCustomAttributes(typeof(T), typeof(MicroEntityEnvironmentMappingAttribute))
-                    .Select(i => (MicroEntityEnvironmentMappingAttribute) i)
+                    .Select(i => (MicroEntityEnvironmentMappingAttribute)i)
                     .ToList();
 
                 if (atts.Count <= 0) return new Dictionary<string, string>();
@@ -1602,7 +1632,8 @@ break; */
             {
                 LogLocal("Configuration changed", Message.EContentType.Maintenance);
                 Statements.Adapter.SetConnectionString<T>();
-            } catch (Exception e) { LogWrap(e); }
+            }
+            catch (Exception e) { LogWrap(e); }
         }
 
         // ReSharper disable once StaticFieldInGenericType
