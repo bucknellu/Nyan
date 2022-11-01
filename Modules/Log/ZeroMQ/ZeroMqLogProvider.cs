@@ -40,7 +40,7 @@ namespace Nyan.Modules.Log.ZeroMQ
             UseScheduler = true;
         }
 
-        public override void Dispatch(Message payload)
+        public override bool Dispatch(Message payload)
         {
             if (Environment.UserInteractive)
             {
@@ -51,6 +51,8 @@ namespace Nyan.Modules.Log.ZeroMQ
             try { beforeSend(payload); } catch (Exception e) { Core.Settings.Current.Log.Add(e); }
 
             _out.Send(payload);
+
+            return true;
         }
 
         public virtual void beforeSend(Message payload) { }
