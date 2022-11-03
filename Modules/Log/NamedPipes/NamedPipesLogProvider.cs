@@ -55,7 +55,7 @@ namespace Nyan.Modules.Log.NamedPipes
             }
         }
 
-        public override void Dispatch(Message payload)
+        public override bool Dispatch(Message payload)
         {
             if (Environment.UserInteractive)
             {
@@ -68,6 +68,7 @@ namespace Nyan.Modules.Log.NamedPipes
             _out.PushMessage(transformedPayload);
 
             //there is more than 1 server present
+            return true;
         }
 
         public override void StartListening()
