@@ -190,8 +190,7 @@ namespace Nyan.Modules.Web.Tools.Metadata
             return RetrieveCache(keyBag);
         }
 
-        public virtual void Put(string pPath, object pValue, string pKey = null, bool preventStorage = false,
-            Dictionary<string, object> payload = null)
+        public virtual void Put(string pPath, object pValue, string pKey = null, bool preventStorage = false, Dictionary<string, object> payload = null)
         {
             var keyBag = new KeyBag
             {
@@ -206,11 +205,19 @@ namespace Nyan.Modules.Web.Tools.Metadata
         {
             try
             {
+                if (string.IsNullOrEmpty(pPath) || keyBag == null )
+                    return;
+
                 pPath = pPath.Trim().ToLower();
 
                 if (!preventStorage) if (!Store(pPath, pValue, keyBag)) return;
 
-                var dk = keyBag[this].DefaultKey;
+                var kbItem = keyBag[this];
+
+                if(kbItem == null)
+                    return;
+
+                var dk = kbItem.DefaultKey;
 
                 if (dk == null)
                 {
@@ -219,9 +226,6 @@ namespace Nyan.Modules.Web.Tools.Metadata
                 }
 
                 RebuildFromFetch(keyBag);
-
-                //var cacheKey = CacheKey(pKey, payload);
-                //Current.Cache.Remove(cacheKey);
             }
             catch (Exception e)
             {

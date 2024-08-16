@@ -37,7 +37,7 @@ namespace Nyan.Modules.Data.Oracle
                 case DbGenericType.DateTime:
                     return DbType.DateTime;
                 case DbGenericType.LargeObject:
-                    return DbType.Object;
+                    return DbType.Binary;
                 default:
                     return DbType.String;
             }

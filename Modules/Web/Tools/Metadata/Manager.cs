@@ -88,6 +88,8 @@ namespace Nyan.Modules.Web.Tools.Metadata
 
         public void Set(string pPath, object pValue, string scope, string pKey = null, bool preventStorage = false, Dictionary<string, object> payload = null)
         {
+            // TODO: check pKey, pPath, pValue, scope for null?
+
             if (payload != null)
             {
                 var keyBag = new MetadataProviderPrimitive.KeyBag {payload = payload, Key = pKey};

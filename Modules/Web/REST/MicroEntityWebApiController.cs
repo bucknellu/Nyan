@@ -234,9 +234,11 @@ namespace Nyan.Modules.Web.REST
             } catch (Exception e)
             {
                 sw.Stop();
-                Current.Log.Add(
-                    "POST " + typeof(T).FullName + " ERR (" + sw.ElapsedMilliseconds + " ms): " + e.Message, e);
-                return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e);
+                Current.Log.Add("POST " + typeof(T).FullName + " ERR (" + sw.ElapsedMilliseconds + " ms): " + e.Message, e);
+
+                var errorType = e is UnauthorizedAccessException ? HttpStatusCode.Unauthorized : HttpStatusCode.InternalServerError;
+
+                return Request.CreateErrorResponse(errorType, e);
             }
         }
 
@@ -312,7 +314,16 @@ namespace Nyan.Modules.Web.REST
         [Route("subset"), HttpPost]
         public virtual HttpResponseMessage WebApiGetSetByPost()
         {
-            var idset = Request.Content.ReadAsStringAsync().Result;
+            var content = Request.Content;
+
+            if(content == null)
+                return new HttpResponseMessage(HttpStatusCode.BadRequest);
+
+            var idset = content.ReadAsStringAsync().Result;
+
+            if(string.IsNullOrEmpty(idset))
+                return new HttpResponseMessage(HttpStatusCode.BadRequest);
+
             return ControllerHelper.RenderJsonResult(InternalGetSet(idset));
         }
 
